@@ -6,7 +6,6 @@ import (
 	"log"
 	"github.com/s-gv/orangeforum/models"
 	"flag"
-	"fmt"
 )
 
 func main() {
@@ -16,12 +15,13 @@ func main() {
 
 	flag.Parse()
 
+	models.Init(*dbDriverPtr, *dbSourceName)
+
+
 	if(*shouldMigrate) {
-		fmt.Printf("Migrating DB to version code %d...\n", models.DbVer)
+		models.Migrate()
 		return
 	}
-
-	models.Init(*dbDriverPtr, *dbSourceName)
 
 	http.HandleFunc("/", views.IndexHandler)
 
