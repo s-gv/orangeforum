@@ -40,7 +40,7 @@ func exec(name string, query string, args ...interface{}) error {
 		return err
 	}
 	if _, err := stmt.Exec(args...); err != nil {
-		log.Println("[ERROR]", err)
+		log.Println("[ERROR] Error executing", name, err)
 		return err
 	}
 	return nil
