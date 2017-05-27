@@ -2,15 +2,17 @@ package main
 
 import (
 	"net/http"
-	"io"
+	"github.com/s-gv/orangeforum/templates"
 )
 
 func hello(w http.ResponseWriter, r *http.Request) {
-	io.WriteString(w, "Hello world!")
+	templates.Render(w, "index.html", map[string]interface{}{
+		"Title": "Orange Forum",
+	})
 }
 
 func main() {
 	println("Starting orange forum...")
 	http.HandleFunc("/", hello)
-	http.ListenAndServe(":8000", nil)
+	http.ListenAndServe(":9123", nil)
 }
