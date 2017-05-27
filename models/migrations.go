@@ -14,9 +14,9 @@ func RunMigrationZero() {
 func Migrate(driverName string, dataSourceName string) error {
 	dbver := DBVersion()
 	if dbver > ModelVersion {
-		return DBVerAhead
+		return ErrDBVerAhead
 	} else if dbver == ModelVersion {
-		return DBMigrationNotNeeded
+		return ErrDBMigrationNotNeeded
 	}
 
 	for dbver < ModelVersion {
