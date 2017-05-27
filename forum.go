@@ -15,12 +15,19 @@ func main() {
 
 	flag.Parse()
 
-	models.Init(*dbDriverPtr, *dbSourceName)
+	if *shouldMigrate {
+		err := models.Migrate(*dbDriverPtr, *dbSourceName)
+		if err != nil {
+			log.Fatal("[ERROR] ", err)
 
-
-	if(*shouldMigrate) {
-		models.Migrate()
+		}
+		log.Println("[INFO] DB migration successful.")
 		return
+	}
+
+	err := models.Init(*dbDriverPtr, *dbSourceName)
+	if(err != nil) {
+		log.Fatal("[ERROR] ", err)
 	}
 
 	http.HandleFunc("/", views.IndexHandler)
