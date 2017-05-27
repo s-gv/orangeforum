@@ -1,7 +1,6 @@
 package models
 
 import (
-	"database/sql"
 	"log"
 )
 
@@ -13,12 +12,6 @@ func RunMigrationZero() {
 }
 
 func Migrate(driverName string, dataSourceName string) error {
-	mydb, err := sql.Open(driverName, dataSourceName)
-	if err != nil {
-		panic(err)
-	}
-	db = mydb
-
 	dbver := DBVersion()
 	if dbver > ModelVersion {
 		return DBVerAhead
@@ -33,7 +26,7 @@ func Migrate(driverName string, dataSourceName string) error {
 		}
 		newDBVer := DBVersion()
 		if newDBVer != dbver + 1 {
-			log.Fatal("Migration failed", dbver)
+			log.Fatal("Migration failed ", dbver)
 		}
 		dbver = newDBVer
 	}

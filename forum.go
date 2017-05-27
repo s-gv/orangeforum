@@ -15,6 +15,7 @@ func main() {
 
 	flag.Parse()
 
+	err := models.Init(*dbDriverPtr, *dbSourceName)
 	if *shouldMigrate {
 		err := models.Migrate(*dbDriverPtr, *dbSourceName)
 		if err != nil {
@@ -24,8 +25,6 @@ func main() {
 		log.Println("[INFO] DB migration successful.")
 		return
 	}
-
-	err := models.Init(*dbDriverPtr, *dbSourceName)
 	if(err != nil) {
 		log.Fatal("[ERROR] ", err)
 	}
