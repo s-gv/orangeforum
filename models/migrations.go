@@ -12,9 +12,7 @@ var ErrDBMigrationNotNeeded = errors.New("DB version is up-to-date.")
 var ErrDBVerAhead = errors.New("DB written by a newer version.")
 
 func RunMigrationZero() {
-	db.Exec(`CREATE TABLE config(key TEXT, val TEXT);`)
-	db.Exec(`CREATE UNIQUE INDEX key_index on config(key);`)
-
+	createConfigTable()
 	WriteConfig("version", "1")
 }
 
@@ -37,12 +35,6 @@ func Migrate() error {
 		}
 		dbver = newDBVer
 	}
-
-
-
-
-
-
 	return nil
 }
 

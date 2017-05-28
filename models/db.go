@@ -48,6 +48,11 @@ func exec(name string, query string, args ...interface{}) error {
 	return nil
 }
 
+func createConfigTable() {
+	db.Exec(`CREATE TABLE config(key TEXT, val TEXT);`)
+	db.Exec(`CREATE UNIQUE INDEX key_index on config(key);`)
+}
+
 
 func DBVersion() int {
 	if val, err := strconv.Atoi(Config("version", "0")); err == nil {
