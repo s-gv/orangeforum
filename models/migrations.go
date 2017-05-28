@@ -37,6 +37,12 @@ func Migrate() error {
 		}
 		dbver = newDBVer
 	}
+
+
+
+
+
+
 	return nil
 }
 

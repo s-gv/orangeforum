@@ -5,6 +5,8 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	"strconv"
 	"log"
+	"time"
+	"fmt"
 )
 
 var db *sql.DB
@@ -78,10 +80,22 @@ func Init(driverName string, dataSourceName string) error {
 	}
 	db = mydb
 	db.Exec("PRAGMA journal_mode = WAL;")
+	db.Exec("PRAGMA synchronous = FULL;")
 
 	dbver := DBVersion()
 	if dbver < ModelVersion {
 		return ErrDBVer
 	}
 	return nil
+}
+
+func Benchmark() {
+	start := time.Now()
+	for i := 0; i < 1000; i++ {
+		WriteConfig("version", "3")
+	}
+	elapsed := time.Since(start)
+	WriteConfig("version", "2")
+	println("Test val:", Config("version", "0"))
+	fmt.Printf("time: %s\n", elapsed)
 }

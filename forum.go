@@ -10,6 +10,7 @@ import (
 
 func main() {
 	shouldMigrate := flag.Bool("migrate", false, "Migrate DB to the current version (default: false)")
+	benchmark := flag.Bool("benchmark", false, "Run the benchmark")
 	dbFileName := flag.String("dbname", "orangeforum.db", "Database file path (default: orangeforum.db)")
 
 	flag.Parse()
@@ -26,6 +27,11 @@ func main() {
 	}
 	if err != nil {
 		log.Fatal("[ERROR] ", err)
+	}
+
+	if *benchmark {
+		models.Benchmark()
+		return
 	}
 
 	http.HandleFunc("/", views.IndexHandler)
