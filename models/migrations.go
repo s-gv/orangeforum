@@ -11,10 +11,6 @@ var ErrDBVer = errors.New("DB version not up-to-date. Migration needed.")
 var ErrDBMigrationNotNeeded = errors.New("DB version is up-to-date.")
 var ErrDBVerAhead = errors.New("DB written by a newer version.")
 
-func RunMigrationZero() {
-	createConfigTable()
-	WriteConfig("version", "1")
-}
 
 func Migrate() error {
 	dbver := DBVersion()
@@ -27,7 +23,7 @@ func Migrate() error {
 	for dbver < ModelVersion {
 		switch dbver {
 		case 0:
-			RunMigrationZero()
+			runMigrationZero()
 		}
 		newDBVer := DBVersion()
 		if newDBVer != dbver + 1 {

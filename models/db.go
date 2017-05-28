@@ -48,9 +48,40 @@ func exec(name string, query string, args ...interface{}) error {
 	return nil
 }
 
-func createConfigTable() {
+func runMigrationZero() {
 	db.Exec(`CREATE TABLE config(key TEXT, val TEXT);`)
 	db.Exec(`CREATE UNIQUE INDEX key_index on config(key);`)
+
+	db.Exec(`CREATE TABLE user(
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+		       		username TEXT NOT NULL,
+		       		passwdhash TEXT,
+		       		email TEXT,
+		       		about TEXT,
+		       		karma INTEGER,
+		       		is_banned BOOLEAN,
+		       		is_warned BOOLEAN,
+		       		is_admin BOOLEAN,
+		       		created_date INTEGER,
+		       		updated_date INTEGER
+	);`)
+
+	db.Exec(`CREATE TABLE subforum(
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+		       		name TEXT,
+		       		desc TEXT,
+		       		created_date INTEGER,
+		       		updated_date INTEGER
+	);`)
+
+	db.Exec(`CREATE TABLE mod(
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+		       		user_id INTEGER,
+		       		subforum_id INTEGER,
+		       		created_date INTEGER
+	);`)
+
+	WriteConfig("version", "1")
 }
 
 
