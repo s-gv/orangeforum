@@ -12,11 +12,13 @@ var ErrDBMigrationNotNeeded = errors.New("DB version is up-to-date.")
 var ErrDBVerAhead = errors.New("DB written by a newer version.")
 
 func RunMigrationZero() {
-	createConfigTable()
+	db.Exec(`CREATE TABLE config(key TEXT, val TEXT);`)
+	db.Exec(`CREATE UNIQUE INDEX key_index on config(key);`)
+
 	WriteConfig("version", "1")
 }
 
-func Migrate(driverName string, dataSourceName string) error {
+func Migrate() error {
 	dbver := DBVersion()
 	if dbver > ModelVersion {
 		return ErrDBVerAhead

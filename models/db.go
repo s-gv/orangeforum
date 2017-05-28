@@ -46,14 +46,6 @@ func exec(name string, query string, args ...interface{}) error {
 	return nil
 }
 
-func createConfigTable() {
-	db.Exec(`CREATE TABLE config(key TEXT UNIQUE, val TEXT)`)
-
-}
-
-func createUsersTable() {
-
-}
 
 func DBVersion() int {
 	if val, err := strconv.Atoi(Config("version", "0")); err == nil {
@@ -63,13 +55,13 @@ func DBVersion() int {
 
 }
 
-func WriteConfig(key string, val string) {
-	exec("WriteConfig", `INSERT OR REPLACE INTO config(key, val) values(?, ?)`, key, val)
+func WriteConfig(key string, val string) error {
+	return exec("WriteConfig", `INSERT OR REPLACE INTO config(key, val) values(?, ?);`, key, val)
 }
 
 
 func Config(key string, defaultVal string) string {
-	row, err := queryRow("Config", `SELECT val FROM config WHERE key=?`, "version")
+	row, err := queryRow("Config", `SELECT val FROM config WHERE key=?;`, "version")
 	if err == nil {
 		var val string
 		if err := row.Scan(&val); err == nil {
@@ -77,4 +69,19 @@ func Config(key string, defaultVal string) string {
 		}
 	}
 	return defaultVal
+}
+
+func Init(driverName string, dataSourceName string) error {
+	mydb, err := sql.Open(driverName, dataSourceName)
+	if err != nil {
+		panic(err)
+	}
+	db = mydb
+	db.Exec("PRAGMA journal_mode = WAL;")
+
+	dbver := DBVersion()
+	if dbver < ModelVersion {
+		return ErrDBVer
+	}
+	return nil
 }

@@ -10,14 +10,13 @@ import (
 
 func main() {
 	shouldMigrate := flag.Bool("migrate", false, "Migrate DB to the current version (default: false)")
-	dbDriverPtr := flag.String("dbdriver", "sqlite3", "Database driver name. Choose between sqlite3 and postgres (default: sqlite3)")
-	dbSourceName := flag.String("dbsource", "orangeforum.db", "Database source name. For sqlite3, specify file path (default: orangeforum.db)")
+	dbFileName := flag.String("dbname", "orangeforum.db", "Database file path (default: orangeforum.db)")
 
 	flag.Parse()
 
-	err := models.Init(*dbDriverPtr, *dbSourceName)
+	err := models.Init("sqlite3", *dbFileName)
 	if *shouldMigrate {
-		err := models.Migrate(*dbDriverPtr, *dbSourceName)
+		err := models.Migrate()
 		if err != nil {
 			log.Fatal("[ERROR] ", err)
 
@@ -25,7 +24,7 @@ func main() {
 		log.Println("[INFO] DB migration successful.")
 		return
 	}
-	if(err != nil) {
+	if err != nil {
 		log.Fatal("[ERROR] ", err)
 	}
 
