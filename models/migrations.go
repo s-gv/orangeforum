@@ -2,9 +2,14 @@ package models
 
 import (
 	"log"
+	"errors"
 )
 
 const ModelVersion = 1
+
+var ErrDBVer = errors.New("DB version not up-to-date. Migration needed.")
+var ErrDBMigrationNotNeeded = errors.New("DB version is up-to-date.")
+var ErrDBVerAhead = errors.New("DB written by a newer version.")
 
 func RunMigrationZero() {
 	createConfigTable()

@@ -47,7 +47,11 @@ func exec(name string, query string, args ...interface{}) error {
 }
 
 func createConfigTable() {
-	db.Exec(`CREATE TABLE config(key TEXT NOT NULL, val TEXT)`)
+	db.Exec(`CREATE TABLE config(key TEXT UNIQUE, val TEXT)`)
+
+}
+
+func createUsersTable() {
 
 }
 
@@ -59,9 +63,8 @@ func DBVersion() int {
 
 }
 
-
 func WriteConfig(key string, val string) {
-	exec("WriteConfig", `INSERT INTO config(key, val) values(?, ?)`, key, val)
+	exec("WriteConfig", `INSERT OR REPLACE INTO config(key, val) values(?, ?)`, key, val)
 }
 
 
