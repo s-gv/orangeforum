@@ -60,6 +60,7 @@ type Comment struct {
 	TopicID int
 	ParentID int
 	IsDeleted bool
+	IsSticky bool
 	Upvotes int
 	Downvotes int
 	Flagvotes int
