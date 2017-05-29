@@ -49,10 +49,10 @@ func exec(name string, query string, args ...interface{}) error {
 }
 
 func runMigrationZero() {
-	db.Exec(`CREATE TABLE config(key TEXT, val TEXT);`)
-	db.Exec(`CREATE UNIQUE INDEX key_index on config(key);`)
+	if _, err := db.Exec(`CREATE TABLE config(key TEXT, val TEXT);`); err != nil { panic(err) }
+	if _, err := db.Exec(`CREATE UNIQUE INDEX key_index on config(key);`); err != nil { panic(err) }
 
-	db.Exec(`CREATE TABLE user(
+	if _, err := db.Exec(`CREATE TABLE user(
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
 		       		username TEXT NOT NULL,
 		       		passwdhash TEXT,
@@ -64,22 +64,65 @@ func runMigrationZero() {
 		       		is_admin BOOLEAN,
 		       		created_date INTEGER,
 		       		updated_date INTEGER
-	);`)
+	);`); err != nil { panic(err) }
 
-	db.Exec(`CREATE TABLE subforum(
+	if _, err := db.Exec(`CREATE TABLE subforum(
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
 		       		name TEXT,
 		       		desc TEXT,
 		       		created_date INTEGER,
 		       		updated_date INTEGER
-	);`)
+	);`); err != nil { panic(err) }
 
-	db.Exec(`CREATE TABLE mod(
+	if _, err := db.Exec(`CREATE TABLE mod(
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
-		       		user_id INTEGER,
-		       		subforum_id INTEGER,
+		       		userid INTEGER REFERENCES user(id) ON DELETE CASCADE,
+		       		subforumid INTEGER REFERENCES subforum(id) ON DELETE CASCADE,
 		       		created_date INTEGER
-	);`)
+	);`); err != nil { panic(err) }
+
+	if _, err := db.Exec(`CREATE TABLE topic(
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				content TEXT,
+				authorid INTEGER REFERENCES user(id) ON DELETE CASCADE,
+				subforumid INTEGER REFERENCES subforum(id) ON DELETE CASCADE,
+				is_deleted BOOLEAN,
+				upvotes INTEGER,
+				downvotes INTEGER,
+				flagvotes INTEGER,
+				created_date INTEGER,
+				updated_date INTEGER
+	);`); err != nil { panic(err) }
+
+	if _, err := db.Exec(`CREATE TABLE comment(
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				content TEXT,
+				authorid INTEGER REFERENCES user(id) ON DELETE CASCADE,
+				topicid INTEGER REFERENCES topic(id) ON DELETE CASCADE,
+				parentid INTEGER REFERENCES comment(id) ON DELETE CASCADE,
+				is_deleted TEXT,
+				upvotes INTEGER,
+				downvotes INTEGER,
+				flagvotes INTEGER,
+				created_date INTEGER,
+				updated_date INTEGER
+	);`); err != nil { panic(err) }
+
+	if _, err := db.Exec(`CREATE TABLE topicvote(
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				authorid INTEGER REFERENCES user(id) ON DELETE CASCADE,
+				topicid INTEGER REFERENCES topic(id) ON DELETE CASCADE,
+				votetype INTEGER,
+				created_date INTEGER
+	);`); err != nil { panic(err) }
+
+	if _, err := db.Exec(`CREATE TABLE commentvote(
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				authorid INTEGER REFERENCES user(id) ON DELETE CASCADE,
+				commentid INTEGER REFERENCES comment(id) ON DELETE CASCADE,
+				votetype INTEGER,
+				created_date INTEGER
+	);`); err != nil { panic(err) }
 
 	WriteConfig("version", "1")
 }
@@ -117,6 +160,7 @@ func Init(driverName string, dataSourceName string) error {
 	db = mydb
 	db.Exec("PRAGMA journal_mode = WAL;")
 	db.Exec("PRAGMA synchronous = FULL;")
+	db.Exec("PRAGMA foreign_keys = ON;")
 
 	dbver := DBVersion()
 	if dbver < ModelVersion {

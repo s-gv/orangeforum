@@ -40,7 +40,9 @@ type Mod struct {
 type Topic struct {
 	ID int
 	Content string
+	AuthorID int
 	SubForumID int
+	IsDeleted bool
 	Upvotes int
 	Downvotes int
 	Flagvotes int
@@ -54,6 +56,7 @@ type Comment struct {
 	AuthorID int
 	TopicID int
 	ParentID int
+	IsDeleted bool
 	Upvotes int
 	Downvotes int
 	Flagvotes int
