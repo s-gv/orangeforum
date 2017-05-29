@@ -18,11 +18,12 @@ type User struct {
 	IsBanned bool
 	IsWarned bool
 	IsAdmin bool
+	IsSuperMod bool
 	CreatedDate time.Time
 	UpdatedDate time.Time
 }
 
-type SubForum struct {
+type Category struct {
 	ID int
 	Name string
 	Desc string
@@ -33,7 +34,7 @@ type SubForum struct {
 type Mod struct {
 	ID int
 	UserID int
-	SubforumID int
+	CategoryID int
 	CreatedDate time.Time
 }
 
@@ -41,7 +42,7 @@ type Topic struct {
 	ID int
 	Content string
 	AuthorID int
-	SubForumID int
+	CategoryID int
 	IsDeleted bool
 	Upvotes int
 	Downvotes int

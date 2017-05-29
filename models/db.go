@@ -63,6 +63,7 @@ func runMigrationZero() {
 		       		is_banned BOOLEAN,
 		       		is_warned BOOLEAN,
 		       		is_admin BOOLEAN,
+				is_supermod BOOLEAN,
 		       		created_date INTEGER,
 		       		updated_date INTEGER
 	);`); err != nil { panic(err) }
@@ -70,7 +71,7 @@ func runMigrationZero() {
 	if _, err := db.Exec(`CREATE INDEX email_index on user(email);`); err != nil { panic(err) }
 
 
-	if _, err := db.Exec(`CREATE TABLE subforum(
+	if _, err := db.Exec(`CREATE TABLE category(
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
 		       		name TEXT,
 		       		desc TEXT,
@@ -82,18 +83,18 @@ func runMigrationZero() {
 	if _, err := db.Exec(`CREATE TABLE mod(
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
 		       		userid INTEGER REFERENCES user(id) ON DELETE CASCADE,
-		       		subforumid INTEGER REFERENCES subforum(id) ON DELETE CASCADE,
+				categoryid INTEGER REFERENCES category(id) ON DELETE CASCADE,
 		       		created_date INTEGER
 	);`); err != nil { panic(err) }
 	if _, err := db.Exec(`CREATE INDEX mod_userid_index on mod(userid);`); err != nil { panic(err) }
-	if _, err := db.Exec(`CREATE INDEX mod_subforumid_index on mod(subforumid);`); err != nil { panic(err) }
+	if _, err := db.Exec(`CREATE INDEX mod_categoryid_index on mod(categoryid);`); err != nil { panic(err) }
 
 
 	if _, err := db.Exec(`CREATE TABLE topic(
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
 				content TEXT,
 				authorid INTEGER REFERENCES user(id) ON DELETE CASCADE,
-				subforumid INTEGER REFERENCES subforum(id) ON DELETE CASCADE,
+				categoryid INTEGER REFERENCES category(id) ON DELETE SET NULL,
 				is_deleted BOOLEAN,
 				upvotes INTEGER,
 				downvotes INTEGER,
@@ -102,7 +103,7 @@ func runMigrationZero() {
 				updated_date INTEGER
 	);`); err != nil { panic(err) }
 	if _, err := db.Exec(`CREATE INDEX topic_authorid_index on topic(authorid);`); err != nil { panic(err) }
-	if _, err := db.Exec(`CREATE INDEX topic_subforumid_index on topic(subforumid);`); err != nil { panic(err) }
+	if _, err := db.Exec(`CREATE INDEX topic_categoryid_index on topic(categoryid);`); err != nil { panic(err) }
 
 
 	if _, err := db.Exec(`CREATE TABLE comment(
