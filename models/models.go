@@ -66,7 +66,7 @@ type Comment struct {
 
 type TopicVote struct {
 	ID int
-	AuthorID int
+	UserID int
 	TopicID int
 	VoteType int
 	CreatedDate time.Time
@@ -74,8 +74,17 @@ type TopicVote struct {
 
 type CommentVote struct {
 	ID int
-	AuthorID int
+	UserID int
 	CommentID int
 	VoteType int
 	CreatedDate time.Time
+}
+
+type Session struct {
+	ID int
+	SessionID int
+	UserID int
+	Data string
+	CreatedDate time.Time
+	UpdateDate time.Time
 }

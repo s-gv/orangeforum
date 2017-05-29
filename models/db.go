@@ -52,6 +52,7 @@ func runMigrationZero() {
 	if _, err := db.Exec(`CREATE TABLE config(key TEXT, val TEXT);`); err != nil { panic(err) }
 	if _, err := db.Exec(`CREATE UNIQUE INDEX key_index on config(key);`); err != nil { panic(err) }
 
+
 	if _, err := db.Exec(`CREATE TABLE user(
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
 		       		username TEXT NOT NULL,
@@ -65,6 +66,9 @@ func runMigrationZero() {
 		       		created_date INTEGER,
 		       		updated_date INTEGER
 	);`); err != nil { panic(err) }
+	if _, err := db.Exec(`CREATE UNIQUE INDEX username_index on user(username);`); err != nil { panic(err) }
+	if _, err := db.Exec(`CREATE INDEX email_index on user(email);`); err != nil { panic(err) }
+
 
 	if _, err := db.Exec(`CREATE TABLE subforum(
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -74,12 +78,16 @@ func runMigrationZero() {
 		       		updated_date INTEGER
 	);`); err != nil { panic(err) }
 
+
 	if _, err := db.Exec(`CREATE TABLE mod(
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
 		       		userid INTEGER REFERENCES user(id) ON DELETE CASCADE,
 		       		subforumid INTEGER REFERENCES subforum(id) ON DELETE CASCADE,
 		       		created_date INTEGER
 	);`); err != nil { panic(err) }
+	if _, err := db.Exec(`CREATE INDEX mod_userid_index on mod(userid);`); err != nil { panic(err) }
+	if _, err := db.Exec(`CREATE INDEX mod_subforumid_index on mod(subforumid);`); err != nil { panic(err) }
+
 
 	if _, err := db.Exec(`CREATE TABLE topic(
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -93,6 +101,9 @@ func runMigrationZero() {
 				created_date INTEGER,
 				updated_date INTEGER
 	);`); err != nil { panic(err) }
+	if _, err := db.Exec(`CREATE INDEX topic_authorid_index on topic(authorid);`); err != nil { panic(err) }
+	if _, err := db.Exec(`CREATE INDEX topic_subforumid_index on topic(subforumid);`); err != nil { panic(err) }
+
 
 	if _, err := db.Exec(`CREATE TABLE comment(
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -107,23 +118,44 @@ func runMigrationZero() {
 				created_date INTEGER,
 				updated_date INTEGER
 	);`); err != nil { panic(err) }
+	if _, err := db.Exec(`CREATE INDEX comment_authorid_index on comment(authorid);`); err != nil { panic(err) }
+	if _, err := db.Exec(`CREATE INDEX comment_topicid_index on comment(topicid);`); err != nil { panic(err) }
+	if _, err := db.Exec(`CREATE INDEX comment_parentid_index on comment(parentid);`); err != nil { panic(err) }
+
 
 	if _, err := db.Exec(`CREATE TABLE topicvote(
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
-				authorid INTEGER REFERENCES user(id) ON DELETE CASCADE,
+				userid INTEGER REFERENCES user(id) ON DELETE CASCADE,
 				topicid INTEGER REFERENCES topic(id) ON DELETE CASCADE,
 				votetype INTEGER,
 				created_date INTEGER
 	);`); err != nil { panic(err) }
+	if _, err := db.Exec(`CREATE INDEX topicvote_userid_index on topicvote(userid);`); err != nil { panic(err) }
+	if _, err := db.Exec(`CREATE INDEX topicvote_topicid_index on topicvote(topicid);`); err != nil { panic(err) }
+
 
 	if _, err := db.Exec(`CREATE TABLE commentvote(
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
-				authorid INTEGER REFERENCES user(id) ON DELETE CASCADE,
+				userid INTEGER REFERENCES user(id) ON DELETE CASCADE,
 				commentid INTEGER REFERENCES comment(id) ON DELETE CASCADE,
 				votetype INTEGER,
 				created_date INTEGER
 	);`); err != nil { panic(err) }
+	if _, err := db.Exec(`CREATE INDEX commentvote_userid_index on commentvote(userid);`); err != nil { panic(err) }
+	if _, err := db.Exec(`CREATE INDEX commentvote_commentid_index on commentvote(commentid);`); err != nil { panic(err) }
 
+
+	if _, err := db.Exec(`CREATE TABLE session(
+				id INTEGER PRIMARY KEY,
+				sessionid TEXT NOT NULL,
+				userid INTEGER REFERENCES user(id) ON DELETE CASCADE,
+				data TEXT,
+				created_date INTEGER,
+				updated_date INTEGER
+	);`); err != nil { panic(err) }
+	if _, err := db.Exec(`CREATE UNIQUE INDEX sessionid_index on session(sessionid);`); err != nil { panic(err) }
+
+	
 	WriteConfig("version", "1")
 }
 
