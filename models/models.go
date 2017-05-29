@@ -44,6 +44,8 @@ type Topic struct {
 	AuthorID int
 	CategoryID int
 	IsDeleted bool
+	IsClosed bool
+	IsSticky bool
 	Upvotes int
 	Downvotes int
 	Flagvotes int

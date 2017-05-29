@@ -96,6 +96,8 @@ func runMigrationZero() {
 				authorid INTEGER REFERENCES user(id) ON DELETE CASCADE,
 				categoryid INTEGER REFERENCES category(id) ON DELETE SET NULL,
 				is_deleted BOOLEAN,
+				is_closed BOOLEAN,
+				is_sticky BOOLEAN,
 				upvotes INTEGER,
 				downvotes INTEGER,
 				flagvotes INTEGER,
