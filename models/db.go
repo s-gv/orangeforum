@@ -150,17 +150,6 @@ func runMigrationZero() {
 	if _, err := db.Exec(`CREATE INDEX commentvote_commentid_index on commentvote(commentid);`); err != nil { panic(err) }
 
 
-	if _, err := db.Exec(`CREATE TABLE session(
-				id INTEGER PRIMARY KEY,
-				sessionid TEXT NOT NULL,
-				userid INTEGER REFERENCES user(id) ON DELETE CASCADE,
-				data TEXT,
-				created_date INTEGER,
-				updated_date INTEGER
-	);`); err != nil { panic(err) }
-	if _, err := db.Exec(`CREATE UNIQUE INDEX sessionid_index on session(sessionid);`); err != nil { panic(err) }
-
-
 	if _, err := db.Exec(`CREATE TABLE extranote(
 				id INTEGER PRIMARY KEY,
 				name TEXT NOT NULL,
@@ -215,8 +204,11 @@ func Init(driverName string, dataSourceName string) error {
 
 func Benchmark() {
 	start := time.Now()
-	for i := 0; i < 1000; i++ {
-		WriteConfig("version", "3")
+	for i := 0; i < 100000; i++ {
+		x := Config("version", "0")//WriteConfig("version", "3")
+		if x == "0" {
+			panic("Er")
+		}
 	}
 	elapsed := time.Since(start)
 	WriteConfig("version", "2")

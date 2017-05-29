@@ -85,15 +85,6 @@ type CommentVote struct {
 	CreatedDate time.Time
 }
 
-type Session struct {
-	ID int
-	SessionID int
-	UserID int
-	Data string
-	CreatedDate time.Time
-	UpdateDate time.Time
-}
-
 type ExtraNote struct {
 	ID int
 	Name string
