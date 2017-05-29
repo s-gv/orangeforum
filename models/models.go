@@ -49,6 +49,7 @@ type Topic struct {
 	Upvotes int
 	Downvotes int
 	Flagvotes int
+	NumComments int
 	CreatedDate time.Time
 	UpdatedDate time.Time
 }
@@ -91,4 +92,11 @@ type Session struct {
 	Data string
 	CreatedDate time.Time
 	UpdateDate time.Time
+}
+
+type ExtraNote struct {
+	ID int
+	Name string
+	Content string
+	URL string
 }

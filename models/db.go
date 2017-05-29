@@ -101,6 +101,7 @@ func runMigrationZero() {
 				upvotes INTEGER,
 				downvotes INTEGER,
 				flagvotes INTEGER,
+				numcomments INTEGER,
 				created_date INTEGER,
 				updated_date INTEGER
 	);`); err != nil { panic(err) }
@@ -159,6 +160,13 @@ func runMigrationZero() {
 	);`); err != nil { panic(err) }
 	if _, err := db.Exec(`CREATE UNIQUE INDEX sessionid_index on session(sessionid);`); err != nil { panic(err) }
 
+
+	if _, err := db.Exec(`CREATE TABLE extranote(
+				id INTEGER PRIMARY KEY,
+				name TEXT NOT NULL,
+				content TEXT,
+				URL TEXT
+	);`); err != nil { panic(err) }
 	
 	WriteConfig("version", "1")
 }
