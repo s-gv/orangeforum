@@ -19,6 +19,8 @@ type User struct {
 	IsWarned bool
 	IsAdmin bool
 	IsSuperMod bool
+	IsApproved bool
+	Secret string
 	CreatedDate time.Time
 	UpdatedDate time.Time
 }
@@ -27,6 +29,8 @@ type Category struct {
 	ID int
 	Name string
 	Desc string
+	IsPrivate string
+	HeaderMessage string
 	CreatedDate time.Time
 	UpdatedDate time.Time
 }
@@ -90,4 +94,20 @@ type ExtraNote struct {
 	Name string
 	Content string
 	URL string
+	CreatedDate time.Time
+	UpdatedDate time.Time
+}
+
+type TopicSubscription struct {
+	ID int
+	UserID int
+	TopicID int
+	CreatedDate time.Time
+}
+
+type CategorySubscription struct {
+	ID int
+	UserID int
+	CategoryID int
+	CreatedDate time.Time
 }
