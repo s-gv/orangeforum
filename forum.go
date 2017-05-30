@@ -6,33 +6,37 @@ import (
 	"log"
 	"github.com/s-gv/orangeforum/models"
 	"flag"
+	"os"
 )
 
 func main() {
-	shouldMigrate := flag.Bool("migrate", false, "Migrate DB to the current version (default: false)")
-	benchmark := flag.Bool("benchmark", false, "Run the benchmark")
 	dbFileName := flag.String("dbname", "orangeforum.db", "Database file path (default: orangeforum.db)")
 
 	flag.Parse()
 
 	err := models.Init("sqlite3", *dbFileName)
-	if *shouldMigrate {
-		err := models.Migrate()
-		if err != nil {
-			log.Fatal("[ERROR] ", err)
 
+	if len(os.Args) > 1 {
+		if os.Args[1] == "migrate" {
+			err := models.Migrate()
+			if err != nil {
+				log.Fatal("[ERROR] ", err)
+
+			}
+			log.Println("[INFO] DB migration successful.")
+			return
 		}
-		log.Println("[INFO] DB migration successful.")
-		return
+		if os.Args[1] == "benchmark" {
+			models.Benchmark()
+			return
+		}
+
 	}
+
 	if err != nil {
 		log.Fatal("[ERROR] ", err)
 	}
 
-	if *benchmark {
-		models.Benchmark()
-		return
-	}
 
 	http.HandleFunc("/", views.IndexHandler)
 

@@ -201,7 +201,7 @@ func runMigrationZero() {
 	if _, err := db.Exec(`CREATE INDEX categorysubscription_userid_index on categorysubscription(userid);`); err != nil { panic(err) }
 	if _, err := db.Exec(`CREATE INDEX categorysubscription_categoryid_index on categorysubscription(categoryid);`); err != nil { panic(err) }
 
-	
+
 	WriteConfig(Version, "1")
 	WriteConfig(HeaderMsg, "")
 	WriteConfig(ForumName, "OrangeForum")
