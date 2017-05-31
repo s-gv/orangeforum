@@ -8,6 +8,8 @@ const (
 	VoteFlag = 3
 )
 
+const ModelVersion = 1
+
 type User struct {
 	ID int
 	Username string

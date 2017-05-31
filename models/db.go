@@ -8,24 +8,27 @@ import (
 	"time"
 	"fmt"
 	"math/rand"
+	"errors"
 )
-
-type ConfigKey string
 
 const (
-	Version ConfigKey = "version"
-	Secret ConfigKey = "secret"
-	ForumName ConfigKey = "title"
-	HeaderMsg ConfigKey = "header_msg"
-	SignupNeedsApproval ConfigKey = "signup_needs_approval"
-	PublicViewDisabled ConfigKey = "public_view_disabled"
-	SignupDisabled ConfigKey = "signup_disabled"
-	ImageUploadEnabled ConfigKey = "image_upload_enabled"
-	FileUploadEnabled ConfigKey = "file_upload_enabled"
-	AllowGroupSubscription ConfigKey = "allow_group_subscription"
-	AllowTopicSubscription ConfigKey = "allow_topic_subscription"
-	AutoSubscribeToMyTopic ConfigKey = "auto_subscribe_to_my_topic"
+	Version string = "version"
+	Secret string = "secret"
+	ForumName string = "title"
+	HeaderMsg string = "header_msg"
+	SignupNeedsApproval string = "signup_needs_approval"
+	PublicViewDisabled string = "public_view_disabled"
+	SignupDisabled string = "signup_disabled"
+	ImageUploadEnabled string = "image_upload_enabled"
+	FileUploadEnabled string = "file_upload_enabled"
+	AllowGroupSubscription string = "allow_group_subscription"
+	AllowTopicSubscription string = "allow_topic_subscription"
+	AutoSubscribeToMyTopic string = "auto_subscribe_to_my_topic"
 )
+
+var ErrDBVer = errors.New("DB version not up-to-date. Migration needed.")
+var ErrDBMigrationNotNeeded = errors.New("DB version is up-to-date.")
+var ErrDBVerAhead = errors.New("DB written by a newer version.")
 
 var db *sql.DB
 
@@ -37,6 +40,7 @@ func makeStmt(name string, query string) (*sql.Stmt, error) {
 		var err error
 		stmt, err := db.Prepare(query)
 		if err != nil {
+			log.Println("[ERROR] Error making statement", name, "with query:", query, "Err msg:", err)
 			return nil, err
 		}
 		stmts[name] = stmt
@@ -67,8 +71,9 @@ func exec(name string, query string, args ...interface{}) error {
 }
 
 func runMigrationZero() {
-	if _, err := db.Exec(`CREATE TABLE config(key TEXT, val TEXT);`); err != nil { panic(err) }
-	if _, err := db.Exec(`CREATE UNIQUE INDEX key_index on config(key);`); err != nil { panic(err) }
+	if _, err := db.Exec(`CREATE TABLE configs(key TEXT, val TEXT);`); err != nil { panic(err) }
+	if _, err := db.Exec(`CREATE UNIQUE INDEX configs_key_index on configs(key);`); err != nil { panic(err) }
+
 
 	if _, err := db.Exec(`CREATE TABLE users(
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -101,7 +106,7 @@ func runMigrationZero() {
 		       		created_date INTEGER,
 		       		updated_date INTEGER
 	);`); err != nil { panic(err) }
-	if _, err := db.Exec(`CREATE UNIQUE INDEX groups_sticky_index on groups(is_sticky);`); err != nil { panic(err) }
+	if _, err := db.Exec(`CREATE INDEX groups_sticky_index on groups(is_sticky);`); err != nil { panic(err) }
 	if _, err := db.Exec(`CREATE INDEX groups_created_index on groups(created_date);`); err != nil { panic(err) }
 
 
@@ -215,7 +220,7 @@ func runMigrationZero() {
 	);`); err != nil { panic(err) }
 
 
-	WriteConfig(Version, "1")
+	WriteConfig(Version, "1");
 	WriteConfig(HeaderMsg, "")
 	WriteConfig(ForumName, "OrangeForum")
 	WriteConfig(Secret, randSeq(32))
@@ -242,30 +247,33 @@ func randSeq(n int) string {
 
 
 func DBVersion() int {
-	if val, err := strconv.Atoi(Config("version", "0")); err == nil {
-		return val
+	row := db.QueryRow(`SELECT val FROM configs WHERE key="`+Version+`"`)
+	sval := "0"
+	if err := row.Scan(&sval); err == nil {
+		if ival, err := strconv.Atoi(sval); err == nil {
+			return ival
+		}
 	}
 	return 0
-
 }
 
-func WriteConfig(key ConfigKey, val string) error {
-	return exec("WriteConfig", `INSERT OR REPLACE INTO config(key, val) values(?, ?);`, key, val)
+func WriteConfig(key string, val string) error {
+	return exec("WriteConfig", `INSERT OR REPLACE INTO configs(key, val) values(?, ?);`, key, val)
 }
 
 
-func Config(key ConfigKey, defaultVal string) string {
-	row, err := queryRow("Config", `SELECT val FROM config WHERE key=?;`, key)
+func Config(key string) string {
+	row, err := queryRow("Config", `SELECT val FROM configs WHERE key=?;`, key)
 	if err == nil {
 		var val string
 		if err := row.Scan(&val); err == nil {
 			return val
 		}
 	}
-	return defaultVal
+	return "0"
 }
 
-func Init(driverName string, dataSourceName string) error {
+func Init(driverName string, dataSourceName string, shouldMigrate bool) error {
 	mydb, err := sql.Open(driverName, dataSourceName)
 	if err != nil {
 		panic(err)
@@ -278,8 +286,20 @@ func Init(driverName string, dataSourceName string) error {
 	rand.Seed(time.Now().UnixNano())
 
 	dbver := DBVersion()
+
+	if dbver > ModelVersion {
+		return ErrDBVerAhead
+	}
 	if dbver < ModelVersion {
-		return ErrDBVer
+		if shouldMigrate {
+			migrate()
+		} else {
+			return ErrDBVer
+		}
+	} else {
+		if shouldMigrate {
+			return ErrDBMigrationNotNeeded
+		}
 	}
 	return nil
 }
@@ -287,13 +307,29 @@ func Init(driverName string, dataSourceName string) error {
 func Benchmark() {
 	start := time.Now()
 	for i := 0; i < 100000; i++ {
-		x := Config("version", "0")//WriteConfig("version", "3")
+		x := Config(Version)//WriteConfig("version", "3")
 		if x == "0" {
 			panic("Er")
 		}
 	}
 	elapsed := time.Since(start)
 	WriteConfig("version", "2")
-	println("Test val:", Config("version", "0"))
+	println("Test val:", Config(Version))
 	fmt.Printf("time: %s\n", elapsed)
+}
+
+
+func migrate() {
+	dbver := DBVersion()
+	for dbver < ModelVersion {
+		switch dbver {
+		case 0:
+			runMigrationZero()
+		}
+		newDBVer := DBVersion()
+		if newDBVer != dbver + 1 {
+			log.Fatal("Migration ", dbver, " failed.")
+		}
+		dbver = newDBVer
+	}
 }

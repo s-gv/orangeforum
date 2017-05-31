@@ -14,25 +14,18 @@ func main() {
 
 	flag.Parse()
 
-	err := models.Init("sqlite3", *dbFileName)
-
 	if len(os.Args) > 1 {
 		if os.Args[1] == "migrate" {
-			err := models.Migrate()
+			err := models.Init("sqlite3", *dbFileName, true)
 			if err != nil {
-				log.Fatal("[ERROR] ", err)
-
+				log.Fatal("[ERROR] DB migration failed. ", err)
 			}
 			log.Println("[INFO] DB migration successful.")
 			return
 		}
-		if os.Args[1] == "benchmark" {
-			models.Benchmark()
-			return
-		}
-
 	}
 
+	err := models.Init("sqlite3", *dbFileName, false)
 	if err != nil {
 		log.Fatal("[ERROR] ", err)
 	}
