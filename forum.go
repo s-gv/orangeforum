@@ -39,6 +39,7 @@ func main() {
 
 
 	http.HandleFunc("/", views.IndexHandler)
+	http.HandleFunc("/test", views.TestHandler)
 
 	port := ":9123"
 	log.Println("[INFO] Starting orangeforum at port", port)
