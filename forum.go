@@ -6,35 +6,33 @@ import (
 	"log"
 	"github.com/s-gv/orangeforum/models"
 	"flag"
-	"os"
 )
 
 func main() {
 	dbFileName := flag.String("dbname", "orangeforum.db", "Database file path (default: orangeforum.db)")
+	port := flag.String("port", "9123", "Port to listen on (default: 9123)")
+	shouldMigrate := flag.Bool("migrate", false, "Migrate DB (default: false)")
 
 	flag.Parse()
 
-	if len(os.Args) > 1 {
-		if os.Args[1] == "migrate" {
-			err := models.Init("sqlite3", *dbFileName, true)
-			if err != nil {
-				log.Fatal("[ERROR] DB migration failed. ", err)
-			}
-			log.Println("[INFO] DB migration successful.")
-			return
+	if *shouldMigrate {
+		err := models.Init("sqlite3", *dbFileName, true)
+		if err != nil {
+			log.Fatal("[ERROR] Migration failed. ", err)
 		}
+		log.Println("[INFO] DB migration successful.")
+		return
 	}
 
 	err := models.Init("sqlite3", *dbFileName, false)
 	if err != nil {
-		log.Fatal("[ERROR] ", err)
+		log.Fatalln("[ERROR]", err)
 	}
 
 
 	http.HandleFunc("/", views.IndexHandler)
 	http.HandleFunc("/test", views.TestHandler)
 
-	port := ":9123"
-	log.Println("[INFO] Starting orangeforum at port", port)
-	http.ListenAndServe(port, nil)
+	log.Println("[INFO] Starting orangeforum on port", *port)
+	http.ListenAndServe(":" + *port, nil)
 }

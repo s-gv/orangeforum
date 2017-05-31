@@ -122,3 +122,13 @@ type ExtraNote struct {
 	CreatedDate time.Time
 	UpdatedDate time.Time
 }
+
+type Session struct {
+	ID int
+	SessionID string
+	UserID string
+	Msg string
+	Data string
+	CreatedDate time.Time
+	UpdatedDate time.Time
+}

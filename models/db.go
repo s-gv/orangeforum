@@ -220,6 +220,19 @@ func runMigrationZero() {
 	);`); err != nil { panic(err) }
 
 
+	if _, err := db.Exec(`CREATE TABLE sessions(
+				id INTEGER PRIMARY KEY,
+				sessionid TEXT,
+				userid INTEGER REFERENCES users(id) ON DELETE CASCADE,
+				msg TXT,
+				data TXT,
+				created_date INTEGER,
+				updated_date INTEGER
+	);`); err != nil { panic(err) }
+	if _, err := db.Exec(`CREATE INDEX sessions_sessionid_index on sessions(sessionid);`); err != nil { panic(err) }
+	if _, err := db.Exec(`CREATE INDEX sessions_userid_index on sessions(userid);`); err != nil { panic(err) }
+
+
 	WriteConfig(Version, "1");
 	WriteConfig(HeaderMsg, "")
 	WriteConfig(ForumName, "OrangeForum")
