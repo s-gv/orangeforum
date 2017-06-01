@@ -84,14 +84,13 @@ func runMigrationZero() {
 		       		username TEXT NOT NULL,
 		       		passwdhash TEXT,
 		       		email TEXT,
-		       		about TEXT,
-		       		karma INTEGER,
-		       		is_banned BOOLEAN,
-		       		is_warned BOOLEAN,
-				is_superadmin BOOLEAN,
-				is_supermod BOOLEAN,
-				is_approved BOOLEAN,
-				secret TEXT,
+		       		about TEXT DEFAULT "",
+		       		karma INTEGER DEFAULT 0,
+		       		is_banned BOOLEAN DEFAULT false,
+		       		is_warned BOOLEAN DEFAULT false,
+				is_superadmin BOOLEAN DEFAULT false,
+				is_supermod BOOLEAN DEFAULT false,
+				is_approved BOOLEAN DEFAULT false,
 		       		created_date INTEGER,
 		       		updated_date INTEGER
 	);`); err != nil { panic(err) }
@@ -383,4 +382,8 @@ func UpdateSessionDate(sessID string, updatedDate time.Time) {
 
 func DeleteSessions(lastUpdatedDate time.Time) {
 	exec("DeleteSessions", `DELETE FROM sessions WHERE updated_date < ?;`, int64(lastUpdatedDate.Unix()))
+}
+
+func CreateUser(userName string, passwdHash string, email string) {
+
 }

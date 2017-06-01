@@ -2,6 +2,7 @@ package models
 
 import (
 	"time"
+	"golang.org/x/crypto/bcrypt"
 )
 
 const (
@@ -22,7 +23,6 @@ type User struct {
 	IsSuperAdmin bool
 	IsSuperMod bool
 	IsApproved bool
-	Secret string
 	CreatedDate time.Time
 	UpdatedDate time.Time
 }
@@ -123,3 +123,15 @@ type ExtraNote struct {
 	UpdatedDate time.Time
 }
 
+
+func CreateUser(userName string, email string, passwd string) error {
+	if passwdHash, err := bcrypt.GenerateFromPassword([]byte(passwd), bcrypt.DefaultCost); err != nil {
+
+	} else {
+		return err
+	}
+}
+
+func Authenticate(userName string, passwd string) (int, error) {
+	return 0, nil
+}
