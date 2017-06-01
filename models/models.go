@@ -3,6 +3,10 @@ package models
 import (
 	"time"
 	"golang.org/x/crypto/bcrypt"
+	"github.com/s-gv/orangeforum/models/db"
+	"encoding/hex"
+	"log"
+	"errors"
 )
 
 const (
@@ -10,6 +14,9 @@ const (
 	VoteDown = 2
 	VoteFlag = 3
 )
+
+var ErrIncorrectPasswd = errors.New("Incorrect username/password.")
+var ErrUserNotFound = errors.New("Username not found.")
 
 type User struct {
 	ID int
@@ -124,14 +131,65 @@ type ExtraNote struct {
 }
 
 
-func CreateUser(userName string, email string, passwd string) error {
-	if passwdHash, err := bcrypt.GenerateFromPassword([]byte(passwd), bcrypt.DefaultCost); err != nil {
-
+func CreateUser(userName string, passwd string, email string) {
+	if passwdHash, err := bcrypt.GenerateFromPassword([]byte(passwd), bcrypt.DefaultCost); err == nil {
+		db.CreateUser(userName, hex.EncodeToString(passwdHash), email)
 	} else {
-		return err
+		log.Printf("[ERROR] %s.\n", err)
 	}
 }
 
-func Authenticate(userName string, passwd string) (int, error) {
-	return 0, nil
+func ProbeUser(userName string) bool {
+	return db.ProbeUser(userName)
+}
+
+func Authenticate(userName string, passwd string) (User, error) {
+	u, err := ReadUserByName(userName)
+	if err != nil {
+		return User{}, err
+	}
+	passwdHash, err := hex.DecodeString(u.PasswdHash)
+	if err != nil {
+		log.Fatalf("[ERROR] Error decoding password has from hex. %s\n", err)
+	}
+	if err := bcrypt.CompareHashAndPassword(passwdHash, []byte(passwd)); err != nil {
+		return User{}, ErrIncorrectPasswd
+	}
+	return u, nil
+}
+
+func ReadUserByName(userName string) (User, error) {
+	if row, err := db.QueryRow("ReadUserByName", `SELECT * FROM users WHERE username=?;`, userName); err == nil {
+		u := User{}
+		var cDate int64
+		var uDate int64
+		if err := row.Scan(&u.ID, &u.Username, &u.PasswdHash, &u.Email, &u.About, &u.Karma,
+				&u.IsBanned, &u.IsWarned, &u.IsSuperAdmin, &u.IsSuperMod, &u.IsApproved,
+				&cDate, &uDate); err == nil {
+			u.CreatedDate = time.Unix(cDate, 0)
+			u.UpdatedDate = time.Unix(uDate, 0)
+			return u, nil
+		} else {
+			log.Println(err)
+		}
+	}
+	return User{}, ErrUserNotFound
+}
+
+func ReadUserByID(userID int) (User, error) {
+	if row, err := db.QueryRow("ReadUserByName", `SELECT * FROM users WHERE id=?;`, userID); err == nil {
+		u := User{}
+		var cDate int64
+		var uDate int64
+		if err := row.Scan(&u.ID, &u.Username, &u.PasswdHash, &u.Email, &u.About, &u.Karma,
+			&u.IsBanned, &u.IsWarned, &u.IsSuperAdmin, &u.IsSuperMod, &u.IsApproved,
+			&cDate, &uDate); err == nil {
+			u.CreatedDate = time.Unix(cDate, 0)
+			u.UpdatedDate = time.Unix(uDate, 0)
+			return u, nil
+		} else {
+			log.Println(err)
+		}
+	}
+	return User{}, ErrUserNotFound
 }

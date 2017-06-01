@@ -7,6 +7,7 @@ import (
 	"database/sql"
 	"time"
 	"github.com/s-gv/orangeforum/models/db"
+	"github.com/s-gv/orangeforum/models"
 )
 
 type Session struct {
@@ -64,5 +65,25 @@ func (sess *Session) SetFlashMsg(msg string) {
 
 func (sess *Session) FlashMsg() string {
 	db.UpdateSessionFlashMsg(sess.SessionID, "")
-	return sess.Msg
+	msg := sess.Msg
+	sess.Msg = ""
+	return msg
+}
+
+func (sess *Session) SetUser(user models.User, valid bool) {
+	println(user.ID)
+	sess.UserID = sql.NullInt64{int64(user.ID), valid}
+	db.UpdateSessionUserID(sess.SessionID, sess.UserID)
+}
+
+func (sess *Session) User() (models.User, error) {
+	if sess.UserID.Valid {
+		println("User in session valid")
+		if u, err := models.ReadUserByID(int(sess.UserID.Int64)); err == nil {
+			return u, nil
+		}
+	} else {
+		println("Userid not valid in session")
+	}
+	return models.User{}, errors.New("Invalid user")
 }

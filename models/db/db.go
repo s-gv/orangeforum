@@ -54,7 +54,7 @@ func makeStmt(name string, query string) (*sql.Stmt, error) {
 
 }
 
-func queryRow(name string, query string, args ...interface{}) (*sql.Row, error) {
+func QueryRow(name string, query string, args ...interface{}) (*sql.Row, error) {
 	stmt, err := makeStmt(name, query)
 	if err == nil {
 		return stmt.QueryRow(args...), nil
@@ -82,8 +82,8 @@ func runMigrationZero() {
 	if _, err := db.Exec(`CREATE TABLE users(
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
 		       		username TEXT NOT NULL,
-		       		passwdhash TEXT,
-		       		email TEXT,
+		       		passwdhash TEXT NOT NULL,
+		       		email TEXT DEAFULT "",
 		       		about TEXT DEFAULT "",
 		       		karma INTEGER DEFAULT 0,
 		       		is_banned BOOLEAN DEFAULT false,
@@ -280,7 +280,7 @@ func WriteConfig(key string, val string) error {
 
 
 func Config(key string) string {
-	row, err := queryRow("Config", `SELECT val FROM configs WHERE key=?;`, key)
+	row, err := QueryRow("Config", `SELECT val FROM configs WHERE key=?;`, key)
 	if err == nil {
 		var val string
 		if err := row.Scan(&val); err == nil {
@@ -357,7 +357,7 @@ func CreateSession(sessionID string, userID sql.NullInt64, csrfToken string, msg
 }
 
 func ReadSession(sessID string, userID *sql.NullInt64, csrfToken *string, msg *string, data *string, createdDate *time.Time, updatedDate *time.Time) error {
-	row, err := queryRow("ReadSession", `SELECT userid, csrf, msg, data, created_date, updated_date FROM sessions WHERE sessionid=?;`, sessID)
+	row, err := QueryRow("ReadSession", `SELECT userid, csrf, msg, data, created_date, updated_date FROM sessions WHERE sessionid=?;`, sessID)
 	if err == nil {
 		var cDate int64
 		var uDate int64
@@ -376,6 +376,10 @@ func UpdateSessionFlashMsg(sessID string, msg string) {
 	exec("UpdateSessionFlashMsg", `UPDATE sessions SET msg=? WHERE sessionid=?;`, msg, sessID)
 }
 
+func UpdateSessionUserID(sessID string, userID sql.NullInt64) {
+	exec("UpdateSessionFlashMsg", `UPDATE sessions SET userid=? WHERE sessionid=?;`, userID, sessID)
+}
+
 func UpdateSessionDate(sessID string, updatedDate time.Time) {
 	exec("UpdateSessionDate", `UPDATE sessions SET updated_date=? WHERE sessionid=?;`, int64(updatedDate.Unix()), sessID)
 }
@@ -384,6 +388,41 @@ func DeleteSessions(lastUpdatedDate time.Time) {
 	exec("DeleteSessions", `DELETE FROM sessions WHERE updated_date < ?;`, int64(lastUpdatedDate.Unix()))
 }
 
+
 func CreateUser(userName string, passwdHash string, email string) {
+	now := int64(time.Now().Unix())
+	exec("CreateUser", `INSERT INTO
+			users(username, passwdhash, email, created_date, updated_date) values(?, ?, ?, ?, ?);`, userName, passwdHash, email, now, now)
+}
+
+
+
+func ProbeUser(userName string) bool {
+	if row, err := QueryRow("ProbeUser", `SELECT username FROM users WHERE username=?;`, userName); err == nil {
+		var tmp string
+		if row.Scan(&tmp) == nil {
+			return true
+		}
+	}
+	return false
+}
+
+func GetUserIDByName(userName string) (int64, error) {
+	if row, err := QueryRow("GetUserIDByName", `SELECT id FROM users WHERE username=?;`, userName); err == nil {
+		var userID int64
+		if row.Scan(&userID) == nil {
+			return userID, nil
+		}
+	}
+	return 0, nil
 
 }
+/*
+func GetUserNameByID(userID int) (string, error) {
+	if row, err := QueryRow("ProbeUser", `SELECT username FROM users WHERE username=?;`, userName); err == nil {
+		var tmp string
+		if row.Scan(&tmp) == nil {
+			return true
+		}
+	}
+}*/
