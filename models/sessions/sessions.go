@@ -19,6 +19,9 @@ type Session struct {
 	UpdatedDate time.Time
 }
 
+const maxSessionLife = 200*time.Hour
+const maxSessionLifeBeforeUpdate = 100*time.Hour
+
 var ErrAuthFail = errors.New("username / password incorrect")
 var ErrNoFlashMsg = errors.New("No flash message")
 
@@ -32,15 +35,26 @@ func Open(w http.ResponseWriter, r *http.Request) Session {
 		sess := Session{}
 		sess.SessionID = cookie.Value
 		if err := db.ReadSession(sess.SessionID, &sess.UserID, &sess.CSRFToken, &sess.Msg, &sess.Data, &sess.CreatedDate, &sess.UpdatedDate); err == nil {
-			return sess
+			if sess.UpdatedDate.After(time.Now().Add(-maxSessionLife)) {
+				if sess.UpdatedDate.Before(time.Now().Add(-maxSessionLifeBeforeUpdate)) {
+					db.UpdateSessionDate(sess.SessionID, time.Now())
+				}
+				return sess
+			} else {
+				log.Printf("[INFO] Session %s and last update date %s has expired.\n", sess.SessionID, sess.UpdatedDate)
+			}
 		} else {
-			log.Printf("[ERROR] Session error with session ID %s. %s\n", sess.SessionID, err)
+			log.Printf("[INFO] Session %s not found. %s\n", sess.SessionID, err)
 		}
 	}
+
 	sess := Session{db.RandSeq(32), sql.NullInt64{}, db.RandSeq(32), "", "", time.Now(), time.Now()}
 	db.CreateSession(sess.SessionID, sess.UserID, sess.CSRFToken, sess.Msg, sess.Data, sess.CreatedDate, sess.UpdatedDate)
 	http.SetCookie(w, &http.Cookie{Name: "sessionid", Value: sess.SessionID, HttpOnly: true})
 	http.SetCookie(w, &http.Cookie{Name: "csrftoken", Value: sess.CSRFToken})
+
+	db.DeleteSessions(time.Now().Add(-maxSessionLife))
+
 	return sess
 }
 

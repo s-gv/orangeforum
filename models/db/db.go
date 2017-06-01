@@ -358,7 +358,7 @@ func CreateSession(sessionID string, userID sql.NullInt64, csrfToken string, msg
 }
 
 func ReadSession(sessID string, userID *sql.NullInt64, csrfToken *string, msg *string, data *string, createdDate *time.Time, updatedDate *time.Time) error {
-	row, err := queryRow("ReadSession", `SELECT userid, csrf, msg, data, created_date, created_date FROM sessions WHERE sessionid=?;`, sessID)
+	row, err := queryRow("ReadSession", `SELECT userid, csrf, msg, data, created_date, updated_date FROM sessions WHERE sessionid=?;`, sessID)
 	if err == nil {
 		var cDate int64
 		var uDate int64
@@ -375,4 +375,12 @@ func ReadSession(sessID string, userID *sql.NullInt64, csrfToken *string, msg *s
 
 func UpdateSessionFlashMsg(sessID string, msg string) {
 	exec("UpdateSessionFlashMsg", `UPDATE sessions SET msg=? WHERE sessionid=?;`, msg, sessID)
+}
+
+func UpdateSessionDate(sessID string, updatedDate time.Time) {
+	exec("UpdateSessionDate", `UPDATE sessions SET updated_date=? WHERE sessionid=?;`, int64(updatedDate.Unix()), sessID)
+}
+
+func DeleteSessions(lastUpdatedDate time.Time) {
+	exec("DeleteSessions", `DELETE FROM sessions WHERE updated_date < ?;`, int64(lastUpdatedDate.Unix()))
 }
