@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"github.com/s-gv/orangeforum/views"
 	"log"
-	"github.com/s-gv/orangeforum/models"
 	"flag"
+	"github.com/s-gv/orangeforum/models/db"
 )
 
 func main() {
@@ -16,7 +16,7 @@ func main() {
 	flag.Parse()
 
 	if *shouldMigrate {
-		err := models.Init("sqlite3", *dbFileName, true)
+		err := db.Init("sqlite3", *dbFileName, true)
 		if err != nil {
 			log.Fatal("[ERROR] Migration failed. ", err)
 		}
@@ -24,7 +24,7 @@ func main() {
 		return
 	}
 
-	err := models.Init("sqlite3", *dbFileName, false)
+	err := db.Init("sqlite3", *dbFileName, false)
 	if err != nil {
 		log.Fatalln("[ERROR]", err)
 	}

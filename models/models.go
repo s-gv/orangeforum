@@ -1,14 +1,14 @@
 package models
 
-import "time"
+import (
+	"time"
+)
 
 const (
 	VoteUp = 1
 	VoteDown = 2
 	VoteFlag = 3
 )
-
-const ModelVersion = 1
 
 type User struct {
 	ID int
@@ -123,12 +123,3 @@ type ExtraNote struct {
 	UpdatedDate time.Time
 }
 
-type Session struct {
-	ID int
-	SessionID string
-	UserID string
-	Msg string
-	Data string
-	CreatedDate time.Time
-	UpdatedDate time.Time
-}

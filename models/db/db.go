@@ -1,4 +1,4 @@
-package models
+package db
 
 import (
 	"database/sql"
@@ -10,6 +10,8 @@ import (
 	"math/rand"
 	"errors"
 )
+
+const ModelVersion = 1
 
 const (
 	Version string = "version"
@@ -29,6 +31,8 @@ const (
 var ErrDBVer = errors.New("DB version not up-to-date. Migration needed.")
 var ErrDBMigrationNotNeeded = errors.New("DB version is up-to-date.")
 var ErrDBVerAhead = errors.New("DB written by a newer version.")
+
+var ErrInvalidSessionID = errors.New("Session does not exist in DB.")
 
 var db *sql.DB
 
@@ -222,12 +226,13 @@ func runMigrationZero() {
 
 	if _, err := db.Exec(`CREATE TABLE sessions(
 				id INTEGER PRIMARY KEY,
-				sessionid TEXT,
+				sessionid TEXT NOT NULL,
 				userid INTEGER REFERENCES users(id) ON DELETE CASCADE,
-				msg TXT,
-				data TXT,
-				created_date INTEGER,
-				updated_date INTEGER
+				csrf TEXT NOT NULL,
+				msg TEXT NOT NULL,
+				data TEXT NOT NULL,
+				created_date INTEGER NOT NULL,
+				updated_date INTEGER NOT NULL
 	);`); err != nil { panic(err) }
 	if _, err := db.Exec(`CREATE INDEX sessions_sessionid_index on sessions(sessionid);`); err != nil { panic(err) }
 	if _, err := db.Exec(`CREATE INDEX sessions_userid_index on sessions(userid);`); err != nil { panic(err) }
@@ -236,7 +241,7 @@ func runMigrationZero() {
 	WriteConfig(Version, "1");
 	WriteConfig(HeaderMsg, "")
 	WriteConfig(ForumName, "OrangeForum")
-	WriteConfig(Secret, randSeq(32))
+	WriteConfig(Secret, RandSeq(32))
 	WriteConfig(SignupNeedsApproval, "0")
 	WriteConfig(PublicViewDisabled, "0")
 	WriteConfig(SignupDisabled, "0")
@@ -249,8 +254,8 @@ func runMigrationZero() {
 
 
 
-func randSeq(n int) string {
-	var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+func RandSeq(n int) string {
+	var letters = []rune("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 	b := make([]rune, n)
 	for i := range b {
 		b[i] = letters[rand.Intn(len(letters))]
@@ -345,4 +350,29 @@ func migrate() {
 		}
 		dbver = newDBVer
 	}
+}
+
+func CreateSession(sessionID string, userID sql.NullInt64, csrfToken string, msg string, data string, createdDate time.Time, updatedDate time.Time) {
+	exec("CreateSession", `INSERT INTO sessions(sessionid, userid, csrf, msg, data, created_date, updated_date) values(?, ?, ?, ?, ?, ?, ?);`,
+		sessionID, userID, csrfToken, msg, data, int64(createdDate.Unix()), int64(updatedDate.Unix()))
+}
+
+func ReadSession(sessID string, userID *sql.NullInt64, csrfToken *string, msg *string, data *string, createdDate *time.Time, updatedDate *time.Time) error {
+	row, err := queryRow("ReadSession", `SELECT userid, csrf, msg, data, created_date, created_date FROM sessions WHERE sessionid=?;`, sessID)
+	if err == nil {
+		var cDate int64
+		var uDate int64
+		if err := row.Scan(userID, csrfToken, msg, data, &cDate, &uDate); err == nil {
+			*createdDate = time.Unix(cDate, 0)
+			*updatedDate = time.Unix(uDate, 0)
+			return nil
+		} else {
+			return err
+		}
+	}
+	return err
+}
+
+func UpdateSessionFlashMsg(sessID string, msg string) {
+	exec("UpdateSessionFlashMsg", `UPDATE sessions SET msg=? WHERE sessionid=?;`, msg, sessID)
 }
