@@ -12,7 +12,7 @@ import (
 func ErrHandler(w http.ResponseWriter, r *http.Request) {
 	if r := recover(); r != nil {
 		log.Printf("[ERROR] Recovered from panic: %s\n", r)
-		http.Error(w, "Internal server error. This occurrence has been logged.", http.StatusInternalServerError)
+		http.Error(w, "Internal server error. This event has been logged.", http.StatusInternalServerError)
 	}
 }
 
