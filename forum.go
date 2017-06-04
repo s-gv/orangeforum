@@ -8,6 +8,7 @@ import (
 	"time"
 	"math/rand"
 	"github.com/s-gv/orangeforum/models"
+	"github.com/s-gv/orangeforum/views"
 )
 
 func main() {
@@ -23,7 +24,7 @@ func main() {
 
 	if models.IsMigrationNeeded() {
 		if *shouldMigrate {
-			models.RunMigration()
+			models.Migrate()
 		} else {
 			log.Fatalf("[ERROR] DB migration needed.\n")
 		}
@@ -33,8 +34,9 @@ func main() {
 		}
 	}
 
-	/*
+
 	http.HandleFunc("/", views.IndexHandler)
+	/*
 	http.HandleFunc("/signup", views.SignupHandler)
 	http.HandleFunc("/login", views.LoginHandler)
 	*/

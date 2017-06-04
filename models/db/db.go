@@ -194,7 +194,7 @@ func DBVersion() int {
 func Init(driverName string, dataSourceName string) {
 	mydb, err := sql.Open(driverName, dataSourceName)
 	if err != nil {
-		log.Fatalf("[ERROR] Error opening DB: %s\n", err)
+		log.Panicf("[ERROR] Error opening DB: %s\n", err)
 	}
 	db = mydb
 	db.Exec("PRAGMA journal_mode = WAL;")
@@ -207,7 +207,7 @@ func makeStmt(query string) *sql.Stmt {
 	if !ok {
 		stmt, err := db.Prepare(query)
 		if err != nil {
-			log.Fatalf("[ERROR] Error making stmt: %s. Err msg: %s\n", query, err)
+			log.Panicf("[ERROR] Error making stmt: %s. Err msg: %s\n", query, err)
 		}
 		stmts[query] = stmt
 		return stmt
@@ -227,7 +227,7 @@ func ScanRow(row *sql.Row, args ...interface{}) error {
 	case err == sql.ErrNoRows:
 		return err
 	case err != nil:
-		log.Fatalf("[ERROR] Error scanning row: %s\n", err)
+		log.Panicf("[ERROR] Error scanning row: %s\n", err)
 	}
 	return nil
 }
@@ -235,6 +235,6 @@ func ScanRow(row *sql.Row, args ...interface{}) error {
 func Exec(query string, args ...interface{}) {
 	stmt := makeStmt(query)
 	if _, err := stmt.Exec(args...); err != nil {
-		log.Fatalf("[ERROR] Error executing %s. Err msg: %s\n", query, err)
+		log.Panicf("[ERROR] Error executing %s. Err msg: %s\n", query, err)
 	}
 }

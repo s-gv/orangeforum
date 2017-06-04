@@ -5,6 +5,7 @@ import (
 	"github.com/s-gv/orangeforum/models/db"
 	"math/rand"
 	"errors"
+	"database/sql"
 )
 
 const (
@@ -208,43 +209,6 @@ func ReadUserByID(userID int) (User, error) {
 	return User{}, ErrUserNotFound
 }
 
-func CreateSession(sessionID string, userID sql.NullInt64, csrfToken string, msg string, data string, createdDate time.Time, updatedDate time.Time) {
-	exec("CreateSession", `INSERT INTO sessions(sessionid, userid, csrf, msg, data, created_date, updated_date) values(?, ?, ?, ?, ?, ?, ?);`,
-		sessionID, userID, csrfToken, msg, data, int64(createdDate.Unix()), int64(updatedDate.Unix()))
-}
-
-func ReadSession(sessID string, userID *sql.NullInt64, csrfToken *string, msg *string, data *string, createdDate *time.Time, updatedDate *time.Time) error {
-	row, err := QueryRow("ReadSession", `SELECT userid, csrf, msg, data, created_date, updated_date FROM sessions WHERE sessionid=?;`, sessID)
-	if err == nil {
-		var cDate int64
-		var uDate int64
-		if err := row.Scan(userID, csrfToken, msg, data, &cDate, &uDate); err == nil {
-			*createdDate = time.Unix(cDate, 0)
-			*updatedDate = time.Unix(uDate, 0)
-			return nil
-		} else {
-			return err
-		}
-	}
-	return err
-}
-
-func UpdateSessionFlashMsg(sessID string, msg string) {
-	exec("UpdateSessionFlashMsg", `UPDATE sessions SET msg=? WHERE sessionid=?;`, msg, sessID)
-}
-
-func UpdateSessionUserID(sessID string, userID sql.NullInt64) {
-	exec("UpdateSessionFlashMsg", `UPDATE sessions SET userid=? WHERE sessionid=?;`, userID, sessID)
-}
-
-func UpdateSessionDate(sessID string, updatedDate time.Time) {
-	exec("UpdateSessionDate", `UPDATE sessions SET updated_date=? WHERE sessionid=?;`, int64(updatedDate.Unix()), sessID)
-}
-
-func DeleteSessions(lastUpdatedDate time.Time) {
-	exec("DeleteSessions", `DELETE FROM sessions WHERE updated_date < ?;`, int64(lastUpdatedDate.Unix()))
-}
-
 
 func CreateUser(userName string, passwdHash string, email string) {
 	now := int64(time.Now().Unix())
@@ -263,6 +227,42 @@ func ProbeUser(userName string) bool {
 	return false
 }
 */
+
+func CreateSession(sessionID string, userID sql.NullInt64, csrfToken string, msg string, data string, createdDate time.Time, updatedDate time.Time) {
+	db.Exec(`INSERT INTO sessions(sessionid, userid, csrf, msg, data, created_date, updated_date) values(?, ?, ?, ?, ?, ?, ?);`,
+		sessionID, userID, csrfToken, msg, data, int64(createdDate.Unix()), int64(updatedDate.Unix()))
+}
+
+func ReadSession(sessID string, userID *sql.NullInt64, csrfToken *string, msg *string, data *string, createdDate *time.Time, updatedDate *time.Time) error {
+	row := db.QueryRow(`SELECT userid, csrf, msg, data, created_date, updated_date FROM sessions WHERE sessionid=?;`, sessID)
+	var cDate int64
+	var uDate int64
+	if err := db.ScanRow(row, userID, csrfToken, msg, data, &cDate, &uDate); err == nil {
+		*createdDate = time.Unix(cDate, 0)
+		*updatedDate = time.Unix(uDate, 0)
+		return nil
+	} else {
+		return err
+	}
+}
+
+func UpdateSessionFlashMsg(sessID string, msg string) {
+	db.Exec(`UPDATE sessions SET msg=? WHERE sessionid=?;`, msg, sessID)
+}
+
+func UpdateSessionUserID(sessID string, userID sql.NullInt64) {
+	db.Exec(`UPDATE sessions SET userid=? WHERE sessionid=?;`, userID, sessID)
+}
+
+func UpdateSessionDate(sessID string, updatedDate time.Time) {
+	db.Exec(`UPDATE sessions SET updated_date=? WHERE sessionid=?;`, int64(updatedDate.Unix()), sessID)
+}
+
+func DeleteSessions(lastUpdatedDate time.Time) {
+	db.Exec(`DELETE FROM sessions WHERE updated_date < ?;`, int64(lastUpdatedDate.Unix()))
+}
+
+
 func RandSeq(n int) string {
 	var letters = []rune("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 	b := make([]rune, n)
@@ -278,7 +278,7 @@ func WriteConfig(key string, val string) {
 
 
 func Config(key string) string {
-	row := db.QueryRow(`SELECT val FROM configs WHERE key=?`, key)
+	row := db.QueryRow(`SELECT val FROM configs WHERE key=?;`, key)
 	var val string
 	if err := row.Scan(&val); err == nil {
 		return val
@@ -286,7 +286,7 @@ func Config(key string) string {
 	return "0"
 }
 
-func RunMigration() {
+func Migrate() {
 	db.CreateTables()
 
 	WriteConfig("version", "1");
