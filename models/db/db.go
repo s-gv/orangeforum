@@ -5,76 +5,15 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	"strconv"
 	"log"
-	"time"
-	"fmt"
-	"math/rand"
-	"errors"
 )
 
-const ModelVersion = 1
-
-const (
-	Version string = "version"
-	Secret string = "secret"
-	ForumName string = "title"
-	HeaderMsg string = "header_msg"
-	SignupNeedsApproval string = "signup_needs_approval"
-	PublicViewDisabled string = "public_view_disabled"
-	SignupDisabled string = "signup_disabled"
-	ImageUploadEnabled string = "image_upload_enabled"
-	FileUploadEnabled string = "file_upload_enabled"
-	AllowGroupSubscription string = "allow_group_subscription"
-	AllowTopicSubscription string = "allow_topic_subscription"
-	AutoSubscribeToMyTopic string = "auto_subscribe_to_my_topic"
-)
-
-var ErrDBVer = errors.New("DB version not up-to-date. Migration needed.")
-var ErrDBMigrationNotNeeded = errors.New("DB version is up-to-date.")
-var ErrDBVerAhead = errors.New("DB written by a newer version.")
-
-var ErrInvalidSessionID = errors.New("Session does not exist in DB.")
 
 var db *sql.DB
 
 var stmts = make(map[string]*sql.Stmt)
 
-func makeStmt(name string, query string) (*sql.Stmt, error) {
-	stmt, ok := stmts[name]
-	if !ok {
-		var err error
-		stmt, err := db.Prepare(query)
-		if err != nil {
-			log.Println("[ERROR] Error making statement", name, "with query:", query, "Err msg:", err)
-			return nil, err
-		}
-		stmts[name] = stmt
-		return stmt, nil
-	}
-	return stmt, nil
 
-}
-
-func QueryRow(name string, query string, args ...interface{}) (*sql.Row, error) {
-	stmt, err := makeStmt(name, query)
-	if err == nil {
-		return stmt.QueryRow(args...), nil
-	}
-	return nil, err
-}
-
-func exec(name string, query string, args ...interface{}) error {
-	stmt, err := makeStmt(name, query)
-	if err != nil {
-		return err
-	}
-	if _, err := stmt.Exec(args...); err != nil {
-		log.Println("[ERROR] Error executing", name, err)
-		return err
-	}
-	return nil
-}
-
-func runMigrationZero() {
+func CreateTables() {
 	if _, err := db.Exec(`CREATE TABLE configs(key TEXT, val TEXT);`); err != nil { panic(err) }
 	if _, err := db.Exec(`CREATE UNIQUE INDEX configs_key_index on configs(key);`); err != nil { panic(err) }
 
@@ -237,34 +176,12 @@ func runMigrationZero() {
 	if _, err := db.Exec(`CREATE INDEX sessions_userid_index on sessions(userid);`); err != nil { panic(err) }
 
 
-	WriteConfig(Version, "1");
-	WriteConfig(HeaderMsg, "")
-	WriteConfig(ForumName, "OrangeForum")
-	WriteConfig(Secret, RandSeq(32))
-	WriteConfig(SignupNeedsApproval, "0")
-	WriteConfig(PublicViewDisabled, "0")
-	WriteConfig(SignupDisabled, "0")
-	WriteConfig(FileUploadEnabled, "0")
-	WriteConfig(ImageUploadEnabled, "0")
-	WriteConfig(AllowGroupSubscription, "0")
-	WriteConfig(AllowTopicSubscription, "0")
-	WriteConfig(AutoSubscribeToMyTopic, "0")
-}
 
-
-
-func RandSeq(n int) string {
-	var letters = []rune("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
-	b := make([]rune, n)
-	for i := range b {
-		b[i] = letters[rand.Intn(len(letters))]
-	}
-	return string(b)
 }
 
 
 func DBVersion() int {
-	row := db.QueryRow(`SELECT val FROM configs WHERE key="`+Version+`"`)
+	row := db.QueryRow(`SELECT val FROM configs WHERE key="version";`)
 	sval := "0"
 	if err := row.Scan(&sval); err == nil {
 		if ival, err := strconv.Atoi(sval); err == nil {
@@ -274,155 +191,50 @@ func DBVersion() int {
 	return 0
 }
 
-func WriteConfig(key string, val string) error {
-	return exec("WriteConfig", `INSERT OR REPLACE INTO configs(key, val) values(?, ?);`, key, val)
-}
-
-
-func Config(key string) string {
-	row, err := QueryRow("Config", `SELECT val FROM configs WHERE key=?;`, key)
-	if err == nil {
-		var val string
-		if err := row.Scan(&val); err == nil {
-			return val
-		}
-	}
-	return "0"
-}
-
-func Init(driverName string, dataSourceName string, shouldMigrate bool) error {
+func Init(driverName string, dataSourceName string) {
 	mydb, err := sql.Open(driverName, dataSourceName)
 	if err != nil {
-		panic(err)
+		log.Fatalf("[ERROR] Error opening DB: %s\n", err)
 	}
 	db = mydb
 	db.Exec("PRAGMA journal_mode = WAL;")
 	db.Exec("PRAGMA synchronous = FULL;")
 	db.Exec("PRAGMA foreign_keys = ON;")
+}
 
-	rand.Seed(time.Now().UnixNano())
-
-	dbver := DBVersion()
-
-	if dbver > ModelVersion {
-		return ErrDBVerAhead
+func makeStmt(query string) *sql.Stmt {
+	stmt, ok := stmts[query]
+	if !ok {
+		stmt, err := db.Prepare(query)
+		if err != nil {
+			log.Fatalf("[ERROR] Error making stmt: %s. Err msg: %s\n", query, err)
+		}
+		stmts[query] = stmt
+		return stmt
 	}
-	if dbver < ModelVersion {
-		if shouldMigrate {
-			migrate()
-		} else {
-			return ErrDBVer
-		}
-	} else {
-		if shouldMigrate {
-			return ErrDBMigrationNotNeeded
-		}
+	return stmt
+
+}
+
+func QueryRow(query string, args ...interface{}) *sql.Row {
+	stmt := makeStmt(query)
+	return stmt.QueryRow(args...)
+}
+
+func ScanRow(row *sql.Row, args ...interface{}) error {
+	err := row.Scan(args...)
+	switch {
+	case err == sql.ErrNoRows:
+		return err
+	case err != nil:
+		log.Fatalf("[ERROR] Error scanning row: %s\n", err)
 	}
 	return nil
 }
 
-func Benchmark() {
-	start := time.Now()
-	for i := 0; i < 100000; i++ {
-		x := Config(Version)//WriteConfig("version", "3")
-		if x == "0" {
-			panic("Er")
-		}
-	}
-	elapsed := time.Since(start)
-	WriteConfig("version", "2")
-	println("Test val:", Config(Version))
-	fmt.Printf("time: %s\n", elapsed)
-}
-
-
-func migrate() {
-	dbver := DBVersion()
-	for dbver < ModelVersion {
-		switch dbver {
-		case 0:
-			runMigrationZero()
-		}
-		newDBVer := DBVersion()
-		if newDBVer != dbver + 1 {
-			log.Fatal("Migration ", dbver, " failed.")
-		}
-		dbver = newDBVer
+func Exec(query string, args ...interface{}) {
+	stmt := makeStmt(query)
+	if _, err := stmt.Exec(args...); err != nil {
+		log.Fatalf("[ERROR] Error executing %s. Err msg: %s\n", query, err)
 	}
 }
-
-func CreateSession(sessionID string, userID sql.NullInt64, csrfToken string, msg string, data string, createdDate time.Time, updatedDate time.Time) {
-	exec("CreateSession", `INSERT INTO sessions(sessionid, userid, csrf, msg, data, created_date, updated_date) values(?, ?, ?, ?, ?, ?, ?);`,
-		sessionID, userID, csrfToken, msg, data, int64(createdDate.Unix()), int64(updatedDate.Unix()))
-}
-
-func ReadSession(sessID string, userID *sql.NullInt64, csrfToken *string, msg *string, data *string, createdDate *time.Time, updatedDate *time.Time) error {
-	row, err := QueryRow("ReadSession", `SELECT userid, csrf, msg, data, created_date, updated_date FROM sessions WHERE sessionid=?;`, sessID)
-	if err == nil {
-		var cDate int64
-		var uDate int64
-		if err := row.Scan(userID, csrfToken, msg, data, &cDate, &uDate); err == nil {
-			*createdDate = time.Unix(cDate, 0)
-			*updatedDate = time.Unix(uDate, 0)
-			return nil
-		} else {
-			return err
-		}
-	}
-	return err
-}
-
-func UpdateSessionFlashMsg(sessID string, msg string) {
-	exec("UpdateSessionFlashMsg", `UPDATE sessions SET msg=? WHERE sessionid=?;`, msg, sessID)
-}
-
-func UpdateSessionUserID(sessID string, userID sql.NullInt64) {
-	exec("UpdateSessionFlashMsg", `UPDATE sessions SET userid=? WHERE sessionid=?;`, userID, sessID)
-}
-
-func UpdateSessionDate(sessID string, updatedDate time.Time) {
-	exec("UpdateSessionDate", `UPDATE sessions SET updated_date=? WHERE sessionid=?;`, int64(updatedDate.Unix()), sessID)
-}
-
-func DeleteSessions(lastUpdatedDate time.Time) {
-	exec("DeleteSessions", `DELETE FROM sessions WHERE updated_date < ?;`, int64(lastUpdatedDate.Unix()))
-}
-
-
-func CreateUser(userName string, passwdHash string, email string) {
-	now := int64(time.Now().Unix())
-	exec("CreateUser", `INSERT INTO
-			users(username, passwdhash, email, created_date, updated_date) values(?, ?, ?, ?, ?);`, userName, passwdHash, email, now, now)
-}
-
-
-
-func ProbeUser(userName string) bool {
-	if row, err := QueryRow("ProbeUser", `SELECT username FROM users WHERE username=?;`, userName); err == nil {
-		var tmp string
-		if row.Scan(&tmp) == nil {
-			return true
-		}
-	}
-	return false
-}
-
-func GetUserIDByName(userName string) (int64, error) {
-	if row, err := QueryRow("GetUserIDByName", `SELECT id FROM users WHERE username=?;`, userName); err == nil {
-		var userID int64
-		if row.Scan(&userID) == nil {
-			return userID, nil
-		}
-	}
-	return 0, nil
-
-}
-/*
-func GetUserNameByID(userID int) (string, error) {
-	if row, err := QueryRow("ProbeUser", `SELECT username FROM users WHERE username=?;`, userName); err == nil {
-		var tmp string
-		if row.Scan(&tmp) == nil {
-			return true
-		}
-	}
-}*/

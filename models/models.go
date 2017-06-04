@@ -2,10 +2,8 @@ package models
 
 import (
 	"time"
-	"golang.org/x/crypto/bcrypt"
 	"github.com/s-gv/orangeforum/models/db"
-	"encoding/hex"
-	"log"
+	"math/rand"
 	"errors"
 )
 
@@ -13,6 +11,22 @@ const (
 	VoteUp = 1
 	VoteDown = 2
 	VoteFlag = 3
+)
+
+const ModelVersion = 1
+
+const (
+	Secret string = "secret"
+	ForumName string = "title"
+	HeaderMsg string = "header_msg"
+	SignupNeedsApproval string = "signup_needs_approval"
+	PublicViewDisabled string = "public_view_disabled"
+	SignupDisabled string = "signup_disabled"
+	ImageUploadEnabled string = "image_upload_enabled"
+	FileUploadEnabled string = "file_upload_enabled"
+	AllowGroupSubscription string = "allow_group_subscription"
+	AllowTopicSubscription string = "allow_topic_subscription"
+	AutoSubscribeToMyTopic string = "auto_subscribe_to_my_topic"
 )
 
 var ErrIncorrectPasswd = errors.New("Incorrect username/password.")
@@ -130,7 +144,7 @@ type ExtraNote struct {
 	UpdatedDate time.Time
 }
 
-
+/*
 func CreateUser(userName string, passwd string, email string) {
 	if passwdHash, err := bcrypt.GenerateFromPassword([]byte(passwd), bcrypt.DefaultCost); err == nil {
 		db.CreateUser(userName, hex.EncodeToString(passwdHash), email)
@@ -192,4 +206,105 @@ func ReadUserByID(userID int) (User, error) {
 		}
 	}
 	return User{}, ErrUserNotFound
+}
+
+func CreateSession(sessionID string, userID sql.NullInt64, csrfToken string, msg string, data string, createdDate time.Time, updatedDate time.Time) {
+	exec("CreateSession", `INSERT INTO sessions(sessionid, userid, csrf, msg, data, created_date, updated_date) values(?, ?, ?, ?, ?, ?, ?);`,
+		sessionID, userID, csrfToken, msg, data, int64(createdDate.Unix()), int64(updatedDate.Unix()))
+}
+
+func ReadSession(sessID string, userID *sql.NullInt64, csrfToken *string, msg *string, data *string, createdDate *time.Time, updatedDate *time.Time) error {
+	row, err := QueryRow("ReadSession", `SELECT userid, csrf, msg, data, created_date, updated_date FROM sessions WHERE sessionid=?;`, sessID)
+	if err == nil {
+		var cDate int64
+		var uDate int64
+		if err := row.Scan(userID, csrfToken, msg, data, &cDate, &uDate); err == nil {
+			*createdDate = time.Unix(cDate, 0)
+			*updatedDate = time.Unix(uDate, 0)
+			return nil
+		} else {
+			return err
+		}
+	}
+	return err
+}
+
+func UpdateSessionFlashMsg(sessID string, msg string) {
+	exec("UpdateSessionFlashMsg", `UPDATE sessions SET msg=? WHERE sessionid=?;`, msg, sessID)
+}
+
+func UpdateSessionUserID(sessID string, userID sql.NullInt64) {
+	exec("UpdateSessionFlashMsg", `UPDATE sessions SET userid=? WHERE sessionid=?;`, userID, sessID)
+}
+
+func UpdateSessionDate(sessID string, updatedDate time.Time) {
+	exec("UpdateSessionDate", `UPDATE sessions SET updated_date=? WHERE sessionid=?;`, int64(updatedDate.Unix()), sessID)
+}
+
+func DeleteSessions(lastUpdatedDate time.Time) {
+	exec("DeleteSessions", `DELETE FROM sessions WHERE updated_date < ?;`, int64(lastUpdatedDate.Unix()))
+}
+
+
+func CreateUser(userName string, passwdHash string, email string) {
+	now := int64(time.Now().Unix())
+	exec("CreateUser", `INSERT INTO
+			users(username, passwdhash, email, created_date, updated_date) values(?, ?, ?, ?, ?);`, userName, passwdHash, email, now, now)
+}
+
+
+func ProbeUser(userName string) bool {
+	if row, err := QueryRow("ProbeUser", `SELECT username FROM users WHERE username=?;`, userName); err == nil {
+		var tmp string
+		if row.Scan(&tmp) == nil {
+			return true
+		}
+	}
+	return false
+}
+*/
+func RandSeq(n int) string {
+	var letters = []rune("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+	b := make([]rune, n)
+	for i := range b {
+		b[i] = letters[rand.Intn(len(letters))]
+	}
+	return string(b)
+}
+
+func WriteConfig(key string, val string) {
+	db.Exec(`INSERT OR REPLACE INTO configs(key, val) values(?, ?);`, key, val)
+}
+
+
+func Config(key string) string {
+	row := db.QueryRow(`SELECT val FROM configs WHERE key=?`, key)
+	var val string
+	if err := row.Scan(&val); err == nil {
+		return val
+	}
+	return "0"
+}
+
+func RunMigration() {
+	db.CreateTables()
+
+	WriteConfig("version", "1");
+	WriteConfig(HeaderMsg, "")
+	WriteConfig(ForumName, "OrangeForum")
+	WriteConfig(Secret, RandSeq(32))
+	WriteConfig(SignupNeedsApproval, "0")
+	WriteConfig(PublicViewDisabled, "0")
+	WriteConfig(SignupDisabled, "0")
+	WriteConfig(FileUploadEnabled, "0")
+	WriteConfig(ImageUploadEnabled, "0")
+	WriteConfig(AllowGroupSubscription, "0")
+	WriteConfig(AllowTopicSubscription, "0")
+	WriteConfig(AutoSubscribeToMyTopic, "0")
+}
+
+func IsMigrationNeeded() bool {
+	dbver := db.DBVersion()
+	return dbver != ModelVersion
+
 }

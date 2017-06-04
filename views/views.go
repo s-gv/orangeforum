@@ -1,13 +1,8 @@
 package views
 
 import (
-	"net/http"
-	"github.com/s-gv/orangeforum/templates"
-	"github.com/s-gv/orangeforum/models/sessions"
-	"github.com/s-gv/orangeforum/models"
-	"log"
 )
-
+/*
 func IndexHandler(w http.ResponseWriter, r *http.Request) {
 	sess := sessions.Open(w, r)
 	flashMsg := sess.FlashMsg()
@@ -58,3 +53,4 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
+*/

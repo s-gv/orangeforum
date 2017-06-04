@@ -2,37 +2,42 @@ package main
 
 import (
 	"net/http"
-	"github.com/s-gv/orangeforum/views"
 	"log"
 	"flag"
 	"github.com/s-gv/orangeforum/models/db"
+	"time"
+	"math/rand"
+	"github.com/s-gv/orangeforum/models"
 )
 
 func main() {
+	rand.Seed(time.Now().UnixNano())
+
 	dbFileName := flag.String("dbname", "orangeforum.db", "Database file path (default: orangeforum.db)")
 	port := flag.String("port", "9123", "Port to listen on (default: 9123)")
 	shouldMigrate := flag.Bool("migrate", false, "Migrate DB (default: false)")
 
 	flag.Parse()
 
-	if *shouldMigrate {
-		err := db.Init("sqlite3", *dbFileName, true)
-		if err != nil {
-			log.Fatal("[ERROR] Migration failed. ", err)
+	db.Init("sqlite3", *dbFileName)
+
+	if models.IsMigrationNeeded() {
+		if *shouldMigrate {
+			models.RunMigration()
+		} else {
+			log.Fatalf("[ERROR] DB migration needed.\n")
 		}
-		log.Println("[INFO] DB migration successful.")
-		return
+	} else {
+		if *shouldMigrate {
+			log.Fatalf("[ERROR] DB migration not needed. DB up-to-date.\n")
+		}
 	}
 
-	err := db.Init("sqlite3", *dbFileName, false)
-	if err != nil {
-		log.Fatalln("[ERROR]", err)
-	}
-
-
+	/*
 	http.HandleFunc("/", views.IndexHandler)
 	http.HandleFunc("/signup", views.SignupHandler)
 	http.HandleFunc("/login", views.LoginHandler)
+	*/
 
 	log.Println("[INFO] Starting orangeforum on port", *port)
 	http.ListenAndServe(":" + *port, nil)

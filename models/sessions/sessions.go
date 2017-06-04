@@ -29,7 +29,7 @@ var ErrNoFlashMsg = errors.New("No flash message")
 func Authenticate() error {
 	return nil
 }
-
+/*
 func Open(w http.ResponseWriter, r *http.Request) Session {
 	cookie, err := r.Cookie("sessionid")
 	if err == nil {
@@ -87,3 +87,4 @@ func (sess *Session) User() (models.User, error) {
 	}
 	return models.User{}, errors.New("Invalid user")
 }
+*/
