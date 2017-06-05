@@ -9,15 +9,23 @@ import (
 	"log"
 )
 
-func ErrHandler(w http.ResponseWriter, r *http.Request) {
+func ErrServerHandler(w http.ResponseWriter, r *http.Request) {
 	if r := recover(); r != nil {
 		log.Printf("[ERROR] Recovered from panic: %s\n", r)
 		http.Error(w, "Internal server error. This event has been logged.", http.StatusInternalServerError)
 	}
 }
 
+func ErrNotFoundHandler(w http.ResponseWriter, r *http.Request) {
+	http.NotFound(w, r)
+}
+
 func IndexHandler(w http.ResponseWriter, r *http.Request) {
-	defer ErrHandler(w, r)
+	defer ErrServerHandler(w, r)
+	if r.URL.Path != "/" {
+		ErrNotFoundHandler(w, r)
+		return
+	}
 	sess := sessions.Open(w, r)
 	flashMsg := sess.FlashMsg()
 	name := "world"
