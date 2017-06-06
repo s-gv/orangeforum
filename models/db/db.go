@@ -168,7 +168,6 @@ func CreateTables() {
 				userid INTEGER REFERENCES users(id) ON DELETE CASCADE,
 				csrf TEXT NOT NULL,
 				msg TEXT NOT NULL,
-				data TEXT NOT NULL,
 				created_date INTEGER NOT NULL,
 				updated_date INTEGER NOT NULL
 	);`); err != nil { panic(err) }

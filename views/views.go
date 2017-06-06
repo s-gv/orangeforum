@@ -4,14 +4,14 @@ import (
 )
 import (
 	"net/http"
-	"github.com/s-gv/orangeforum/models/sessions"
 	"github.com/s-gv/orangeforum/templates"
 	"log"
+	"github.com/s-gv/orangeforum/models"
 )
 
 func ErrServerHandler(w http.ResponseWriter, r *http.Request) {
 	if r := recover(); r != nil {
-		log.Printf("[ERROR] Recovered from panic: %s\n", r)
+		log.Printf("[INFO] Recovered from panic: %s", r)
 		http.Error(w, "Internal server error. This event has been logged.", http.StatusInternalServerError)
 	}
 }
@@ -26,7 +26,7 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 		ErrNotFoundHandler(w, r)
 		return
 	}
-	sess := sessions.Open(w, r)
+	sess := models.OpenSession(w, r)
 	flashMsg := sess.FlashMsg()
 	name := "world"
 	/*
@@ -78,3 +78,9 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 */
+
+func TestHandler(w http.ResponseWriter, r *http.Request) {
+	sess := models.OpenSession(w, r)
+	sess.SetFlashMsg("hi there")
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+}

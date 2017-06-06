@@ -5,6 +5,10 @@ const indexsrc = `
 Hello {{ .Name }}!
 {{ .Msg }}
 
+<form action="/test" method="POST">
+<input type="submit" value="Test">
+</form>
+
 <form action="/signup" method="POST">
 <input type="submit" value="Signup">
 </form>

@@ -13,6 +13,7 @@ import (
 
 func main() {
 	rand.Seed(time.Now().UnixNano())
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
 	dbFileName := flag.String("dbname", "orangeforum.db", "Database file path (default: orangeforum.db)")
 	port := flag.String("port", "9123", "Port to listen on (default: 9123)")
@@ -36,6 +37,7 @@ func main() {
 
 
 	http.HandleFunc("/", views.IndexHandler)
+	http.HandleFunc("/test", views.TestHandler)
 	/*
 	http.HandleFunc("/signup", views.SignupHandler)
 	http.HandleFunc("/login", views.LoginHandler)
