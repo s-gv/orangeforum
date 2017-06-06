@@ -207,17 +207,16 @@ func CreateUser(userName string, passwdHash string, email string) {
 			users(username, passwdhash, email, created_date, updated_date) values(?, ?, ?, ?, ?);`, userName, passwdHash, email, now, now)
 }
 
-
-func ProbeUser(userName string) bool {
-	if row, err := QueryRow("ProbeUser", `SELECT username FROM users WHERE username=?;`, userName); err == nil {
-		var tmp string
-		if row.Scan(&tmp) == nil {
-			return true
-		}
-	}
-	return false
-}
 */
+func ProbeUser(userName string) bool {
+	row := db.QueryRow(`SELECT username FROM users WHERE username=?;`, userName)
+	var tmp string
+	if err := db.ScanRow(row, &tmp); err == sql.ErrNoRows {
+		return false
+	}
+	return true
+}
+
 
 
 func RandSeq(n int) string {

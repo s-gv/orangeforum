@@ -40,20 +40,55 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func SignupHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
 	sess := models.OpenSession(w, r)
-	userName := "deaf"
-	passwd := "1234"
-	email := "fda@gdafdas.com"
-	if err := models.CreateUser(userName, passwd, email); err == nil {
-		sess.SetFlashMsg("Created user successfully")
-	} else {
-		sess.SetFlashMsg(err.Error())
+	if r.Method == "POST" {
+		userName := r.PostFormValue("username")
+		passwd := r.PostFormValue("passwd")
+		passwdConfirm := r.PostFormValue("confirm")
+		email := r.PostFormValue("email")
+		if r.PostFormValue("csrf") != sess.CSRFToken {
+			http.Error(w, "403 Forbidden", http.StatusForbidden)
+			return
+		}
+		if len(userName) == 0 {
+			sess.SetFlashMsg("Username should not be blank.")
+			http.Redirect(w, r, "/signup", http.StatusSeeOther)
+			return
+		}
+		hasSpecial := false
+		for _, ch := range userName {
+			if (ch < 'A' || ch > 'Z') && (ch < 'a' || ch > 'z') && ch != '_' && (ch < '0' || ch > '9') {
+				hasSpecial = true
+			}
+		}
+		if hasSpecial {
+			sess.SetFlashMsg("Username can contain only alphabets, numbers, and underscore.")
+			http.Redirect(w, r, "/signup", http.StatusSeeOther)
+			return
+		}
+		if models.ProbeUser(userName) {
+			sess.SetFlashMsg("Username already registered.")
+			http.Redirect(w, r, "/signup", http.StatusSeeOther)
+			return
+		}
+		if len(passwd) < 8 {
+			sess.SetFlashMsg("Password should have at least 8 characters.")
+			http.Redirect(w, r, "/signup", http.StatusSeeOther)
+			return
+		}
+		if passwd != passwdConfirm {
+			sess.SetFlashMsg("Passwords don't match.")
+			http.Redirect(w, r, "/signup", http.StatusSeeOther)
+			return
+		}
+		models.CreateUser(userName, passwd, email)
+		sess.Authenticate(userName, passwd)
+		http.Redirect(w, r, "/", http.StatusSeeOther)
 	}
-	http.Redirect(w, r, "/", http.StatusSeeOther)
+	templates.Render(w, "signup.html", map[string]interface{}{
+		"Msg": sess.FlashMsg(),
+		"CSRF": sess.CSRFToken,
+	})
 }
 
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
