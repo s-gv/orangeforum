@@ -5,6 +5,9 @@ import (
 	"github.com/s-gv/orangeforum/models/db"
 	"math/rand"
 	"errors"
+	"golang.org/x/crypto/bcrypt"
+	"encoding/hex"
+	"database/sql"
 )
 
 const (
@@ -31,6 +34,7 @@ const (
 
 var ErrIncorrectPasswd = errors.New("Incorrect username/password.")
 var ErrUserNotFound = errors.New("Username not found.")
+var ErrUserAlreadyExists = errors.New("Username already exists.")
 
 type User struct {
 	ID int
@@ -144,34 +148,22 @@ type ExtraNote struct {
 	UpdatedDate time.Time
 }
 
-/*
-func CreateUser(userName string, passwd string, email string) {
+
+func CreateUser(userName string, passwd string, email string) error {
 	if passwdHash, err := bcrypt.GenerateFromPassword([]byte(passwd), bcrypt.DefaultCost); err == nil {
-		db.CreateUser(userName, hex.EncodeToString(passwdHash), email)
+		r := db.QueryRow(`SELECT username FROM users WHERE username=?;`, userName)
+		var tmp string
+		if err := db.ScanRow(r, &tmp); err == sql.ErrNoRows {
+			db.Exec(`INSERT INTO users(username, passwdhash, email) VALUES(?, ?, ?);`, userName, hex.EncodeToString(passwdHash), email)
+		} else {
+			return ErrUserAlreadyExists
+		}
 	} else {
-		log.Printf("[ERROR] %s.\n", err)
+		return err
 	}
+	return nil
 }
-
-func ProbeUser(userName string) bool {
-	return db.ProbeUser(userName)
-}
-
-func Authenticate(userName string, passwd string) (User, error) {
-	u, err := ReadUserByName(userName)
-	if err != nil {
-		return User{}, err
-	}
-	passwdHash, err := hex.DecodeString(u.PasswdHash)
-	if err != nil {
-		log.Fatalf("[ERROR] Error decoding password has from hex. %s\n", err)
-	}
-	if err := bcrypt.CompareHashAndPassword(passwdHash, []byte(passwd)); err != nil {
-		return User{}, ErrIncorrectPasswd
-	}
-	return u, nil
-}
-
+/*
 func ReadUserByName(userName string) (User, error) {
 	if row, err := db.QueryRow("ReadUserByName", `SELECT * FROM users WHERE username=?;`, userName); err == nil {
 		u := User{}

@@ -29,36 +29,31 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 	sess := models.OpenSession(w, r)
 	flashMsg := sess.FlashMsg()
 	name := "world"
-	/*
-	if u, err := sess.User(); err == nil {
-		name = u.Username
-	} else {
-		log.Println(err)
+	if userName, err := sess.UserName(); err == nil {
+		name = userName
 	}
-	*/
 	templates.Render(w, "index.html", map[string]interface{}{
 		"Title": "Orange Forum",
 		"Name": name,
 		"Msg": flashMsg,
 	})
 }
-/*
+
 func SignupHandler(w http.ResponseWriter, r *http.Request) {
-	sess := sessions.Open(w, r)
-	if r.Method == "POST" {
-		userName := "deaf"
-		passwd := "1234"
-		email := "fda@gdafdas.com"
-		if models.ProbeUser(userName) {
-			sess.SetFlashMsg("User already exists.")
-		} else {
-			models.CreateUser(userName, passwd, email)
-			sess.SetFlashMsg("Created user successfully")
-		}
-		http.Redirect(w, r, "/", http.StatusSeeOther)
-	} else {
+	if r.Method != "POST" {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
 	}
+	sess := models.OpenSession(w, r)
+	userName := "deaf"
+	passwd := "1234"
+	email := "fda@gdafdas.com"
+	if err := models.CreateUser(userName, passwd, email); err == nil {
+		sess.SetFlashMsg("Created user successfully")
+	} else {
+		sess.SetFlashMsg(err.Error())
+	}
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
@@ -66,21 +61,24 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
-	sess := sessions.Open(w, r)
+	sess := models.OpenSession(w, r)
 	userName := "deaf"
 	passwd := "1234"
-	if user, err := models.Authenticate(userName, passwd); err == nil {
-		sess.SetUser(user, true)
+	if sess.Authenticate(userName, passwd) {
 		sess.SetFlashMsg("Logged in")
 	} else {
-		sess.SetFlashMsg(err.Error())
+		sess.SetFlashMsg("Incorrect username/password")
 	}
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
-*/
 
 func TestHandler(w http.ResponseWriter, r *http.Request) {
 	sess := models.OpenSession(w, r)
 	sess.SetFlashMsg("hi there")
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
+func LogoutHandler(w http.ResponseWriter, r *http.Request) {
+	models.ClearSession(w, r)
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }

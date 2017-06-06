@@ -17,4 +17,6 @@ Hello {{ .Name }}!
 <input type="submit" value="Login">
 </form>
 
+<a href="/logout">Logout</a>.
+
 {{ end }}`

@@ -6,6 +6,9 @@ import (
 	"database/sql"
 	"time"
 	"github.com/s-gv/orangeforum/models/db"
+	"encoding/hex"
+	"log"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type Session struct {
@@ -74,23 +77,42 @@ func (sess *Session) FlashMsg() string {
 	return msg
 }
 
-func (sess *Session) SetUser(user User) {
-	println(user.ID)
-	sess.UserID = sql.NullInt64{int64(user.ID), true}
-	db.Exec(`UPDATE sessions SET userid=? WHERE sessionid=?;`, sess.UserID, sess.SessionID)
-}
-/*
-func (sess *Session) User() (models.User, error) {
-
-	if sess.UserID.Valid {
-		println("User in session valid")
-		if u, err := models.ReadUserByID(int(sess.UserID.Int64)); err == nil {
-			return u, nil
-		}
-	} else {
-		println("Userid not valid in session")
+func (sess *Session) Authenticate(userName string, passwd string) bool {
+	r := db.QueryRow(`SELECT id, passwdhash FROM users WHERE username=?;`, userName)
+	var passwdHashStr string
+	var userID int
+	if err := db.ScanRow(r, &userID, &passwdHashStr); err != nil {
+		return false
 	}
-	return models.User{}, errors.New("Invalid user")
-
+	passwdHash, err := hex.DecodeString(passwdHashStr)
+	if err != nil {
+		log.Fatalf("[ERROR] Error in converting password hash from hex to byte slice: %s\n", err)
+	}
+	if err := bcrypt.CompareHashAndPassword(passwdHash, []byte(passwd)); err != nil {
+		return false
+	}
+	sess.UserID = sql.NullInt64{int64(userID), true}
+	db.Exec(`UPDATE sessions SET userid=? WHERE sessionid=?;`, sess.UserID, sess.SessionID)
+	return true
 }
-*/
+
+func (sess *Session) UserName() (string, error) {
+	if sess.UserID.Valid {
+		r := db.QueryRow(`SELECT username FROM users WHERE id=?;`, sess.UserID)
+		var userName string
+		if err := db.ScanRow(r, &userName); err == nil {
+			return userName, nil
+		}
+	}
+	return "", errors.New("Invalid user")
+}
+
+func ClearSession(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("sessionid")
+	if err == nil {
+		sessionID := cookie.Value
+		db.Exec(`DELETE FROM sessions WHERE sessionid=?;`, sessionID)
+	}
+	http.SetCookie(w, &http.Cookie{Name: "sessionid", Value: "", Expires: time.Now().Add(-300*time.Hour), HttpOnly: true})
+	http.SetCookie(w, &http.Cookie{Name: "csrftoken", Value: "", Expires: time.Now().Add(-300*time.Hour)})
+}

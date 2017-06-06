@@ -38,10 +38,9 @@ func main() {
 
 	http.HandleFunc("/", views.IndexHandler)
 	http.HandleFunc("/test", views.TestHandler)
-	/*
 	http.HandleFunc("/signup", views.SignupHandler)
 	http.HandleFunc("/login", views.LoginHandler)
-	*/
+	http.HandleFunc("/logout", views.LogoutHandler)
 
 	log.Println("[INFO] Starting orangeforum on port", *port)
 	http.ListenAndServe(":" + *port, nil)
