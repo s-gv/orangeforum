@@ -9,12 +9,8 @@ Hello {{ .Name }}!
 <input type="submit" value="Test">
 </form>
 
+<a href="/login">Login</a>
 <a href="/signup">Signup</a>
-
-<form action="/login" method="POST">
-<input type="submit" value="Login">
-</form>
-
 <a href="/logout">Logout</a>.
 
 {{ end }}`

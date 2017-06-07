@@ -92,19 +92,32 @@ func SignupHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
 	sess := models.OpenSession(w, r)
-	userName := "deaf"
-	passwd := "1234"
-	if sess.Authenticate(userName, passwd) {
-		sess.SetFlashMsg("Logged in")
-	} else {
-		sess.SetFlashMsg("Incorrect username/password")
+	redirectURL := r.FormValue("next")
+	if redirectURL == "" {
+		redirectURL = "/"
 	}
-	http.Redirect(w, r, "/", http.StatusSeeOther)
+	if r.Method == "POST" {
+		userName := r.PostFormValue("username")
+		passwd := r.PostFormValue("passwd")
+		if r.PostFormValue("csrf") != sess.CSRFToken {
+			http.Error(w, "403 Forbidden", http.StatusForbidden)
+			return
+		}
+		if sess.Authenticate(userName, passwd) {
+			http.Redirect(w, r, redirectURL, http.StatusSeeOther)
+			return
+		} else {
+			sess.SetFlashMsg("Incorrect username/password")
+			http.Redirect(w, r, "/login?next="+redirectURL, http.StatusSeeOther)
+			return
+		}
+	}
+	templates.Render(w, "login.html", map[string]interface{}{
+		"CSRF": sess.CSRFToken,
+		"Msg": sess.FlashMsg(),
+		"next": redirectURL,
+	})
 }
 
 func TestHandler(w http.ResponseWriter, r *http.Request) {

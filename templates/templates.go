@@ -13,6 +13,9 @@ func init() {
 
 	tmpls["signup.html"] = template.Must(template.New("base").Parse(basesrc))
 	template.Must(tmpls["signup.html"].New("signup").Parse(signupsrc))
+
+	tmpls["login.html"] = template.Must(template.New("base").Parse(basesrc))
+	template.Must(tmpls["login.html"].New("login").Parse(loginsrc))
 }
 
 func Render(wr io.Writer, template string, data interface{}) error {
