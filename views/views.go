@@ -40,6 +40,7 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func SignupHandler(w http.ResponseWriter, r *http.Request) {
+	defer ErrServerHandler(w, r)
 	sess := models.OpenSession(w, r)
 	if r.Method == "POST" {
 		userName := r.PostFormValue("username")
@@ -92,6 +93,7 @@ func SignupHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
+	defer ErrServerHandler(w, r)
 	sess := models.OpenSession(w, r)
 	redirectURL := r.FormValue("next")
 	if redirectURL == "" {
@@ -120,13 +122,55 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func ChangePasswdHandler(w http.ResponseWriter, r *http.Request) {
+	defer ErrServerHandler(w, r)
+	sess := models.OpenSession(w, r)
+	userName, err := sess.UserName()
+	if err != nil {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+	if r.Method == "POST" {
+		passwd := r.PostFormValue("passwd")
+		newPasswd := r.PostFormValue("newpass")
+		newPasswdConfirm := r.PostFormValue("confirm")
+		if !sess.Authenticate(userName, passwd) {
+			sess.SetFlashMsg("Current password incorrect.")
+			http.Redirect(w, r, "/changepass", http.StatusSeeOther)
+			return
+		}
+		if len(newPasswd) < 8 {
+			sess.SetFlashMsg("New password should have at least 8 characters.")
+			http.Redirect(w, r, "/changepass", http.StatusSeeOther)
+			return
+		}
+		if newPasswd != newPasswdConfirm {
+			sess.SetFlashMsg("Password in the confirmation box doesn't match.")
+			http.Redirect(w, r, "/changepass", http.StatusSeeOther)
+			return
+		}
+		if err := models.UpdateUserPasswd(userName, newPasswd); err != nil {
+			log.Fatalf("[ERROR] Error changing password: %s\n", err)
+		}
+		sess.SetFlashMsg("Password change successful.")
+		http.Redirect(w, r, "/changepass", http.StatusSeeOther)
+		return
+	}
+	templates.Render(w, "changepass.html", map[string]interface{}{
+		"CSRF": sess.CSRFToken,
+		"Msg": sess.FlashMsg(),
+	})
+}
+
 func TestHandler(w http.ResponseWriter, r *http.Request) {
+	defer ErrServerHandler(w, r)
 	sess := models.OpenSession(w, r)
 	sess.SetFlashMsg("hi there")
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
 func LogoutHandler(w http.ResponseWriter, r *http.Request) {
+	defer ErrServerHandler(w, r)
 	models.ClearSession(w, r)
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }

@@ -163,6 +163,15 @@ func CreateUser(userName string, passwd string, email string) error {
 	}
 	return nil
 }
+
+func UpdateUserPasswd(userName string, passwd string) error {
+	if passwdHash, err := bcrypt.GenerateFromPassword([]byte(passwd), bcrypt.DefaultCost); err == nil {
+		db.Exec(`UPDATE users SET passwdhash=? WHERE username=?`, hex.EncodeToString(passwdHash), userName)
+	} else {
+		return err
+	}
+	return nil
+}
 /*
 func ReadUserByName(userName string) (User, error) {
 	if row, err := db.QueryRow("ReadUserByName", `SELECT * FROM users WHERE username=?;`, userName); err == nil {
