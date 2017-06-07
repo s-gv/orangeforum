@@ -30,6 +30,11 @@ const (
 	AllowGroupSubscription string = "allow_group_subscription"
 	AllowTopicSubscription string = "allow_topic_subscription"
 	AutoSubscribeToMyTopic string = "auto_subscribe_to_my_topic"
+	DefaultFromMail string = "default_from_mail"
+	SMTPHost string = "smtp_host"
+	SMTPPort string = "smtp_port"
+	SMTPUser string = "smtp_user"
+	SMTPPass string = "smtp_pass"
 )
 
 var ErrIncorrectPasswd = errors.New("Incorrect username/password.")
@@ -164,14 +169,45 @@ func CreateUser(userName string, passwd string, email string) error {
 	return nil
 }
 
+func ReadUserEmail(userName string) string {
+	r := db.QueryRow(`SELECT email FROM users WHERE username=?;`, userName)
+	var email string
+	if err := db.ScanRow(r, &email); err == nil {
+		return email
+	}
+	return ""
+}
+
+func ReadUserNameByToken(resetToken string) (string, error) {
+	if len(resetToken) > 0 {
+		r := db.QueryRow(`SELECT username, reset_token_date FROM users WHERE reset_token=?;`, resetToken)
+		var userName string
+		var rDate int64
+		if err := db.ScanRow(r, &userName, &rDate); err == nil {
+			resetDate := time.Unix(rDate, 0)
+			if resetDate.After(time.Now().Add(-48*time.Hour)) {
+				return userName, nil
+			}
+		}
+	}
+	return "", errors.New("Invalid/Expired reset token.")
+}
+
 func UpdateUserPasswd(userName string, passwd string) error {
 	if passwdHash, err := bcrypt.GenerateFromPassword([]byte(passwd), bcrypt.DefaultCost); err == nil {
-		db.Exec(`UPDATE users SET passwdhash=? WHERE username=?`, hex.EncodeToString(passwdHash), userName)
+		db.Exec(`UPDATE users SET passwdhash=?, reset_token="", reset_token_date=0 WHERE username=?`, hex.EncodeToString(passwdHash), userName)
 	} else {
 		return err
 	}
 	return nil
 }
+
+func CreateResetToken(userName string) string {
+	resetToken := RandSeq(64)
+	db.Exec(`UPDATE users SET reset_token=?, reset_token_date=? WHERE username=?;`, resetToken, int64(time.Now().Unix()), userName)
+	return resetToken
+}
+
 /*
 func ReadUserByName(userName string) (User, error) {
 	if row, err := db.QueryRow("ReadUserByName", `SELECT * FROM users WHERE username=?;`, userName); err == nil {
@@ -256,7 +292,7 @@ func Migrate() {
 
 	WriteConfig("version", "1");
 	WriteConfig(HeaderMsg, "")
-	WriteConfig(ForumName, "OrangeForum")
+	WriteConfig(ForumName, "Orange Forum")
 	WriteConfig(Secret, RandSeq(32))
 	WriteConfig(SignupNeedsApproval, "0")
 	WriteConfig(PublicViewDisabled, "0")
@@ -266,6 +302,11 @@ func Migrate() {
 	WriteConfig(AllowGroupSubscription, "0")
 	WriteConfig(AllowTopicSubscription, "0")
 	WriteConfig(AutoSubscribeToMyTopic, "0")
+	WriteConfig(DefaultFromMail, "admin@sagargv.com")
+	WriteConfig(SMTPHost, "smtp.mailgun.org")
+	WriteConfig(SMTPPort, "25")
+	WriteConfig(SMTPUser, "postmaster@sagargv.com")
+	WriteConfig(SMTPPass, "291a1fadee7d4780f67293c70cc66b12")
 }
 
 func IsMigrationNeeded() bool {

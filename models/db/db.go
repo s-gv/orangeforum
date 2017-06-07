@@ -25,16 +25,19 @@ func CreateTables() {
 		       		email TEXT DEAFULT "",
 		       		about TEXT DEFAULT "",
 		       		karma INTEGER DEFAULT 0,
+		       		reset_token TEXT DEFAULT "",
 		       		is_banned BOOLEAN DEFAULT false,
 		       		is_warned BOOLEAN DEFAULT false,
 				is_superadmin BOOLEAN DEFAULT false,
 				is_supermod BOOLEAN DEFAULT false,
 				is_approved BOOLEAN DEFAULT false,
 		       		created_date INTEGER,
-		       		updated_date INTEGER
+		       		updated_date INTEGER,
+		       		reset_token_date INTEGER
 	);`); err != nil { panic(err) }
 	if _, err := db.Exec(`CREATE UNIQUE INDEX users_username_index on users(username);`); err != nil { panic(err) }
 	if _, err := db.Exec(`CREATE INDEX users_email_index on users(email);`); err != nil { panic(err) }
+	if _, err := db.Exec(`CREATE INDEX users_reset_token_index on users(reset_token);`); err != nil { panic(err) }
 
 
 	if _, err := db.Exec(`CREATE TABLE groups(

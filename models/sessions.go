@@ -96,6 +96,10 @@ func (sess *Session) Authenticate(userName string, passwd string) bool {
 	return true
 }
 
+func (sess *Session) UserValid() bool {
+	return sess.UserID.Valid
+}
+
 func (sess *Session) UserName() (string, error) {
 	if sess.UserID.Valid {
 		r := db.QueryRow(`SELECT username FROM users WHERE id=?;`, sess.UserID)

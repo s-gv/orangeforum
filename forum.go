@@ -42,6 +42,8 @@ func main() {
 	http.HandleFunc("/login", views.LoginHandler)
 	http.HandleFunc("/logout", views.LogoutHandler)
 	http.HandleFunc("/changepass", views.ChangePasswdHandler)
+	http.HandleFunc("/forgotpass", views.ForgotPasswdHandler)
+	http.HandleFunc("/resetpass", views.ResetPasswdHandler)
 
 	log.Println("[INFO] Starting orangeforum on port", *port)
 	http.ListenAndServe(":" + *port, nil)

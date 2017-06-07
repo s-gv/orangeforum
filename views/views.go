@@ -7,6 +7,9 @@ import (
 	"github.com/s-gv/orangeforum/templates"
 	"log"
 	"github.com/s-gv/orangeforum/models"
+	"github.com/s-gv/orangeforum/utils"
+	"strings"
+	"errors"
 )
 
 func ErrServerHandler(w http.ResponseWriter, r *http.Request) {
@@ -18,6 +21,10 @@ func ErrServerHandler(w http.ResponseWriter, r *http.Request) {
 
 func ErrNotFoundHandler(w http.ResponseWriter, r *http.Request) {
 	http.NotFound(w, r)
+}
+
+func ErrForbiddenHandler(w http.ResponseWriter, r *http.Request) {
+	http.Error(w, "403 Forbidden", http.StatusForbidden)
 }
 
 func IndexHandler(w http.ResponseWriter, r *http.Request) {
@@ -42,17 +49,18 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 func SignupHandler(w http.ResponseWriter, r *http.Request) {
 	defer ErrServerHandler(w, r)
 	sess := models.OpenSession(w, r)
+	if r.Method == "POST" && r.PostFormValue("csrf") != sess.CSRFToken {
+		ErrForbiddenHandler(w, r)
+		return
+	}
+
 	if r.Method == "POST" {
 		userName := r.PostFormValue("username")
 		passwd := r.PostFormValue("passwd")
 		passwdConfirm := r.PostFormValue("confirm")
 		email := r.PostFormValue("email")
-		if r.PostFormValue("csrf") != sess.CSRFToken {
-			http.Error(w, "403 Forbidden", http.StatusForbidden)
-			return
-		}
 		if len(userName) == 0 {
-			sess.SetFlashMsg("Username should not be blank.")
+			sess.SetFlashMsg("Username cannot be blank.")
 			http.Redirect(w, r, "/signup", http.StatusSeeOther)
 			return
 		}
@@ -72,13 +80,8 @@ func SignupHandler(w http.ResponseWriter, r *http.Request) {
 			http.Redirect(w, r, "/signup", http.StatusSeeOther)
 			return
 		}
-		if len(passwd) < 8 {
-			sess.SetFlashMsg("Password should have at least 8 characters.")
-			http.Redirect(w, r, "/signup", http.StatusSeeOther)
-			return
-		}
-		if passwd != passwdConfirm {
-			sess.SetFlashMsg("Passwords don't match.")
+		if err := validatePasswd(passwd, passwdConfirm); err != nil {
+			sess.SetFlashMsg(err.Error())
 			http.Redirect(w, r, "/signup", http.StatusSeeOther)
 			return
 		}
@@ -95,17 +98,23 @@ func SignupHandler(w http.ResponseWriter, r *http.Request) {
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	defer ErrServerHandler(w, r)
 	sess := models.OpenSession(w, r)
+	if r.Method == "POST" && r.PostFormValue("csrf") != sess.CSRFToken {
+		ErrForbiddenHandler(w, r)
+		return
+	}
+
 	redirectURL := r.FormValue("next")
 	if redirectURL == "" {
 		redirectURL = "/"
 	}
+	if sess.UserValid() {
+		http.Redirect(w, r, redirectURL, http.StatusSeeOther)
+		return
+	}
+
 	if r.Method == "POST" {
 		userName := r.PostFormValue("username")
 		passwd := r.PostFormValue("passwd")
-		if r.PostFormValue("csrf") != sess.CSRFToken {
-			http.Error(w, "403 Forbidden", http.StatusForbidden)
-			return
-		}
 		if sess.Authenticate(userName, passwd) {
 			http.Redirect(w, r, redirectURL, http.StatusSeeOther)
 			return
@@ -125,6 +134,11 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 func ChangePasswdHandler(w http.ResponseWriter, r *http.Request) {
 	defer ErrServerHandler(w, r)
 	sess := models.OpenSession(w, r)
+	if r.Method == "POST" && r.PostFormValue("csrf") != sess.CSRFToken {
+		ErrForbiddenHandler(w, r)
+		return
+	}
+
 	userName, err := sess.UserName()
 	if err != nil {
 		http.Redirect(w, r, "/", http.StatusSeeOther)
@@ -139,13 +153,8 @@ func ChangePasswdHandler(w http.ResponseWriter, r *http.Request) {
 			http.Redirect(w, r, "/changepass", http.StatusSeeOther)
 			return
 		}
-		if len(newPasswd) < 8 {
-			sess.SetFlashMsg("New password should have at least 8 characters.")
-			http.Redirect(w, r, "/changepass", http.StatusSeeOther)
-			return
-		}
-		if newPasswd != newPasswdConfirm {
-			sess.SetFlashMsg("Password in the confirmation box doesn't match.")
+		if err := validatePasswd(newPasswd, newPasswdConfirm); err != nil {
+			sess.SetFlashMsg(err.Error())
 			http.Redirect(w, r, "/changepass", http.StatusSeeOther)
 			return
 		}
@@ -157,6 +166,88 @@ func ChangePasswdHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	templates.Render(w, "changepass.html", map[string]interface{}{
+		"CSRF": sess.CSRFToken,
+		"Msg": sess.FlashMsg(),
+	})
+}
+
+func ForgotPasswdHandler(w http.ResponseWriter, r *http.Request) {
+	defer ErrServerHandler(w, r)
+	sess := models.OpenSession(w, r)
+	if r.Method == "POST" && r.PostFormValue("csrf") != sess.CSRFToken {
+		ErrForbiddenHandler(w, r)
+		return
+	}
+
+	if r.Method == "POST" {
+		userName := r.PostFormValue("username")
+		if userName == "" || !models.ProbeUser(userName) {
+			sess.SetFlashMsg("Username doesn't exist.")
+			http.Redirect(w, r, "/forgotpass", http.StatusSeeOther)
+			return
+		}
+		email := models.ReadUserEmail(userName)
+		if !strings.ContainsRune(email, '@') {
+			sess.SetFlashMsg("E-mail address not set. Contact site admin to reset the password.")
+			http.Redirect(w, r, "/forgotpass", http.StatusSeeOther)
+			return
+		}
+		forumName := models.Config(models.ForumName)
+		resetLink := "https://" + r.Host + "/resetpass?r=" + models.CreateResetToken(userName)
+		sub := forumName + " Password Recovery"
+		msg := "Someone (hopefully you) requested we reset your password at " + forumName + ".\r\n" +
+			"If you want to change it, visit "+resetLink+"\r\n\r\nIf not, just ignore this message."
+		utils.SendMail(email, sub, msg)
+		sess.SetFlashMsg("Password reset link sent to your e-mail.")
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+
+	}
+	templates.Render(w, "forgotpass.html", map[string]interface{}{
+		"CSRF": sess.CSRFToken,
+		"Msg": sess.FlashMsg(),
+	})
+}
+
+func validatePasswd(passwd string, passwdConfirm string) error {
+	if len(passwd) < 8 {
+		return errors.New("Password should have at least 8 characters.")
+	}
+	if passwd != passwdConfirm {
+		return errors.New("Passwords don't match.")
+	}
+	return nil
+}
+
+func ResetPasswdHandler(w http.ResponseWriter, r *http.Request) {
+	defer ErrServerHandler(w, r)
+	sess := models.OpenSession(w, r)
+	if r.Method == "POST" && r.PostFormValue("csrf") != sess.CSRFToken {
+		ErrForbiddenHandler(w, r)
+		return
+	}
+
+	resetToken := r.FormValue("r")
+	userName, err := models.ReadUserNameByToken(resetToken)
+	if err != nil {
+		ErrForbiddenHandler(w, r)
+		return
+	}
+	if r.Method == "POST" {
+		passwd := r.PostFormValue("passwd")
+		passwdConfirm := r.PostFormValue("confirm")
+		if err := validatePasswd(passwd, passwdConfirm); err != nil {
+			sess.SetFlashMsg(err.Error())
+			http.Redirect(w, r, "/resetpass?r="+resetToken, http.StatusSeeOther)
+			return
+		}
+		models.UpdateUserPasswd(userName, passwd)
+		sess.SetFlashMsg("Password change successful.")
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+	templates.Render(w, "resetpass.html", map[string]interface{}{
+		"ResetToken": resetToken,
 		"CSRF": sess.CSRFToken,
 		"Msg": sess.FlashMsg(),
 	})

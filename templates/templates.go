@@ -19,6 +19,12 @@ func init() {
 
 	tmpls["changepass.html"] = template.Must(template.New("base").Parse(basesrc))
 	template.Must(tmpls["changepass.html"].New("changepass").Parse(changepasssrc))
+
+	tmpls["forgotpass.html"] = template.Must(template.New("base").Parse(basesrc))
+	template.Must(tmpls["forgotpass.html"].New("forgotpass").Parse(forgotpasssrc))
+
+	tmpls["resetpass.html"] = template.Must(template.New("base").Parse(basesrc))
+	template.Must(tmpls["resetpass.html"].New("resetpass").Parse(resetpasssrc))
 }
 
 func Render(wr io.Writer, template string, data interface{}) error {
