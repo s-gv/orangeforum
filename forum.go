@@ -38,6 +38,9 @@ func main() {
 
 	http.HandleFunc("/", views.IndexHandler)
 	http.HandleFunc("/test", views.TestHandler)
+
+	http.HandleFunc("/creategroup", views.CreateGroupHandler)
+
 	http.HandleFunc("/signup", views.SignupHandler)
 	http.HandleFunc("/login", views.LoginHandler)
 	http.HandleFunc("/logout", views.LogoutHandler)

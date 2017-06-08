@@ -267,3 +267,44 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	models.ClearSession(w, r)
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
+
+func CreateGroupHandler(w http.ResponseWriter, r *http.Request) {
+	defer ErrServerHandler(w, r)
+	sess := models.OpenSession(w, r)
+	if r.Method == "POST" && r.PostFormValue("csrf") != sess.CSRFToken {
+		ErrForbiddenHandler(w, r)
+		return
+	}
+	if !sess.IsUserValid() {
+		http.Redirect(w, r, "/login?next=/creategroup", http.StatusSeeOther)
+		return
+	}
+
+	if r.Method == "POST" {
+		groupName := r.PostFormValue("name")
+		//groupDesc := r.PostFormValue("desc")
+		if groupName == "" {
+			sess.SetFlashMsg("Group name is empty.")
+			http.Redirect(w, r, "/creategroup", http.StatusSeeOther)
+			return
+		}
+		hasSpecial := false
+		for _, ch := range groupName {
+			if (ch < 'A' || ch > 'Z') && (ch < 'a' || ch > 'z') && ch != '-' && (ch < '0' || ch > '9') {
+				hasSpecial = true
+			}
+		}
+		if hasSpecial {
+			sess.SetFlashMsg("Username can contain only english alphabets, numbers, and hyphen.")
+			http.Redirect(w, r, "/creategroup", http.StatusSeeOther)
+			return
+		}
+		http.Redirect(w, r, "/g/"+groupName, http.StatusSeeOther)
+		return
+	}
+
+	templates.Render(w, "creategroup.html", map[string]interface{}{
+		"CSRF": sess.CSRFToken,
+		"Msg": sess.FlashMsg(),
+	})
+}

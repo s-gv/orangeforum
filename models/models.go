@@ -49,10 +49,7 @@ type User struct {
 	About string
 	Karma int
 	IsBanned bool
-	IsWarned bool
 	IsSuperAdmin bool
-	IsSuperMod bool
-	IsApproved bool
 	CreatedDate time.Time
 	UpdatedDate time.Time
 }
@@ -64,7 +61,6 @@ type Group struct {
 	IsSticky string
 	IsPrivate string
 	IsClosed string
-	HeaderMessage string
 	CreatedDate time.Time
 	UpdatedDate time.Time
 }
@@ -208,51 +204,6 @@ func CreateResetToken(userName string) string {
 	return resetToken
 }
 
-/*
-func ReadUserByName(userName string) (User, error) {
-	if row, err := db.QueryRow("ReadUserByName", `SELECT * FROM users WHERE username=?;`, userName); err == nil {
-		u := User{}
-		var cDate int64
-		var uDate int64
-		if err := row.Scan(&u.ID, &u.Username, &u.PasswdHash, &u.Email, &u.About, &u.Karma,
-				&u.IsBanned, &u.IsWarned, &u.IsSuperAdmin, &u.IsSuperMod, &u.IsApproved,
-				&cDate, &uDate); err == nil {
-			u.CreatedDate = time.Unix(cDate, 0)
-			u.UpdatedDate = time.Unix(uDate, 0)
-			return u, nil
-		} else {
-			log.Println(err)
-		}
-	}
-	return User{}, ErrUserNotFound
-}
-
-func ReadUserByID(userID int) (User, error) {
-	if row, err := db.QueryRow("ReadUserByName", `SELECT * FROM users WHERE id=?;`, userID); err == nil {
-		u := User{}
-		var cDate int64
-		var uDate int64
-		if err := row.Scan(&u.ID, &u.Username, &u.PasswdHash, &u.Email, &u.About, &u.Karma,
-			&u.IsBanned, &u.IsWarned, &u.IsSuperAdmin, &u.IsSuperMod, &u.IsApproved,
-			&cDate, &uDate); err == nil {
-			u.CreatedDate = time.Unix(cDate, 0)
-			u.UpdatedDate = time.Unix(uDate, 0)
-			return u, nil
-		} else {
-			log.Println(err)
-		}
-	}
-	return User{}, ErrUserNotFound
-}
-
-
-func CreateUser(userName string, passwdHash string, email string) {
-	now := int64(time.Now().Unix())
-	exec("CreateUser", `INSERT INTO
-			users(username, passwdhash, email, created_date, updated_date) values(?, ?, ?, ?, ?);`, userName, passwdHash, email, now, now)
-}
-
-*/
 func ProbeUser(userName string) bool {
 	row := db.QueryRow(`SELECT username FROM users WHERE username=?;`, userName)
 	var tmp string
@@ -261,8 +212,6 @@ func ProbeUser(userName string) bool {
 	}
 	return true
 }
-
-
 
 func RandSeq(n int) string {
 	var letters = []rune("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")

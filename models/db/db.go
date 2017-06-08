@@ -27,10 +27,7 @@ func CreateTables() {
 		       		karma INTEGER DEFAULT 0,
 		       		reset_token TEXT DEFAULT "",
 		       		is_banned BOOLEAN DEFAULT false,
-		       		is_warned BOOLEAN DEFAULT false,
 				is_superadmin BOOLEAN DEFAULT false,
-				is_supermod BOOLEAN DEFAULT false,
-				is_approved BOOLEAN DEFAULT false,
 		       		created_date INTEGER,
 		       		updated_date INTEGER,
 		       		reset_token_date INTEGER
@@ -47,7 +44,6 @@ func CreateTables() {
 		       		is_sticky BOOLEAN,
 		       		is_private BOOLEAN,
 		       		is_closed BOOLEAN,
-		       		header_msg TEXT,
 		       		created_date INTEGER,
 		       		updated_date INTEGER
 	);`); err != nil { panic(err) }

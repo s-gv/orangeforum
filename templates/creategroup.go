@@ -8,4 +8,15 @@ top | new | groups | create group
 {{ else }}
 <a href="/login">login</a>
 {{ end }}
+
+
+<form action="/creategroup" method="POST">
+<input type="hidden" name="csrf" value="{{ .CSRF }}">
+Group Name: <input type="text" name="name">
+Group Description: <input type="text" name="desc">
+<input type="submit" value="Create Group">
+</form>
+
+{{ .Msg }}
+
 {{ end }}`
