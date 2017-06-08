@@ -1,8 +1,8 @@
 package templates
 
-const indexSrc = `
+const groupnewSrc = `
 {{ define "content" }}
-top | new | groups | create group
+top | new | groups | submit
 {{ if .IsUserValid }}
 {{ .UserName }} ({{ .Karma }}) | <a href="/logout">logout</a>
 {{ else }}

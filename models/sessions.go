@@ -96,7 +96,7 @@ func (sess *Session) Authenticate(userName string, passwd string) bool {
 	return true
 }
 
-func (sess *Session) UserValid() bool {
+func (sess *Session) IsUserValid() bool {
 	return sess.UserID.Valid
 }
 

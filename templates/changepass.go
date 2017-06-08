@@ -1,6 +1,6 @@
 package templates
 
-const changepasssrc = `
+const changepassSrc = `
 {{ define "content" }}
 
 <form action="/changepass" method="POST">

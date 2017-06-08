@@ -1,6 +1,6 @@
 package templates
 
-const indexSrc = `
+const creategroupSrc = `
 {{ define "content" }}
 top | new | groups | create group
 {{ if .IsUserValid }}

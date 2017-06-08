@@ -35,13 +35,15 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	sess := models.OpenSession(w, r)
 	flashMsg := sess.FlashMsg()
-	name := "world"
+	name := ""
 	if userName, err := sess.UserName(); err == nil {
 		name = userName
 	}
 	templates.Render(w, "index.html", map[string]interface{}{
 		"Title": "Orange Forum",
-		"Name": name,
+		"IsUserValid": sess.IsUserValid(),
+		"UserName": name,
+		"Karma": 812,
 		"Msg": flashMsg,
 	})
 }
@@ -107,7 +109,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	if redirectURL == "" {
 		redirectURL = "/"
 	}
-	if sess.UserValid() {
+	if sess.IsUserValid() {
 		http.Redirect(w, r, redirectURL, http.StatusSeeOther)
 		return
 	}

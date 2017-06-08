@@ -1,6 +1,6 @@
 package templates
 
-const indexSrc = `
+const mycommentsSrc = `
 {{ define "content" }}
 top | new | groups | create group
 {{ if .IsUserValid }}

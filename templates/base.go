@@ -1,6 +1,6 @@
 package templates
 
-const basesrc = `<!DOCTYPE html>
+const baseSrc = `<!DOCTYPE html>
 <html>
 <head>
 	<meta charset="UTF-8">

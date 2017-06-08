@@ -1,6 +1,6 @@
 package templates
 
-const forgotpasssrc = `
+const forgotpassSrc = `
 {{ define "content" }}
 
 <form action="/forgotpass" method="POST">

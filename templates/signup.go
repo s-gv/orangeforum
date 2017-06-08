@@ -1,6 +1,6 @@
 package templates
 
-const signupsrc = `
+const signupSrc = `
 {{ define "content" }}
 
 <form action="/signup" method="POST">
