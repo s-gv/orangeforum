@@ -10,6 +10,7 @@ import (
 	"github.com/s-gv/orangeforum/utils"
 	"strings"
 	"errors"
+	"html/template"
 )
 
 func ErrServerHandler(w http.ResponseWriter, r *http.Request) {
@@ -56,6 +57,15 @@ func SignupHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	redirectURL := r.FormValue("next")
+	if redirectURL == "" {
+		redirectURL = "/"
+	}
+	if sess.IsUserValid() {
+		http.Redirect(w, r, redirectURL, http.StatusSeeOther)
+		return
+	}
+
 	if r.Method == "POST" {
 		userName := r.PostFormValue("username")
 		passwd := r.PostFormValue("passwd")
@@ -89,11 +99,12 @@ func SignupHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		models.CreateUser(userName, passwd, email)
 		sess.Authenticate(userName, passwd)
-		http.Redirect(w, r, "/", http.StatusSeeOther)
+		http.Redirect(w, r, redirectURL, http.StatusSeeOther)
 	}
 	templates.Render(w, "signup.html", map[string]interface{}{
 		"Msg": sess.FlashMsg(),
 		"CSRF": sess.CSRFToken,
+		"next": template.URL(redirectURL),
 	})
 }
 
@@ -129,7 +140,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	templates.Render(w, "login.html", map[string]interface{}{
 		"CSRF": sess.CSRFToken,
 		"Msg": sess.FlashMsg(),
-		"next": redirectURL,
+		"next": template.URL(redirectURL),
 	})
 }
 

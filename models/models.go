@@ -251,11 +251,11 @@ func Migrate() {
 	WriteConfig(AllowGroupSubscription, "0")
 	WriteConfig(AllowTopicSubscription, "0")
 	WriteConfig(AutoSubscribeToMyTopic, "0")
-	WriteConfig(DefaultFromMail, "admin@sagargv.com")
-	WriteConfig(SMTPHost, "smtp.mailgun.org")
+	WriteConfig(DefaultFromMail, "admin@example.com")
+	WriteConfig(SMTPHost, "")
 	WriteConfig(SMTPPort, "25")
-	WriteConfig(SMTPUser, "postmaster@sagargv.com")
-	WriteConfig(SMTPPass, "291a1fadee7d4780f67293c70cc66b12")
+	WriteConfig(SMTPUser, "")
+	WriteConfig(SMTPPass, "")
 }
 
 func IsMigrationNeeded() bool {
