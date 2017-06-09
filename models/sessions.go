@@ -100,6 +100,10 @@ func (sess *Session) IsUserValid() bool {
 	return sess.UserID.Valid
 }
 
+func (sess *Session) IsUserSuperAdmin() bool {
+	return true
+}
+
 func (sess *Session) UserName() (string, error) {
 	if sess.UserID.Valid {
 		r := db.QueryRow(`SELECT username FROM users WHERE id=?;`, sess.UserID)

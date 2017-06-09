@@ -149,13 +149,13 @@ type ExtraNote struct {
 	UpdatedDate time.Time
 }
 
-
-func CreateUser(userName string, passwd string, email string) error {
+func createUser(userName string, passwd string, email string, isSuperAdmin bool) error {
 	if passwdHash, err := bcrypt.GenerateFromPassword([]byte(passwd), bcrypt.DefaultCost); err == nil {
 		r := db.QueryRow(`SELECT username FROM users WHERE username=?;`, userName)
 		var tmp string
 		if err := db.ScanRow(r, &tmp); err == sql.ErrNoRows {
-			db.Exec(`INSERT INTO users(username, passwdhash, email) VALUES(?, ?, ?);`, userName, hex.EncodeToString(passwdHash), email)
+			db.Exec(`INSERT INTO users(username, passwdhash, email, is_superadmin) VALUES(?, ?, ?, ?);`,
+				userName, hex.EncodeToString(passwdHash), email, isSuperAdmin)
 		} else {
 			return ErrUserAlreadyExists
 		}
@@ -163,6 +163,14 @@ func CreateUser(userName string, passwd string, email string) error {
 		return err
 	}
 	return nil
+}
+
+func CreateUser(userName string, passwd string, email string) error {
+	return createUser(userName, passwd, email, false)
+}
+
+func CreateSuperUser(userName string, passwd string) error {
+	return createUser(userName, passwd, "", true)
 }
 
 func ReadUserEmail(userName string) string {

@@ -8,6 +8,9 @@ import (
 var tmpls map[string]*template.Template = make(map[string]*template.Template)
 
 func init() {
+	tmpls["adminindex.html"] = template.Must(template.New("base").Parse(baseSrc))
+	template.Must(tmpls["adminindex.html"].New("adminindex").Parse(adminindexSrc))
+
 	tmpls["changepass.html"] = template.Must(template.New("base").Parse(baseSrc))
 	template.Must(tmpls["changepass.html"].New("changepass").Parse(changepassSrc))
 

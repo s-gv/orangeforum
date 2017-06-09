@@ -319,3 +319,21 @@ func CreateGroupHandler(w http.ResponseWriter, r *http.Request) {
 		"Msg": sess.FlashMsg(),
 	})
 }
+
+func AdminIndexHandler(w http.ResponseWriter, r *http.Request) {
+	defer ErrServerHandler(w, r)
+	sess := models.OpenSession(w, r)
+	if r.Method == "POST" && r.PostFormValue("csrf") != sess.CSRFToken {
+		ErrForbiddenHandler(w, r)
+		return
+	}
+	if !sess.IsUserSuperAdmin() {
+		ErrForbiddenHandler(w, r)
+		return
+	}
+
+	templates.Render(w, "adminindex.html", map[string]interface{}{
+		"CSRF": sess.CSRFToken,
+		"Msg": sess.FlashMsg(),
+	})
+}
