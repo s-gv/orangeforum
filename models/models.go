@@ -19,17 +19,14 @@ const (
 const ModelVersion = 1
 
 const (
-	Secret string = "secret"
 	ForumName string = "forum_name"
+	Icon string = "icon"
 	HeaderMsg string = "header_msg"
-	SignupNeedsApproval string = "signup_needs_approval"
-	PublicViewDisabled string = "public_view_disabled"
 	SignupDisabled string = "signup_disabled"
 	ImageUploadEnabled string = "image_upload_enabled"
 	FileUploadEnabled string = "file_upload_enabled"
 	AllowGroupSubscription string = "allow_group_subscription"
 	AllowTopicSubscription string = "allow_topic_subscription"
-	AutoSubscribeToMyTopic string = "auto_subscribe_to_my_topic"
 	DefaultFromMail string = "default_from_mail"
 	SMTPHost string = "smtp_host"
 	SMTPPort string = "smtp_port"
@@ -244,10 +241,16 @@ func Config(key string) string {
 	return "0"
 }
 
-func ConfigAllVals() map[string]string {
-	vals := map[string]string{
+func ConfigAllVals() map[string]interface{} {
+	vals := map[string]interface{}{
 		"forum_name": Config(ForumName),
 		"header_msg": Config(HeaderMsg),
+		"signup_disabled": Config(SignupDisabled) == "1",
+		"image_upload_enabled": Config(ImageUploadEnabled) == "1",
+		"file_upload_enabled": Config(FileUploadEnabled) == "1",
+		"allow_group_subscription": Config(AllowGroupSubscription) == "1",
+		"allow_topic_subscription": Config(AllowTopicSubscription) == "1",
+		"default_from_mail": Config(DefaultFromMail),
 		"smtp_host": Config(SMTPHost),
 		"smtp_port": Config(SMTPPort),
 		"smtp_user": Config(SMTPUser),
@@ -268,16 +271,13 @@ func Migrate() {
 
 	WriteConfig("version", "1");
 	WriteConfig(HeaderMsg, "")
+	WriteConfig(Icon, "")
 	WriteConfig(ForumName, "Orange Forum")
-	WriteConfig(Secret, RandSeq(32))
-	WriteConfig(SignupNeedsApproval, "0")
-	WriteConfig(PublicViewDisabled, "0")
 	WriteConfig(SignupDisabled, "0")
 	WriteConfig(FileUploadEnabled, "0")
 	WriteConfig(ImageUploadEnabled, "0")
 	WriteConfig(AllowGroupSubscription, "0")
 	WriteConfig(AllowTopicSubscription, "0")
-	WriteConfig(AutoSubscribeToMyTopic, "0")
 	WriteConfig(DefaultFromMail, "admin@example.com")
 	WriteConfig(SMTPHost, "")
 	WriteConfig(SMTPPort, "25")
