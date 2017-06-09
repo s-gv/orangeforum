@@ -14,20 +14,20 @@ var stmts = make(map[string]*sql.Stmt)
 
 
 func CreateTables() {
-	if _, err := db.Exec(`CREATE TABLE configs(key TEXT, val TEXT);`); err != nil { panic(err) }
+	if _, err := db.Exec(`CREATE TABLE configs(key VARCHAR(250), val TEXT);`); err != nil { panic(err) }
 	if _, err := db.Exec(`CREATE UNIQUE INDEX configs_key_index on configs(key);`); err != nil { panic(err) }
 
 
 	if _, err := db.Exec(`CREATE TABLE users(
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
-		       		username TEXT NOT NULL,
-		       		passwdhash TEXT NOT NULL,
-		       		email TEXT DEAFULT "",
+		       		username VARCHAR(32) NOT NULL,
+		       		passwdhash VARCHAR(250) NOT NULL,
+		       		email VARCHAR(250) DEFAULT "",
 		       		about TEXT DEFAULT "",
 		       		karma INTEGER DEFAULT 0,
-		       		reset_token TEXT DEFAULT "",
-		       		is_banned BOOLEAN DEFAULT false,
-				is_superadmin BOOLEAN DEFAULT false,
+		       		reset_token VARCHAR(250) DEFAULT "",
+		       		is_banned INTEGER DEFAULT 0,
+				is_superadmin INTEGER DEFAULT 0,
 		       		created_date INTEGER,
 		       		updated_date INTEGER,
 		       		reset_token_date INTEGER
@@ -41,9 +41,9 @@ func CreateTables() {
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
 		       		name TEXT,
 		       		desc TEXT,
-		       		is_sticky BOOLEAN,
-		       		is_private BOOLEAN,
-		       		is_closed BOOLEAN,
+		       		is_sticky INTEGER,
+		       		is_private INTEGER,
+		       		is_closed INTEGER,
 		       		created_date INTEGER,
 		       		updated_date INTEGER
 	);`); err != nil { panic(err) }
@@ -56,9 +56,9 @@ func CreateTables() {
 				content TEXT,
 				authorid INTEGER REFERENCES users(id) ON DELETE CASCADE,
 				groupid INTEGER REFERENCES groups(id) ON DELETE CASCADE,
-				is_deleted BOOLEAN,
-				is_sticky BOOLEAN,
-				is_closed BOOLEAN,
+				is_deleted INTEGER,
+				is_sticky INTEGER,
+				is_closed INTEGER,
 				numcomments INTEGER,
 				upvotes INTEGER,
 				downvotes INTEGER,
@@ -76,8 +76,8 @@ func CreateTables() {
 				authorid INTEGER REFERENCES users(id) ON DELETE CASCADE,
 				topicid INTEGER REFERENCES topics(id) ON DELETE CASCADE,
 				parentid INTEGER REFERENCES comments(id) ON DELETE CASCADE,
-				is_deleted BOOLEAN,
-				is_sticky BOOLEAN,
+				is_deleted INTEGER,
+				is_sticky INTEGER,
 				upvotes INTEGER,
 				downvotes INTEGER,
 				flagvotes INTEGER,
@@ -153,9 +153,9 @@ func CreateTables() {
 
 	if _, err := db.Exec(`CREATE TABLE extranotes(
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
-				name TEXT NOT NULL,
+				name VARCHAR(250) NOT NULL,
 				content TEXT,
-				URL TEXT,
+				URL VARCHAR(250),
 				created_date INTEGER,
 				updated_date INTEGER
 	);`); err != nil { panic(err) }
@@ -163,10 +163,10 @@ func CreateTables() {
 
 	if _, err := db.Exec(`CREATE TABLE sessions(
 				id INTEGER PRIMARY KEY,
-				sessionid TEXT NOT NULL,
+				sessionid VARCHAR(250) NOT NULL,
 				userid INTEGER REFERENCES users(id) ON DELETE CASCADE,
-				csrf TEXT NOT NULL,
-				msg TEXT NOT NULL,
+				csrf VARCHAR(250) NOT NULL,
+				msg VARCHAR(250) NOT NULL,
 				created_date INTEGER NOT NULL,
 				updated_date INTEGER NOT NULL
 	);`); err != nil { panic(err) }
