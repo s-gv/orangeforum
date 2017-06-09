@@ -365,6 +365,11 @@ func AdminIndexHandler(w http.ResponseWriter, r *http.Request) {
 		if r.PostFormValue("allow_topic_subscription") != "" {
 			allowTopicSubscription = "1"
 		}
+		if dataDir != "" {
+			if dataDir[len(dataDir)-1] == '/' {
+				dataDir = dataDir[:len(dataDir)-1]
+			}
+		}
 
 		errMsg := ""
 		if forumName == "" {
@@ -402,4 +407,13 @@ func AdminIndexHandler(w http.ResponseWriter, r *http.Request) {
 		"NumTopics": models.NumTopics(),
 		"NumComments": models.NumComments(),
 	})
+}
+
+func FaviconHandler(w http.ResponseWriter, r *http.Request) {
+	dataDir := models.Config(models.DataDir)
+	if dataDir != "" {
+		http.ServeFile(w, r, dataDir+"/favicon.ico")
+		return
+	}
+	http.NotFound(w, r)
 }

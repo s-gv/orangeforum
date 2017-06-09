@@ -98,6 +98,7 @@ func main() {
 		return
 	}
 
+	http.HandleFunc("/favicon.ico", views.FaviconHandler)
 
 	http.HandleFunc("/", views.IndexHandler)
 	http.HandleFunc("/test", views.TestHandler)

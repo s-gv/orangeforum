@@ -20,7 +20,6 @@ const ModelVersion = 1
 
 const (
 	ForumName string = "forum_name"
-	Icon string = "icon"
 	HeaderMsg string = "header_msg"
 	SignupDisabled string = "signup_disabled"
 	GroupCreationDisabled string = "group_creation_disabled"
@@ -311,7 +310,6 @@ func Migrate() {
 
 	WriteConfig("version", "1");
 	WriteConfig(HeaderMsg, "")
-	WriteConfig(Icon, "")
 	WriteConfig(ForumName, "Orange Forum")
 	WriteConfig(SignupDisabled, "0")
 	WriteConfig(GroupCreationDisabled, "0")
