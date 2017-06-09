@@ -14,6 +14,40 @@ import (
 	"syscall"
 )
 
+func getCreds() (string, string) {
+	var userName string
+	fmt.Printf("Username: ")
+	fmt.Scan(&userName)
+
+	fmt.Printf("Password: ")
+	password, err := terminal.ReadPassword(int(syscall.Stdin))
+	fmt.Printf("\n")
+	if err != nil {
+		fmt.Printf("[ERROR] %s\n", err)
+		return "", ""
+	}
+	if len(password) < 8 {
+		fmt.Printf("[ERROR] Password should have at least 8 characters.\n")
+		return "", ""
+	}
+
+	fmt.Printf("Password (again): ")
+	password2, err := terminal.ReadPassword(int(syscall.Stdin))
+	fmt.Printf("\n")
+	if err != nil {
+		fmt.Printf("[ERROR] %s\n", err)
+	}
+
+	pass := string(password)
+	pass2 := string(password2)
+	if pass != pass2 {
+		fmt.Printf("[ERROR] The two psasswords do not match.\n")
+		return "", ""
+	}
+
+	return userName, pass
+}
+
 func main() {
 	rand.Seed(time.Now().UnixNano())
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
@@ -22,6 +56,7 @@ func main() {
 	port := flag.String("port", "9123", "Port to listen on (default: 9123)")
 	shouldMigrate := flag.Bool("migrate", false, "Migrate DB (default: false)")
 	createSuperUser := flag.Bool("createsuperuser", false, "Create superuser")
+	createUser := flag.Bool("createuser", false, "Create user")
 
 	flag.Parse()
 
@@ -42,37 +77,23 @@ func main() {
 	}
 
 	if *createSuperUser {
-		var userName string
-		fmt.Printf("Username: ")
-		fmt.Scan(&userName)
-
-		fmt.Printf("Password: ")
-		password, err := terminal.ReadPassword(int(syscall.Stdin))
-		fmt.Printf("\n")
-		if err != nil {
-			log.Fatalf("[ERROR] Error creating super user: %s\n", err)
+		fmt.Printf("Creating superuser...\n")
+		userName, pass := getCreds()
+		if userName != "" && pass != "" {
+			if err := models.CreateSuperUser(userName, pass); err != nil {
+				fmt.Printf("Error creating superuser: %s\n", err)
+			}
 		}
-		if len(password) < 8 {
-			fmt.Printf("Password should have at least 8 characters.\n")
-			return
-		}
+		return
+	}
 
-		fmt.Printf("Password (again): ")
-		password2, err := terminal.ReadPassword(int(syscall.Stdin))
-		fmt.Printf("\n")
-		if err != nil {
-			log.Fatalf("[ERROR] Error creating super user: %s\n", err)
-		}
-
-		pass := string(password)
-		pass2 := string(password2)
-		if pass != pass2 {
-			fmt.Printf("The two psasswords do not match.\n")
-			return
-		}
-
-		if err := models.CreateSuperUser(userName, pass); err != nil {
-			fmt.Printf("Error creating superuser: %s\n", err)
+	if *createUser {
+		fmt.Printf("Creating user...\n")
+		userName, pass := getCreds()
+		if userName != "" && pass != "" {
+			if err := models.CreateUser(userName, pass, ""); err != nil {
+				fmt.Printf("Error creating superuser: %s\n", err)
+			}
 		}
 		return
 	}

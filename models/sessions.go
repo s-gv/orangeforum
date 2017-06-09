@@ -101,7 +101,14 @@ func (sess *Session) IsUserValid() bool {
 }
 
 func (sess *Session) IsUserSuperAdmin() bool {
-	return true
+	if sess.IsUserValid() {
+		row := db.QueryRow(`SELECT is_superadmin FROM users WHERE id=?;`, sess.UserID)
+		IsSuperAdmin := false
+		if err := db.ScanRow(row, &IsSuperAdmin); err == nil {
+			return IsSuperAdmin
+		}
+	}
+	return false
 }
 
 func (sess *Session) UserName() (string, error) {

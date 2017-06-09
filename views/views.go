@@ -332,7 +332,35 @@ func AdminIndexHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if r.Method == "POST" {
+		forumName := r.PostFormValue("forum_name")
+		headerMsg := r.PostFormValue("header_msg")
+		smtpHost := r.PostFormValue("smtp_host")
+		smtpPort := r.PostFormValue("smtp_port")
+		smtpUser := r.PostFormValue("smtp_user")
+		smtpPass := r.PostFormValue("smtp_pass")
+
+		errMsg := ""
+		if forumName == "" {
+			errMsg = "Forum name is empty."
+		}
+
+		if errMsg == "" {
+			models.WriteConfig(models.ForumName, forumName)
+			models.WriteConfig(models.HeaderMsg, headerMsg)
+			models.WriteConfig(models.SMTPHost, smtpHost)
+			models.WriteConfig(models.SMTPPort, smtpPort)
+			models.WriteConfig(models.SMTPUser, smtpUser)
+			models.WriteConfig(models.SMTPPass, smtpPass)
+		} else {
+			sess.SetFlashMsg(errMsg)
+		}
+		http.Redirect(w, r, "/admin", http.StatusSeeOther)
+		return
+	}
+
 	templates.Render(w, "adminindex.html", map[string]interface{}{
+		"Config": models.ConfigAllVals(),
 		"CSRF": sess.CSRFToken,
 		"Msg": sess.FlashMsg(),
 	})

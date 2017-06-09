@@ -20,7 +20,7 @@ const ModelVersion = 1
 
 const (
 	Secret string = "secret"
-	ForumName string = "title"
+	ForumName string = "forum_name"
 	HeaderMsg string = "header_msg"
 	SignupNeedsApproval string = "signup_needs_approval"
 	PublicViewDisabled string = "public_view_disabled"
@@ -242,6 +242,25 @@ func Config(key string) string {
 		return val
 	}
 	return "0"
+}
+
+func ConfigAllVals() map[string]string {
+	vals := map[string]string{
+		"forum_name": Config(ForumName),
+		"header_msg": Config(HeaderMsg),
+		"smtp_host": Config(SMTPHost),
+		"smtp_port": Config(SMTPPort),
+		"smtp_user": Config(SMTPUser),
+		"smtp_pass": Config(SMTPPass),
+	}
+	return vals
+}
+
+func ConfigCommonVals() map[string]string {
+	vals := map[string]string{
+		"forum_name": Config(ForumName),
+	}
+	return vals
 }
 
 func Migrate() {
