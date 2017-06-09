@@ -23,10 +23,12 @@ const (
 	Icon string = "icon"
 	HeaderMsg string = "header_msg"
 	SignupDisabled string = "signup_disabled"
+	GroupCreationDisabled string = "group_creation_disabled"
 	ImageUploadEnabled string = "image_upload_enabled"
 	FileUploadEnabled string = "file_upload_enabled"
 	AllowGroupSubscription string = "allow_group_subscription"
 	AllowTopicSubscription string = "allow_topic_subscription"
+	DataDir string = "data_dir"
 	DefaultFromMail string = "default_from_mail"
 	SMTPHost string = "smtp_host"
 	SMTPPort string = "smtp_port"
@@ -246,10 +248,12 @@ func ConfigAllVals() map[string]interface{} {
 		"forum_name": Config(ForumName),
 		"header_msg": Config(HeaderMsg),
 		"signup_disabled": Config(SignupDisabled) == "1",
+		"group_creation_disabled": Config(GroupCreationDisabled) == "1",
 		"image_upload_enabled": Config(ImageUploadEnabled) == "1",
 		"file_upload_enabled": Config(FileUploadEnabled) == "1",
 		"allow_group_subscription": Config(AllowGroupSubscription) == "1",
 		"allow_topic_subscription": Config(AllowTopicSubscription) == "1",
+		"data_dir": Config(DataDir),
 		"default_from_mail": Config(DefaultFromMail),
 		"smtp_host": Config(SMTPHost),
 		"smtp_port": Config(SMTPPort),
@@ -274,10 +278,12 @@ func Migrate() {
 	WriteConfig(Icon, "")
 	WriteConfig(ForumName, "Orange Forum")
 	WriteConfig(SignupDisabled, "0")
+	WriteConfig(GroupCreationDisabled, "0")
 	WriteConfig(FileUploadEnabled, "0")
 	WriteConfig(ImageUploadEnabled, "0")
 	WriteConfig(AllowGroupSubscription, "0")
 	WriteConfig(AllowTopicSubscription, "0")
+	WriteConfig(DataDir, "")
 	WriteConfig(DefaultFromMail, "admin@example.com")
 	WriteConfig(SMTPHost, "")
 	WriteConfig(SMTPPort, "25")
@@ -288,5 +294,4 @@ func Migrate() {
 func IsMigrationNeeded() bool {
 	dbver := db.DBVersion()
 	return dbver != ModelVersion
-
 }

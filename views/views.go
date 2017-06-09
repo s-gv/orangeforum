@@ -336,10 +336,12 @@ func AdminIndexHandler(w http.ResponseWriter, r *http.Request) {
 		forumName := r.PostFormValue("forum_name")
 		headerMsg := r.PostFormValue("header_msg")
 		signupDisabled := "0"
+		groupCreationDisabled := "0"
 		imageUploadEnabled := "0"
 		fileUploadEnabled := "0"
 		allowGroupSubscription := "0"
 		allowTopicSubscription := "0"
+		dataDir := r.PostFormValue("data_dir")
 		defaultFromEmail := r.PostFormValue("default_from_mail")
 		smtpHost := r.PostFormValue("smtp_host")
 		smtpPort := r.PostFormValue("smtp_port")
@@ -347,6 +349,9 @@ func AdminIndexHandler(w http.ResponseWriter, r *http.Request) {
 		smtpPass := r.PostFormValue("smtp_pass")
 		if r.PostFormValue("signup_disabled") != "" {
 			signupDisabled = "1"
+		}
+		if r.PostFormValue("group_creation_disabled") != "" {
+			groupCreationDisabled = "1"
 		}
 		if r.PostFormValue("image_upload_enabled") != "" {
 			imageUploadEnabled = "1"
@@ -370,10 +375,12 @@ func AdminIndexHandler(w http.ResponseWriter, r *http.Request) {
 			models.WriteConfig(models.ForumName, forumName)
 			models.WriteConfig(models.HeaderMsg, headerMsg)
 			models.WriteConfig(models.SignupDisabled, signupDisabled)
+			models.WriteConfig(models.GroupCreationDisabled, groupCreationDisabled)
 			models.WriteConfig(models.ImageUploadEnabled, imageUploadEnabled)
 			models.WriteConfig(models.FileUploadEnabled, fileUploadEnabled)
 			models.WriteConfig(models.AllowGroupSubscription, allowGroupSubscription)
 			models.WriteConfig(models.AllowTopicSubscription, allowTopicSubscription)
+			models.WriteConfig(models.DataDir, dataDir)
 			models.WriteConfig(models.DefaultFromMail, defaultFromEmail)
 			models.WriteConfig(models.SMTPHost, smtpHost)
 			models.WriteConfig(models.SMTPPort, smtpPort)
