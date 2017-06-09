@@ -28,4 +28,11 @@ SMTP Password: <input type="text" name="smtp_pass" value="{{ index .Config "smtp
 
 </form>
 
+{{ .Msg }}
+
+Number of users: {{ .NumUsers }}<br>
+Number of groups: {{ .NumGroups }}<br>
+Number of topics: {{ .NumTopics }}<br>
+Number of comments: {{ .NumComments }}<br>
+
 {{ end }}`

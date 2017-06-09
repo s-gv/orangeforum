@@ -397,5 +397,9 @@ func AdminIndexHandler(w http.ResponseWriter, r *http.Request) {
 		"Config": models.ConfigAllVals(),
 		"CSRF": sess.CSRFToken,
 		"Msg": sess.FlashMsg(),
+		"NumUsers": models.NumUsers(),
+		"NumGroups": models.NumGroups(),
+		"NumTopics": models.NumTopics(),
+		"NumComments": models.NumComments(),
 	})
 }

@@ -270,6 +270,42 @@ func ConfigCommonVals() map[string]string {
 	return vals
 }
 
+func NumUsers() int64 {
+	row := db.QueryRow(`SELECT MAX(_ROWID_) FROM users LIMIT 1;`)
+	var n sql.NullInt64
+	if err := db.ScanRow(row, &n); err == nil {
+		return n.Int64
+	}
+	return 0
+}
+
+func NumGroups() int64 {
+	row := db.QueryRow(`SELECT MAX(_ROWID_) FROM groups LIMIT 1;`)
+	var n sql.NullInt64
+	if err := db.ScanRow(row, &n); err == nil {
+		return n.Int64
+	}
+	return 0
+}
+
+func NumTopics() int64 {
+	row := db.QueryRow(`SELECT MAX(_ROWID_) FROM topics LIMIT 1;`)
+	var n sql.NullInt64
+	if err := db.ScanRow(row, &n); err == nil {
+		return n.Int64
+	}
+	return 0
+}
+
+func NumComments() int64 {
+	row := db.QueryRow(`SELECT MAX(_ROWID_) FROM comments LIMIT 1;`)
+	var n sql.NullInt64
+	if err := db.ScanRow(row, &n); err == nil {
+		return n.Int64
+	}
+	return 0
+}
+
 func Migrate() {
 	db.CreateTables()
 
