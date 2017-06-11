@@ -17,6 +17,9 @@ func init() {
 	tmpls["creategroup.html"] = template.Must(template.New("base").Parse(baseSrc))
 	template.Must(tmpls["creategroup.html"].New("creategroup").Parse(creategroupSrc))
 
+	tmpls["extranote.html"] = template.Must(template.New("base").Parse(baseSrc))
+	template.Must(tmpls["extranote.html"].New("extranote").Parse(extranoteSrc))
+
 	tmpls["forgotpass.html"] = template.Must(template.New("base").Parse(baseSrc))
 	template.Must(tmpls["forgotpass.html"].New("forgotpass").Parse(forgotpassSrc))
 

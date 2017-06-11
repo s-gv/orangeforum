@@ -114,6 +114,8 @@ func main() {
 	mux.HandleFunc("/forgotpass", views.ForgotPasswdHandler)
 	mux.HandleFunc("/resetpass", views.ResetPasswdHandler)
 
+	mux.HandleFunc("/note", views.NoteHandler)
+
 	mux.HandleFunc("/admin", views.AdminIndexHandler)
 
 

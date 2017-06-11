@@ -431,14 +431,35 @@ func AdminIndexHandler(w http.ResponseWriter, r *http.Request) {
 		"NumTopics": models.NumTopics(),
 		"NumComments": models.NumComments(),
 		"ExtraNotes": models.ReadExtraNotes(),
+		"ExtraNotesShort": models.ReadExtraNotesShort(),
 	})
 }
 
+func NoteHandler(w http.ResponseWriter, r *http.Request) {
+	defer ErrServerHandler(w, r)
+	sess := models.OpenSession(w, r)
+	id := r.FormValue("id")
+	if e, err := models.ReadExtraNote(id); err == nil {
+		if e.URL == "" {
+			templates.Render(w, "extranote.html", map[string]interface{}{
+				"Msg": sess.FlashMsg(),
+				"ExtraNote": e,
+			})
+			return
+		} else {
+			http.Redirect(w, r, e.URL, http.StatusSeeOther)
+			return
+		}
+	}
+	ErrNotFoundHandler(w, r)
+}
+
 func FaviconHandler(w http.ResponseWriter, r *http.Request) {
+	defer ErrServerHandler(w, r)
 	dataDir := models.Config(models.DataDir)
 	if dataDir != "" {
 		http.ServeFile(w, r, dataDir+"/favicon.ico")
 		return
 	}
-	http.NotFound(w, r)
+	ErrNotFoundHandler(w, r)
 }

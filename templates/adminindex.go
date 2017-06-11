@@ -58,4 +58,8 @@ Link content: <textarea name="content" rows="4" cols="70"></textarea>
 
 {{ .Msg }}
 
+{{ range .ExtraNotesShort }}
+<a href="/note?id={{ .ID }}">{{ .Name }}</a>
+{{ end }}
+
 {{ end }}`

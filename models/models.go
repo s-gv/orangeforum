@@ -235,6 +235,30 @@ func ReadExtraNotes() []ExtraNote {
 	return extraNotes
 }
 
+func ReadExtraNote(id string) (ExtraNote, error) {
+	row := db.QueryRow(`SELECT name, URL, content, created_date, updated_date FROM extranotes WHERE id=?;`, id)
+	var e ExtraNote
+	var cDate int64
+	var uDate int64
+	if err := db.ScanRow(row, &e.Name, &e.URL, &e.Content, &cDate, &uDate); err == nil {
+		e.CreatedDate = time.Unix(cDate, 0)
+		e.UpdatedDate = time.Unix(uDate, 0)
+		return e, nil
+	}
+	return ExtraNote{}, errors.New("No note with that ID found")
+}
+
+func ReadExtraNotesShort() []ExtraNote {
+	rows := db.Query(`SELECT id, name FROM extranotes;`)
+	var extraNotes []ExtraNote
+	for rows.Next() {
+		var extraNote ExtraNote
+		rows.Scan(&extraNote.ID, &extraNote.Name)
+		extraNotes = append(extraNotes, extraNote)
+	}
+	return extraNotes
+}
+
 func UpdateExtraNote(id string, name string, URL string, content string) {
 	now := time.Now()
 	db.Exec(`UPDATE extranotes SET name=?, URL=?, content=?, updated_date=? WHERE id=?;`, name, URL, content, int64(now.Unix()), id)
