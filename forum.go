@@ -98,22 +98,36 @@ func main() {
 		return
 	}
 
-	http.HandleFunc("/favicon.ico", views.FaviconHandler)
+	mux := http.NewServeMux()
 
-	http.HandleFunc("/", views.IndexHandler)
-	http.HandleFunc("/test", views.TestHandler)
+	mux.HandleFunc("/favicon.ico", views.FaviconHandler)
 
-	http.HandleFunc("/creategroup", views.CreateGroupHandler)
+	mux.HandleFunc("/", views.IndexHandler)
+	mux.HandleFunc("/test", views.TestHandler)
 
-	http.HandleFunc("/signup", views.SignupHandler)
-	http.HandleFunc("/login", views.LoginHandler)
-	http.HandleFunc("/logout", views.LogoutHandler)
-	http.HandleFunc("/changepass", views.ChangePasswdHandler)
-	http.HandleFunc("/forgotpass", views.ForgotPasswdHandler)
-	http.HandleFunc("/resetpass", views.ResetPasswdHandler)
+	mux.HandleFunc("/creategroup", views.CreateGroupHandler)
 
-	http.HandleFunc("/admin", views.AdminIndexHandler)
+	mux.HandleFunc("/signup", views.SignupHandler)
+	mux.HandleFunc("/login", views.LoginHandler)
+	mux.HandleFunc("/logout", views.LogoutHandler)
+	mux.HandleFunc("/changepass", views.ChangePasswdHandler)
+	mux.HandleFunc("/forgotpass", views.ForgotPasswdHandler)
+	mux.HandleFunc("/resetpass", views.ResetPasswdHandler)
+
+	mux.HandleFunc("/admin", views.AdminIndexHandler)
+
+
+	srv := &http.Server{
+		Handler: mux,
+		Addr: ":" + *port,
+		WriteTimeout: 45 * time.Second,
+		ReadTimeout:  45 * time.Second,
+	}
 
 	log.Println("[INFO] Starting orangeforum on port", *port)
-	http.ListenAndServe(":" + *port, nil)
+	err := srv.ListenAndServe()
+	if err != nil {
+		log.Fatalf("[ERROR] %s\n", err)
+	}
+
 }

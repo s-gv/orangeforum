@@ -35,4 +35,8 @@ Number of groups: {{ .NumGroups }}<br>
 Number of topics: {{ .NumTopics }}<br>
 Number of comments: {{ .NumComments }}<br>
 
+Footer links <br>
+
+
+
 {{ end }}`
