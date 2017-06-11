@@ -219,6 +219,31 @@ func ProbeUser(userName string) bool {
 	return true
 }
 
+func CreateExtraNote(name string, URL string, content string) {
+	now := time.Now()
+	db.Exec(`INSERT INTO extranotes(name, URL, content, created_date, updated_date) VALUES(?, ?, ?, ?, ?);`, name, URL, content, int64(now.Unix()), int64(now.Unix()))
+}
+
+func ReadExtraNotes() []ExtraNote {
+	rows := db.Query(`SELECT id, name, URL, content FROM extranotes;`)
+	var extraNotes []ExtraNote
+	for rows.Next() {
+		var extraNote ExtraNote
+		rows.Scan(&extraNote.ID, &extraNote.Name, &extraNote.URL, &extraNote.Content)
+		extraNotes = append(extraNotes, extraNote)
+	}
+	return extraNotes
+}
+
+func UpdateExtraNote(id string, name string, URL string, content string) {
+	now := time.Now()
+	db.Exec(`UPDATE extranotes SET name=?, URL=?, content=?, updated_date=? WHERE id=?;`, name, URL, content, int64(now.Unix()), id)
+}
+
+func DeleteExtraNote(id string) {
+	db.Exec(`DELETE FROM extranotes WHERE id=?;`, id)
+}
+
 func RandSeq(n int) string {
 	var letters = []rune("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 	b := make([]rune, n)

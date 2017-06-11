@@ -219,6 +219,15 @@ func QueryRow(query string, args ...interface{}) *sql.Row {
 	return stmt.QueryRow(args...)
 }
 
+func Query(query string, args ...interface{}) *sql.Rows {
+	stmt := makeStmt(query)
+	rows, err := stmt.Query(args...)
+	if err != nil {
+		log.Panicf("[ERROR] Error scanning rows: %s\n", err)
+	}
+	return rows
+}
+
 func ScanRow(row *sql.Row, args ...interface{}) error {
 	err := row.Scan(args...)
 	switch {

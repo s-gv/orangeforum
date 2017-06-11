@@ -28,8 +28,6 @@ SMTP Password: <input type="text" name="smtp_pass" value="{{ index .Config "smtp
 
 </form>
 
-{{ .Msg }}
-
 Number of users: {{ .NumUsers }}<br>
 Number of groups: {{ .NumGroups }}<br>
 Number of topics: {{ .NumTopics }}<br>
@@ -37,6 +35,27 @@ Number of comments: {{ .NumComments }}<br>
 
 Footer links <br>
 
+{{ range .ExtraNotes }}
+<form action="/admin" method="POST">
+<input type="hidden" name="csrf" value="{{ $.CSRF }}">
+<input type="hidden" name="linkid" value="{{ .ID }}">
+Link name: <input type="text" name="name" value="{{ .Name }}"><br>
+Link URL: <input type="text" name="url" value="{{ .URL }}"><br>
+Link content: <textarea name="content" rows="4" cols="70">{{ .Content }}</textarea>
+<input type="submit" name="submit" value="Update">
+<input type="submit" name="submit" value="Delete">
+</form>
+{{ end }}
 
+<form action="/admin" method="POST">
+<input type="hidden" name="csrf" value="{{ .CSRF }}">
+<input type="hidden" name="linkid" value="new">
+Link name: <input type="text" name="name"><br>
+Link URL: <input type="text" name="url"><br>
+Link content: <textarea name="content" rows="4" cols="70"></textarea>
+<input type="submit" value="Create new link">
+</form>
+
+{{ .Msg }}
 
 {{ end }}`

@@ -332,7 +332,9 @@ func AdminIndexHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if r.Method == "POST" {
+	linkID := r.PostFormValue("linkid")
+
+	if r.Method == "POST" && linkID == "" {
 		forumName := r.PostFormValue("forum_name")
 		headerMsg := r.PostFormValue("header_msg")
 		signupDisabled := "0"
@@ -398,6 +400,28 @@ func AdminIndexHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if r.Method == "POST" && linkID != "" {
+		name := r.PostFormValue("name")
+		URL := r.PostFormValue("url")
+		content := r.PostFormValue("content")
+		if linkID == "new" {
+			if name != "" && (URL != "" || content != "") {
+				models.CreateExtraNote(name, URL, content)
+			} else {
+				sess.SetFlashMsg("Enter an external URL or type some content for the footer link.")
+			}
+		} else {
+			if r.PostFormValue("submit") == "Delete" {
+				models.DeleteExtraNote(linkID)
+			} else {
+				models.UpdateExtraNote(linkID, name, URL, content)
+			}
+
+		}
+		http.Redirect(w, r, "/admin", http.StatusSeeOther)
+		return
+	}
+
 	templates.Render(w, "adminindex.html", map[string]interface{}{
 		"Config": models.ConfigAllVals(),
 		"CSRF": sess.CSRFToken,
@@ -406,6 +430,7 @@ func AdminIndexHandler(w http.ResponseWriter, r *http.Request) {
 		"NumGroups": models.NumGroups(),
 		"NumTopics": models.NumTopics(),
 		"NumComments": models.NumComments(),
+		"ExtraNotes": models.ReadExtraNotes(),
 	})
 }
 
