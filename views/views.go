@@ -46,6 +46,7 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 		"UserName": name,
 		"Karma": 812,
 		"Msg": flashMsg,
+		"ExtraNotesShort": models.ReadExtraNotesShort(),
 	})
 }
 
@@ -105,6 +106,7 @@ func SignupHandler(w http.ResponseWriter, r *http.Request) {
 		"Msg": sess.FlashMsg(),
 		"CSRF": sess.CSRFToken,
 		"next": template.URL(redirectURL),
+		"ExtraNotesShort": models.ReadExtraNotesShort(),
 	})
 }
 
@@ -141,6 +143,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		"CSRF": sess.CSRFToken,
 		"Msg": sess.FlashMsg(),
 		"next": template.URL(redirectURL),
+		"ExtraNotesShort": models.ReadExtraNotesShort(),
 	})
 }
 
@@ -181,6 +184,7 @@ func ChangePasswdHandler(w http.ResponseWriter, r *http.Request) {
 	templates.Render(w, "changepass.html", map[string]interface{}{
 		"CSRF": sess.CSRFToken,
 		"Msg": sess.FlashMsg(),
+		"ExtraNotesShort": models.ReadExtraNotesShort(),
 	})
 }
 
@@ -219,6 +223,7 @@ func ForgotPasswdHandler(w http.ResponseWriter, r *http.Request) {
 	templates.Render(w, "forgotpass.html", map[string]interface{}{
 		"CSRF": sess.CSRFToken,
 		"Msg": sess.FlashMsg(),
+		"ExtraNotesShort": models.ReadExtraNotesShort(),
 	})
 }
 
@@ -263,6 +268,7 @@ func ResetPasswdHandler(w http.ResponseWriter, r *http.Request) {
 		"ResetToken": resetToken,
 		"CSRF": sess.CSRFToken,
 		"Msg": sess.FlashMsg(),
+		"ExtraNotesShort": models.ReadExtraNotesShort(),
 	})
 }
 
@@ -317,6 +323,7 @@ func CreateGroupHandler(w http.ResponseWriter, r *http.Request) {
 	templates.Render(w, "creategroup.html", map[string]interface{}{
 		"CSRF": sess.CSRFToken,
 		"Msg": sess.FlashMsg(),
+		"ExtraNotesShort": models.ReadExtraNotesShort(),
 	})
 }
 
@@ -426,12 +433,12 @@ func AdminIndexHandler(w http.ResponseWriter, r *http.Request) {
 		"Config": models.ConfigAllVals(),
 		"CSRF": sess.CSRFToken,
 		"Msg": sess.FlashMsg(),
+		"ExtraNotesShort": models.ReadExtraNotesShort(),
 		"NumUsers": models.NumUsers(),
 		"NumGroups": models.NumGroups(),
 		"NumTopics": models.NumTopics(),
 		"NumComments": models.NumComments(),
 		"ExtraNotes": models.ReadExtraNotes(),
-		"ExtraNotesShort": models.ReadExtraNotesShort(),
 	})
 }
 
@@ -444,6 +451,7 @@ func NoteHandler(w http.ResponseWriter, r *http.Request) {
 			templates.Render(w, "extranote.html", map[string]interface{}{
 				"Msg": sess.FlashMsg(),
 				"ExtraNote": e,
+				"ExtraNotesShort": models.ReadExtraNotesShort(),
 			})
 			return
 		} else {
