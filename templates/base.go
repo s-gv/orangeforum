@@ -64,18 +64,20 @@ const baseSrc = `<!DOCTYPE html>
 	a.nodec, a.nodec:link, a.nodec:hover, a.nodec:active, a.nodec:visited {
 		color: #000;
 	}
+	#navleft {
+		float: left;
+		max-width: 70%;
+	}
+	#navright {
+		float: right;
+	}
 	@media screen and (min-width:600px) {
-		#navleft {
+		#forum {
 			float: left;
-			max-width: 20%;
 		}
 		#nav {
 			float: left;
 			margin-left: 20px;
-			max-width: 50%;
-		}
-		#navright {
-			float: right;
 		}
 	}
 	</style>
@@ -86,8 +88,10 @@ const baseSrc = `<!DOCTYPE html>
 <body>
 	<div id="container">
 		<div id="header" class="clearfix">
-			<div id="navleft">Orange Forum</div>
-			<div id="nav">top &middot; new &middot; groups</div>
+			<div id="navleft">
+				<div id="forum">Orange Forum</div>
+				<div id="nav">top &middot; new &middot; groups</div>
+			</div>
 			<div id="navright">Login</div>
 		</div>
 		<div id="content">
