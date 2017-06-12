@@ -4,7 +4,7 @@ const signupSrc = `
 {{ define "content" }}
 
 <form action="/signup" method="POST">
-<input type="hidden" name="csrf" value="{{ .CSRF }}">
+<input type="hidden" name="csrf" value="{{ .Common.CSRF }}">
 <input type="hidden" name="next" value="{{ .next }}">
 Username: <input type="text" name="username" required>
 Password: <input type="password" name="passwd" required>

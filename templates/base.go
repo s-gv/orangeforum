@@ -99,7 +99,7 @@ const baseSrc = `<!DOCTYPE html>
 				{{ if .Common.UserName }}
 				{{ .Common.UserName }} &#40;{{ .Common.Karma }}&#41; | <a class="blacklink" href="/logout">Logout</a>
 				{{ else }}
-				<a href="/login">Login</a>
+				<a class="blacklink" href="/login">Login</a>
 				{{ end }}
 			</div>
 		</div>
