@@ -18,11 +18,15 @@ const baseSrc = `<!DOCTYPE html>
 		margin: 0 auto;
 		min-height: 100%;
 		position: relative;
+		padding-left: 10px;
+		padding-right: 10px;
 	}
 	#header {
+		padding-top: 10px;
 	}
 	#content {
-		padding: 10px;
+		clear: both;
+		padding-top: 20px;
 		padding-bottom: 60px;
 	}
 	#footer {
@@ -32,31 +36,48 @@ const baseSrc = `<!DOCTYPE html>
 		height: 40px;
 		text-align: center;
 	}
+	.clearfix {
+		overflow: auto;
+	}
 	body {
 		font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
 		text-rendering: optimizeLegibility;
 		-webkit-font-smoothing: antialiased;
 	}
-        img {
-        	max-width: 100%;
-        	display: block;
-        	margin: 0 auto;
-        }
-        a {
+	img {
+		max-width: 100%;
+		display: block;
+		margin: 0 auto;
+	}
+	a {
 		text-decoration: none;
-        }
-        a:link {
+	}
+	a:link {
 		color: #07C;
-        }
-        a:hover, a:active {
+	}
+	a:hover, a:active {
 		color: #3af;
-        }
-        a:visited {
+	}
+	a:visited {
 		color: #005999;
-        }
-        a.nodec, a.nodec:link, a.nodec:hover, a.nodec:active, a.nodec:visited {
-        	color: #000;
-        }
+	}
+	a.nodec, a.nodec:link, a.nodec:hover, a.nodec:active, a.nodec:visited {
+		color: #000;
+	}
+	@media screen and (min-width:600px) {
+		#navleft {
+			float: left;
+			max-width: 20%;
+		}
+		#nav {
+			float: left;
+			margin-left: 20px;
+			max-width: 50%;
+		}
+		#navright {
+			float: right;
+		}
+	}
 	</style>
 	<title>{{ .Title }}</title>
 	{{ block "head" . }}{{ end }}
@@ -64,7 +85,11 @@ const baseSrc = `<!DOCTYPE html>
 
 <body>
 	<div id="container">
-		<div id="header"></div>
+		<div id="header" class="clearfix">
+			<div id="navleft">Orange Forum</div>
+			<div id="nav">top &middot; new &middot; groups</div>
+			<div id="navright">Login</div>
+		</div>
 		<div id="content">
 		{{ block "content" . }}{{ end }}
 		</div>
