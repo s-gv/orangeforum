@@ -35,18 +35,8 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	sess := models.OpenSession(w, r)
-	flashMsg := sess.FlashMsg()
-	name := ""
-	if userName, err := sess.UserName(); err == nil {
-		name = userName
-	}
 	templates.Render(w, "index.html", map[string]interface{}{
-		"Title": "Orange Forum",
-		"IsUserValid": sess.IsUserValid(),
-		"UserName": name,
-		"Karma": 812,
-		"Msg": flashMsg,
-		"ExtraNotesShort": models.ReadExtraNotesShort(),
+		"Common": models.ReadCommonData(sess),
 	})
 }
 
@@ -103,10 +93,8 @@ func SignupHandler(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, redirectURL, http.StatusSeeOther)
 	}
 	templates.Render(w, "signup.html", map[string]interface{}{
-		"Msg": sess.FlashMsg(),
-		"CSRF": sess.CSRFToken,
+		"Common": models.ReadCommonData(sess),
 		"next": template.URL(redirectURL),
-		"ExtraNotesShort": models.ReadExtraNotesShort(),
 	})
 }
 
@@ -140,10 +128,8 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	templates.Render(w, "login.html", map[string]interface{}{
-		"CSRF": sess.CSRFToken,
-		"Msg": sess.FlashMsg(),
+		"Common": models.ReadCommonData(sess),
 		"next": template.URL(redirectURL),
-		"ExtraNotesShort": models.ReadExtraNotesShort(),
 	})
 }
 
@@ -175,16 +161,14 @@ func ChangePasswdHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if err := models.UpdateUserPasswd(userName, newPasswd); err != nil {
-			log.Fatalf("[ERROR] Error changing password: %s\n", err)
+			log.Panicf("[ERROR] Error changing password: %s\n", err)
 		}
 		sess.SetFlashMsg("Password change successful.")
 		http.Redirect(w, r, "/changepass", http.StatusSeeOther)
 		return
 	}
 	templates.Render(w, "changepass.html", map[string]interface{}{
-		"CSRF": sess.CSRFToken,
-		"Msg": sess.FlashMsg(),
-		"ExtraNotesShort": models.ReadExtraNotesShort(),
+		"Common": models.ReadCommonData(sess),
 	})
 }
 
@@ -221,9 +205,7 @@ func ForgotPasswdHandler(w http.ResponseWriter, r *http.Request) {
 
 	}
 	templates.Render(w, "forgotpass.html", map[string]interface{}{
-		"CSRF": sess.CSRFToken,
-		"Msg": sess.FlashMsg(),
-		"ExtraNotesShort": models.ReadExtraNotesShort(),
+		"Common": models.ReadCommonData(sess),
 	})
 }
 
@@ -266,9 +248,7 @@ func ResetPasswdHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	templates.Render(w, "resetpass.html", map[string]interface{}{
 		"ResetToken": resetToken,
-		"CSRF": sess.CSRFToken,
-		"Msg": sess.FlashMsg(),
-		"ExtraNotesShort": models.ReadExtraNotesShort(),
+		"Common": models.ReadCommonData(sess),
 	})
 }
 
@@ -321,9 +301,7 @@ func CreateGroupHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	templates.Render(w, "creategroup.html", map[string]interface{}{
-		"CSRF": sess.CSRFToken,
-		"Msg": sess.FlashMsg(),
-		"ExtraNotesShort": models.ReadExtraNotesShort(),
+		"Common": models.ReadCommonData(sess),
 	})
 }
 
@@ -430,15 +408,13 @@ func AdminIndexHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	templates.Render(w, "adminindex.html", map[string]interface{}{
+		"Common": models.ReadCommonData(sess),
 		"Config": models.ConfigAllVals(),
-		"CSRF": sess.CSRFToken,
-		"Msg": sess.FlashMsg(),
-		"ExtraNotesShort": models.ReadExtraNotesShort(),
+		"ExtraNotes": models.ReadExtraNotes(),
 		"NumUsers": models.NumUsers(),
 		"NumGroups": models.NumGroups(),
 		"NumTopics": models.NumTopics(),
 		"NumComments": models.NumComments(),
-		"ExtraNotes": models.ReadExtraNotes(),
 	})
 }
 
@@ -449,9 +425,10 @@ func NoteHandler(w http.ResponseWriter, r *http.Request) {
 	if e, err := models.ReadExtraNote(id); err == nil {
 		if e.URL == "" {
 			templates.Render(w, "extranote.html", map[string]interface{}{
-				"Msg": sess.FlashMsg(),
-				"ExtraNote": e,
-				"ExtraNotesShort": models.ReadExtraNotesShort(),
+				"Common": models.ReadCommonData(sess),
+				"Name": e.Name,
+				"UpdatedDate": e.UpdatedDate,
+				"Content": template.HTML(e.Content),
 			})
 			return
 		} else {

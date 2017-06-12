@@ -147,6 +147,15 @@ type ExtraNote struct {
 	UpdatedDate time.Time
 }
 
+type CommonData struct {
+	CSRF string
+	Msg string
+	UserName string
+	Karma int
+	ForumName string
+	ExtraNotesShort []ExtraNote
+}
+
 func createUser(userName string, passwd string, email string, isSuperAdmin bool) error {
 	if passwdHash, err := bcrypt.GenerateFromPassword([]byte(passwd), bcrypt.DefaultCost); err == nil {
 		r := db.QueryRow(`SELECT username FROM users WHERE username=?;`, userName)
@@ -266,6 +275,23 @@ func UpdateExtraNote(id string, name string, URL string, content string) {
 
 func DeleteExtraNote(id string) {
 	db.Exec(`DELETE FROM extranotes WHERE id=?;`, id)
+}
+
+func ReadCommonData(sess Session) CommonData {
+	userName := ""
+	karma := 0
+	if sess.UserID.Valid {
+		r := db.QueryRow(`SELECT username, karma FROM users WHERE id=?;`, sess.UserID)
+		db.ScanRow(r, &userName, &karma)
+	}
+	return CommonData{
+		CSRF:sess.CSRFToken,
+		Msg:sess.FlashMsg(),
+		UserName:userName,
+		Karma:karma,
+		ForumName:Config(ForumName),
+		ExtraNotesShort:ReadExtraNotesShort(),
+	}
 }
 
 func RandSeq(n int) string {

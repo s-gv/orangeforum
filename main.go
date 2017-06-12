@@ -67,11 +67,11 @@ func main() {
 			models.Migrate()
 			return
 		} else {
-			log.Fatalf("[ERROR] DB migration needed.\n")
+			log.Panicf("[ERROR] DB migration needed.\n")
 		}
 	} else {
 		if *shouldMigrate {
-			log.Fatalf("[ERROR] DB migration not needed. DB up-to-date.\n")
+			log.Panicf("[ERROR] DB migration not needed. DB up-to-date.\n")
 			return
 		}
 	}
@@ -129,7 +129,7 @@ func main() {
 	log.Println("[INFO] Starting orangeforum on port", *port)
 	err := srv.ListenAndServe()
 	if err != nil {
-		log.Fatalf("[ERROR] %s\n", err)
+		log.Panicf("[ERROR] %s\n", err)
 	}
 
 }

@@ -86,7 +86,7 @@ func (sess *Session) Authenticate(userName string, passwd string) bool {
 	}
 	passwdHash, err := hex.DecodeString(passwdHashStr)
 	if err != nil {
-		log.Fatalf("[ERROR] Error in converting password hash from hex to byte slice: %s\n", err)
+		log.Panicf("[ERROR] Error in converting password hash from hex to byte slice: %s\n", err)
 	}
 	if err := bcrypt.CompareHashAndPassword(passwdHash, []byte(passwd)); err != nil {
 		return false

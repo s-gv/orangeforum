@@ -43,12 +43,10 @@ input[type="text"], input[type="number"], textarea {
 
 {{ define "content" }}
 
-{{ index .Config "ForumName" }}
-
 <h1>Config</h1>
 
 <form action="/admin" method="POST">
-<input type="hidden" name="csrf" value="{{ .CSRF }}">
+<input type="hidden" name="csrf" value="{{ .Common.CSRF }}">
 
 <div class="row clearfix">
 	<div class="tcol1">Forum Name</div>
@@ -107,8 +105,8 @@ input[type="text"], input[type="number"], textarea {
 	<div class="ccol2"><input type="checkbox" name="allow_topic_subscription" value="1"{{ if index .Config "allow_topic_subscription" }} checked{{ end }}></div>
 </div>
 <div class="row clearfix">
-	<div class="tcol1">Save Changes?</div>
-	<div class="tcol2"><input type="submit" value="Update"></div>
+	<div class="ccol1">Save changes?</div>
+	<div class="ccol2"><input type="submit" value="Update"></div>
 </div>
 
 </form>
@@ -136,7 +134,7 @@ input[type="text"], input[type="number"], textarea {
 
 {{ range .ExtraNotes }}
 <form action="/admin" method="POST">
-<input type="hidden" name="csrf" value="{{ $.CSRF }}">
+<input type="hidden" name="csrf" value="{{ $.Common.CSRF }}">
 <input type="hidden" name="linkid" value="{{ .ID }}">
 <div class="row clearfix">
 	<div class="tcol1">Link name</div>
@@ -155,7 +153,7 @@ input[type="text"], input[type="number"], textarea {
 {{ end }}
 
 <form action="/admin" method="POST">
-<input type="hidden" name="csrf" value="{{ $.CSRF }}">
+<input type="hidden" name="csrf" value="{{ .Common.CSRF }}">
 <input type="hidden" name="linkid" value="new">
 <div class="row clearfix">
 	<div class="tcol1">New Link</div>

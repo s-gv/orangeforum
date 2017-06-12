@@ -3,6 +3,7 @@ package templates
 import (
 	"html/template"
 	"io"
+	"log"
 )
 
 var tmpls map[string]*template.Template = make(map[string]*template.Template)
@@ -69,6 +70,10 @@ func init() {
 	template.Must(tmpls["submit.html"].New("submut").Parse(submitSrc))
 }
 
-func Render(wr io.Writer, template string, data interface{}) error {
-	return tmpls[template].Execute(wr, data)
+func Render(wr io.Writer, template string, data interface{}) {
+
+	err := tmpls[template].Execute(wr, data)
+	if err != nil {
+		log.Panicf("[ERROR] Error rendering %s: %s\n", template, err)
+	}
 }
