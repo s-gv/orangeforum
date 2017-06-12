@@ -58,7 +58,7 @@ func OpenSession(w http.ResponseWriter, r *http.Request) Session {
 	sess := Session{RandSeq(32), sql.NullInt64{}, RandSeq(32), "", time.Now(), time.Now()}
 	db.Exec(`INSERT INTO sessions(sessionid, userid, csrf, msg, created_date, updated_date) values(?, ?, ?, ?, ?, ?);`,
 		sess.SessionID, sess.UserID, sess.CSRFToken, sess.Msg, int64(sess.CreatedDate.Unix()), int64(sess.UpdatedDate.Unix()))
-	db.Exec(`DELETE FROM sessions WHERE updated_date < ?;`, int64(sess.UpdatedDate.Unix()))
+	db.Exec(`DELETE FROM sessions WHERE updated_date < ?;`, int64(time.Now().Add(-maxSessionLife).Unix()))
 
 	http.SetCookie(w, &http.Cookie{Name: "sessionid", Value: sess.SessionID, HttpOnly: true})
 	http.SetCookie(w, &http.Cookie{Name: "csrftoken", Value: sess.CSRFToken})
