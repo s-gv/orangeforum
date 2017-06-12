@@ -118,6 +118,8 @@ func main() {
 
 	mux.HandleFunc("/admin", views.AdminIndexHandler)
 
+	mux.HandleFunc("/users", views.UserProfileHandler)
+
 
 	srv := &http.Server{
 		Handler: mux,

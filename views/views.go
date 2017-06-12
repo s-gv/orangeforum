@@ -418,6 +418,48 @@ func AdminIndexHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func UserProfileHandler(w http.ResponseWriter, r *http.Request) {
+	defer ErrServerHandler(w, r)
+	sess := models.OpenSession(w, r)
+	if r.Method == "POST" && r.PostFormValue("csrf") != sess.CSRFToken {
+		ErrForbiddenHandler(w, r)
+		return
+	}
+
+	if r.Method == "POST" {
+		userName, err := sess.UserName()
+		if err == nil {
+			email := r.FormValue("email")
+			about := r.FormValue("about")
+			models.UpdateUserProfile(userName, email, about)
+		}
+		http.Redirect(w, r, "/users?u="+userName, http.StatusSeeOther)
+		return
+	}
+
+	userName := r.FormValue("u")
+
+	if !models.ProbeUser(userName) {
+		ErrNotFoundHandler(w, r)
+		return
+	}
+
+	isSelf := false
+	if u, err := sess.UserName(); err == nil {
+		if u == userName {
+			isSelf = true
+		}
+	}
+	templates.Render(w, "profile.html", map[string]interface{}{
+		"Common": models.ReadCommonData(sess),
+		"UserName": userName,
+		"Karma": models.ReadUserKarma(userName),
+		"About": models.ReadUserAbout(userName),
+		"Email": models.ReadUserEmail(userName),
+		"IsSelf": isSelf,
+	})
+}
+
 func NoteHandler(w http.ResponseWriter, r *http.Request) {
 	defer ErrServerHandler(w, r)
 	sess := models.OpenSession(w, r)

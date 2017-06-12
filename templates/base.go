@@ -64,7 +64,7 @@ const baseSrc = `<!DOCTYPE html>
 	a.blacklink, a.blacklink:link, a.blacklink:hover, a.blacklink:active, a.blacklink:visited {
 		color: #000;
 	}
-	a.greylink, a.greylink:link, a.greylink:hover, a.greylink:active, a.greylink:visited {
+	a.footerlink, a.footerlink:link, a.footerlink:hover, a.footerlink:active, a.footerlink:visited {
 		color: grey;
 	}
 	#navleft {
@@ -93,11 +93,14 @@ const baseSrc = `<!DOCTYPE html>
 		<div id="header" class="clearfix">
 			<div id="navleft">
 				<div id="forum"><a href="/" class="blacklink">{{ .Common.ForumName }}</a></div>
-				<div id="nav">top &middot; new &middot; groups</div>
+				<div id="nav">
+				{{ block "navbar" . }}
+				{{ end }}
+				</div>
 			</div>
 			<div id="navright">
 				{{ if .Common.UserName }}
-				{{ .Common.UserName }} &#40;{{ .Common.Karma }}&#41; | <a class="blacklink" href="/logout">Logout</a>
+				<a class="blacklink" href="/users?u={{ .Common.UserName }}">{{ .Common.UserName }}</a> &#40;{{ .Common.Karma }}&#41; | <a class="blacklink" href="/logout">Logout</a>
 				{{ else }}
 				<a class="blacklink" href="/login">Login</a>
 				{{ end }}
@@ -109,7 +112,7 @@ const baseSrc = `<!DOCTYPE html>
 		<div id="footer">
 		{{ range $i, $e := .Common.ExtraNotesShort }}
 		{{ if $i }}&middot;{{ end }}
-		<a class="greylink" href="/note?id={{ $e.ID }}">{{ $e.Name }}</a>
+		<a class="footerlink" href="/note?id={{ $e.ID }}">{{ $e.Name }}</a>
 		{{ end }}
 		</div>
 	</div>

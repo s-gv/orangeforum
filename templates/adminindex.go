@@ -21,7 +21,7 @@ input[type="text"], input[type="number"], textarea {
 	.tcol1 {
 		float: left;
 		text-align: right;
-		width: 300px;
+		width: 275px;
 	}
 	.tcol2 {
 		float: left;
@@ -31,12 +31,14 @@ input[type="text"], input[type="number"], textarea {
 	}
 	.ccol1 {
 		text-align: right;
-		width: 300px;
+		width: 275px;
 	}
 	.ccol2 {
 		float: left;
 	}
-
+	.col1-offset {
+		margin-left: 290px;
+	}
 }
 </style>
 {{ end }}
@@ -105,8 +107,7 @@ input[type="text"], input[type="number"], textarea {
 	<div class="ccol2"><input type="checkbox" name="allow_topic_subscription" value="1"{{ if index .Config "allow_topic_subscription" }} checked{{ end }}></div>
 </div>
 <div class="row clearfix">
-	<div class="ccol1">Save changes?</div>
-	<div class="ccol2"><input type="submit" value="Update"></div>
+	<div class="col1-offset tcol2"><input type="submit" value="Update"></div>
 </div>
 
 </form>

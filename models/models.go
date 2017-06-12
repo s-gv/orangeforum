@@ -180,6 +180,24 @@ func CreateSuperUser(userName string, passwd string) error {
 	return createUser(userName, passwd, "", true)
 }
 
+func ReadUserAbout(userName string) string {
+	r := db.QueryRow(`SELECT about FROM users WHERE username=?; `, userName)
+	var about string
+	if err := db.ScanRow(r, &about); err == nil {
+		return about
+	}
+	return ""
+}
+
+func ReadUserKarma(userName string) int {
+	r := db.QueryRow(`SELECT karma FROM users WHERE username=?; `, userName)
+	var karma int
+	if err := db.ScanRow(r, &karma); err == nil {
+		return karma
+	}
+	return 0
+}
+
 func ReadUserEmail(userName string) string {
 	r := db.QueryRow(`SELECT email FROM users WHERE username=?;`, userName)
 	var email string
@@ -211,6 +229,10 @@ func UpdateUserPasswd(userName string, passwd string) error {
 		return err
 	}
 	return nil
+}
+
+func UpdateUserProfile(userName string, email string, about string) {
+	db.Exec(`UPDATE users SET email=?, about=?, updated_date=? WHERE username=?`, email, about, int64(time.Now().Unix()), userName)
 }
 
 func CreateResetToken(userName string) string {
