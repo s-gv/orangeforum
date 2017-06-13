@@ -160,7 +160,7 @@ func createUser(userName string, passwd string, email string, isSuperAdmin bool)
 	if passwdHash, err := bcrypt.GenerateFromPassword([]byte(passwd), bcrypt.DefaultCost); err == nil {
 		r := db.QueryRow(`SELECT username FROM users WHERE username=?;`, userName)
 		var tmp string
-		if err := db.ScanRow(r, &tmp); err == sql.ErrNoRows {
+		if err := r.Scan(&tmp); err == sql.ErrNoRows {
 			db.Exec(`INSERT INTO users(username, passwdhash, email, is_superadmin) VALUES(?, ?, ?, ?);`,
 				userName, hex.EncodeToString(passwdHash), email, isSuperAdmin)
 		} else {
@@ -183,7 +183,7 @@ func CreateSuperUser(userName string, passwd string) error {
 func ReadUserAbout(userName string) string {
 	r := db.QueryRow(`SELECT about FROM users WHERE username=?; `, userName)
 	var about string
-	if err := db.ScanRow(r, &about); err == nil {
+	if err := r.Scan(&about); err == nil {
 		return about
 	}
 	return ""
@@ -192,7 +192,7 @@ func ReadUserAbout(userName string) string {
 func ReadUserKarma(userName string) int {
 	r := db.QueryRow(`SELECT karma FROM users WHERE username=?; `, userName)
 	var karma int
-	if err := db.ScanRow(r, &karma); err == nil {
+	if err := r.Scan(&karma); err == nil {
 		return karma
 	}
 	return 0
@@ -201,7 +201,7 @@ func ReadUserKarma(userName string) int {
 func ReadUserEmail(userName string) string {
 	r := db.QueryRow(`SELECT email FROM users WHERE username=?;`, userName)
 	var email string
-	if err := db.ScanRow(r, &email); err == nil {
+	if err := r.Scan(&email); err == nil {
 		return email
 	}
 	return ""
@@ -212,7 +212,7 @@ func ReadUserNameByToken(resetToken string) (string, error) {
 		r := db.QueryRow(`SELECT username, reset_token_date FROM users WHERE reset_token=?;`, resetToken)
 		var userName string
 		var rDate int64
-		if err := db.ScanRow(r, &userName, &rDate); err == nil {
+		if err := r.Scan(&userName, &rDate); err == nil {
 			resetDate := time.Unix(rDate, 0)
 			if resetDate.After(time.Now().Add(-48*time.Hour)) {
 				return userName, nil
@@ -223,9 +223,9 @@ func ReadUserNameByToken(resetToken string) (string, error) {
 }
 
 func ReadUserIDByName(userName string) (int, error) {
-	row := db.QueryRow(`SELECT id FROM users WHERE username=?;`, userName)
+	r := db.QueryRow(`SELECT id FROM users WHERE username=?;`, userName)
 	var id int
-	if err := db.ScanRow(row, &id); err == nil {
+	if err := r.Scan(&id); err == nil {
 		return id, nil
 	}
 	return 0, errors.New("User not found.")
@@ -251,9 +251,9 @@ func CreateResetToken(userName string) string {
 }
 
 func ProbeUser(userName string) bool {
-	row := db.QueryRow(`SELECT username FROM users WHERE username=?;`, userName)
+	r := db.QueryRow(`SELECT username FROM users WHERE username=?;`, userName)
 	var tmp string
-	if err := db.ScanRow(row, &tmp); err == sql.ErrNoRows {
+	if err := r.Scan(&tmp); err == sql.ErrNoRows {
 		return false
 	}
 	return true
@@ -265,45 +265,45 @@ func CreateGroup(name string, desc string, headerMsg string) {
 }
 
 func ReadGroupIDByName(name string) string {
-	row := db.QueryRow(`SELECT id FROM groups WHERE name=?;`, name)
+	r := db.QueryRow(`SELECT id FROM groups WHERE name=?;`, name)
 	var id string
-	if err := db.ScanRow(row, &id); err == nil {
+	if err := r.Scan(&id); err == nil {
 		return id
 	}
 	return ""
 }
 
 func ReadGroupDesc(groupID string) string {
-	row := db.QueryRow(`SELECT desc FROM groups WHERE id=?;`, groupID)
+	r := db.QueryRow(`SELECT desc FROM groups WHERE id=?;`, groupID)
 	var desc string
-	if err := db.ScanRow(row, &desc); err == nil {
+	if err := r.Scan(&desc); err == nil {
 		return desc
 	}
 	return ""
 }
 
 func ReadGroupHeaderMsg(groupID string) string {
-	row := db.QueryRow(`SELECT header_msg FROM groups WHERE id=?;`, groupID)
+	r := db.QueryRow(`SELECT header_msg FROM groups WHERE id=?;`, groupID)
 	var headerMsg string
-	if err := db.ScanRow(row, &headerMsg); err == nil {
+	if err := r.Scan(&headerMsg); err == nil {
 		return headerMsg
 	}
 	return ""
 }
 
 func ReadGroupName(groupID string) string {
-	row := db.QueryRow(`SELECT name FROM groups WHERE id=?;`, groupID)
+	r := db.QueryRow(`SELECT name FROM groups WHERE id=?;`, groupID)
 	var name string
-	if err := db.ScanRow(row, &name); err == nil {
+	if err := r.Scan(&name); err == nil {
 		return name
 	}
 	return ""
 }
 
 func ReadGroupIsDeleted(groupID string) bool {
-	row := db.QueryRow(`SELECT is_closed FROM groups WHERE id=?;`, groupID)
+	r := db.QueryRow(`SELECT is_closed FROM groups WHERE id=?;`, groupID)
 	var isDeleted string
-	if err := db.ScanRow(row, &isDeleted); err == nil {
+	if err := r.Scan(&isDeleted); err == nil {
 		return isDeleted == "1"
 	}
 	return false
@@ -363,7 +363,7 @@ func ReadAdmins(groupID string) []string {
 func IsUserGroupAdmin(userID string, groupID string) bool {
 	r := db.QueryRow(`SELECT id FROM admins WHERE userid=? AND groupid=?`, userID, groupID)
 	var tmp string
-	if err := db.ScanRow(r, &tmp); err == nil {
+	if err := r.Scan(&tmp); err == nil {
 		return true
 	}
 	return false
@@ -392,11 +392,11 @@ func ReadExtraNotes() []ExtraNote {
 }
 
 func ReadExtraNote(id string) (ExtraNote, error) {
-	row := db.QueryRow(`SELECT name, URL, content, created_date, updated_date FROM extranotes WHERE id=?;`, id)
+	r := db.QueryRow(`SELECT name, URL, content, created_date, updated_date FROM extranotes WHERE id=?;`, id)
 	var e ExtraNote
 	var cDate int64
 	var uDate int64
-	if err := db.ScanRow(row, &e.Name, &e.URL, &e.Content, &cDate, &uDate); err == nil {
+	if err := r.Scan(&e.Name, &e.URL, &e.Content, &cDate, &uDate); err == nil {
 		e.CreatedDate = time.Unix(cDate, 0)
 		e.UpdatedDate = time.Unix(uDate, 0)
 		return e, nil
@@ -429,7 +429,7 @@ func ReadCommonData(sess Session) CommonData {
 	karma := 0
 	if sess.UserID.Valid {
 		r := db.QueryRow(`SELECT username, karma FROM users WHERE id=?;`, sess.UserID)
-		db.ScanRow(r, &userName, &karma)
+		r.Scan(&userName, &karma)
 	}
 	return CommonData{
 		CSRF:sess.CSRFToken,
@@ -492,36 +492,36 @@ func ConfigCommonVals() map[string]string {
 }
 
 func NumUsers() int64 {
-	row := db.QueryRow(`SELECT MAX(_ROWID_) FROM users LIMIT 1;`)
+	r := db.QueryRow(`SELECT MAX(_ROWID_) FROM users LIMIT 1;`)
 	var n sql.NullInt64
-	if err := db.ScanRow(row, &n); err == nil {
+	if err := r.Scan(&n); err == nil {
 		return n.Int64
 	}
 	return 0
 }
 
 func NumGroups() int64 {
-	row := db.QueryRow(`SELECT MAX(_ROWID_) FROM groups LIMIT 1;`)
+	r := db.QueryRow(`SELECT MAX(_ROWID_) FROM groups LIMIT 1;`)
 	var n sql.NullInt64
-	if err := db.ScanRow(row, &n); err == nil {
+	if err := r.Scan(&n); err == nil {
 		return n.Int64
 	}
 	return 0
 }
 
 func NumTopics() int64 {
-	row := db.QueryRow(`SELECT MAX(_ROWID_) FROM topics LIMIT 1;`)
+	r := db.QueryRow(`SELECT MAX(_ROWID_) FROM topics LIMIT 1;`)
 	var n sql.NullInt64
-	if err := db.ScanRow(row, &n); err == nil {
+	if err := r.Scan(&n); err == nil {
 		return n.Int64
 	}
 	return 0
 }
 
 func NumComments() int64 {
-	row := db.QueryRow(`SELECT MAX(_ROWID_) FROM comments LIMIT 1;`)
+	r := db.QueryRow(`SELECT MAX(_ROWID_) FROM comments LIMIT 1;`)
 	var n sql.NullInt64
-	if err := db.ScanRow(row, &n); err == nil {
+	if err := r.Scan(&n); err == nil {
 		return n.Int64
 	}
 	return 0

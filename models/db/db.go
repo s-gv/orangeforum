@@ -12,6 +12,13 @@ var db *sql.DB
 
 var stmts = make(map[string]*sql.Stmt)
 
+type Row struct {
+	*sql.Row
+}
+
+type Rows struct {
+	*sql.Rows
+}
 
 func CreateTables() {
 	if _, err := db.Exec(`CREATE TABLE configs(key VARCHAR(250), val TEXT);`); err != nil { panic(err) }
@@ -229,8 +236,19 @@ func Query(query string, args ...interface{}) *sql.Rows {
 	return rows
 }
 
-func ScanRow(row *sql.Row, args ...interface{}) error {
-	err := row.Scan(args...)
+func (r *Row) Scan(args ...interface{}) error {
+	err := r.Row.Scan(args...)
+	switch {
+	case err == sql.ErrNoRows:
+		return err
+	case err != nil:
+		log.Panicf("[ERROR] Error scanning row: %s\n", err)
+	}
+	return nil
+}
+
+func (rs *Rows) Scan(args ...interface{}) error {
+	err := rs.Rows.Scan(args...)
 	switch {
 	case err == sql.ErrNoRows:
 		return err

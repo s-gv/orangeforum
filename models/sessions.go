@@ -34,11 +34,11 @@ func OpenSession(w http.ResponseWriter, r *http.Request) Session {
 	cookie, err := r.Cookie("sessionid")
 	if err == nil {
 		sessionId := cookie.Value
-		query := db.QueryRow(`SELECT sessionid, userid, csrf, msg, created_date, updated_date FROM sessions WHERE sessionid=?;`, sessionId)
+		r := db.QueryRow(`SELECT sessionid, userid, csrf, msg, created_date, updated_date FROM sessions WHERE sessionid=?;`, sessionId)
 		sess := Session{}
 		var cDate int64
 		var uDate int64
-		if err := db.ScanRow(query, &sess.SessionID, &sess.UserID, &sess.CSRFToken, &sess.Msg, &cDate, &uDate); err == nil {
+		if err := r.Scan(&sess.SessionID, &sess.UserID, &sess.CSRFToken, &sess.Msg, &cDate, &uDate); err == nil {
 			sess.CreatedDate = time.Unix(cDate, 0)
 			sess.UpdatedDate = time.Unix(uDate, 0)
 			if sess.UpdatedDate.After(time.Now().Add(-maxSessionLife)) {
@@ -81,7 +81,7 @@ func (sess *Session) Authenticate(userName string, passwd string) bool {
 	r := db.QueryRow(`SELECT id, passwdhash FROM users WHERE username=?;`, userName)
 	var passwdHashStr string
 	var userID int
-	if err := db.ScanRow(r, &userID, &passwdHashStr); err != nil {
+	if err := r.Scan(&userID, &passwdHashStr); err != nil {
 		return false
 	}
 	passwdHash, err := hex.DecodeString(passwdHashStr)
@@ -102,9 +102,9 @@ func (sess *Session) IsUserValid() bool {
 
 func (sess *Session) IsUserSuperAdmin() bool {
 	if sess.IsUserValid() {
-		row := db.QueryRow(`SELECT is_superadmin FROM users WHERE id=?;`, sess.UserID)
+		r := db.QueryRow(`SELECT is_superadmin FROM users WHERE id=?;`, sess.UserID)
 		IsSuperAdmin := false
-		if err := db.ScanRow(row, &IsSuperAdmin); err == nil {
+		if err := r.Scan(&IsSuperAdmin); err == nil {
 			return IsSuperAdmin
 		}
 	}
@@ -115,7 +115,7 @@ func (sess *Session) UserName() (string, error) {
 	if sess.UserID.Valid {
 		r := db.QueryRow(`SELECT username FROM users WHERE id=?;`, sess.UserID)
 		var userName string
-		if err := db.ScanRow(r, &userName); err == nil {
+		if err := r.Scan(&userName); err == nil {
 			return userName, nil
 		}
 	}
