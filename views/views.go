@@ -12,6 +12,7 @@ import (
 	"errors"
 	"html/template"
 	"strconv"
+	"github.com/s-gv/orangeforum/models/db"
 )
 
 func ErrServerHandler(w http.ResponseWriter, r *http.Request) {
@@ -184,10 +185,9 @@ func GroupEditHandler(w http.ResponseWriter, r *http.Request) {
 
 	if groupID != "" {
 		// Open to edit
-		name = models.ReadGroupName(groupID)
-		desc = models.ReadGroupDesc(groupID)
-		headerMsg = models.ReadGroupHeaderMsg(groupID)
-		isDeleted = models.ReadGroupIsDeleted(groupID)
+		db.QueryRow(`SELECT name, desc, header_msg, is_closed FROM groups WHERE id=?;`, groupID).Scan(
+			&name, &desc, &headerMsg, &isDeleted,
+		)
 		mods = models.ReadMods(groupID)
 		admins = models.ReadAdmins(groupID)
 	}
