@@ -2,10 +2,10 @@ package templates
 
 const groupindexSrc = `
 {{ define "content" }}
-top | new | groups | submit
-{{ if .IsUserValid }}
-{{ .UserName }} ({{ .Karma }}) | <a href="/logout">logout</a>
-{{ else }}
-<a href="/login">login</a>
+
+<h1>{{ .Name }}</h1>
+{{ if .IsAdmin }}
+<a href="/groups/edit?id={{ .ID }}">edit</a>
 {{ end }}
+
 {{ end }}`

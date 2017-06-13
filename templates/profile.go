@@ -39,11 +39,11 @@ input[type="text"], input[type="number"], input[type="email"], textarea {
 	<div class="col2">{{ .UserName }}</div>
 </div>
 <div class="row clearfix">
-	<div class="col1">Karma</div>
+	<div class="col1">Karma{{ if .IsSelf }} (public){{ end }}</div>
 	<div class="col2">{{ .Karma }}</div>
 </div>
 <div class="row clearfix">
-	<div class="col1">About (public)</div>
+	<div class="col1">About{{ if .IsSelf }} (public){{ end }}</div>
 	<div class="col2">
 	{{ if .IsSelf }}
 		<textarea name="about" rows="6">{{ .About }}</textarea>
@@ -64,10 +64,13 @@ input[type="text"], input[type="number"], input[type="email"], textarea {
 </form>
 
 <div class="row clearfix">
-	<div class="col1-offset col2"><a href="/topics?u={{ .UserName }}">topics</a> {{ if .IsSelf }}(public){{ end }}</div>
+	<div class="col1-offset col2"><a href="/topics?u={{ .UserName }}">topics</a>{{ if .IsSelf }} (public){{ end }}</div>
 </div>
 <div class="row clearfix">
-	<div class="col1-offset col2"><a href="/comments?u={{ .UserName }}">comments</a> {{ if .IsSelf }}(public){{ end }}</div>
+	<div class="col1-offset col2"><a href="/comments?u={{ .UserName }}">comments</a>{{ if .IsSelf }} (public){{ end }}</div>
+</div>
+<div class="row clearfix">
+	<div class="col1-offset col2"><a href="/groups?u={{ .UserName }}">groups {{ if .IsSelf }} (public){{ end }}</a></div>
 </div>
 {{ if .IsSelf }}
 <div class="row clearfix">

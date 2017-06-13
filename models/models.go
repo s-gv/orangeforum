@@ -222,6 +222,15 @@ func ReadUserNameByToken(resetToken string) (string, error) {
 	return "", errors.New("Invalid/Expired reset token.")
 }
 
+func ReadUserIDByName(userName string) (int, error) {
+	row := db.QueryRow(`SELECT id FROM users WHERE username=?;`, userName)
+	var id int
+	if err := db.ScanRow(row, &id); err == nil {
+		return id, nil
+	}
+	return 0, errors.New("User not found.")
+}
+
 func UpdateUserPasswd(userName string, passwd string) error {
 	if passwdHash, err := bcrypt.GenerateFromPassword([]byte(passwd), bcrypt.DefaultCost); err == nil {
 		db.Exec(`UPDATE users SET passwdhash=?, reset_token="", reset_token_date=0 WHERE username=?`, hex.EncodeToString(passwdHash), userName)
@@ -249,6 +258,122 @@ func ProbeUser(userName string) bool {
 	}
 	return true
 }
+
+func CreateGroup(name string, desc string, headerMsg string) {
+	now := time.Now().Unix()
+	db.Exec(`INSERT INTO groups(name, desc, header_msg, created_date, updated_date) VALUES(?, ?, ?, ?, ?);`, name, desc, headerMsg, now, now)
+}
+
+func ReadGroupIDByName(name string) string {
+	row := db.QueryRow(`SELECT id FROM groups WHERE name=?;`, name)
+	var id string
+	if err := db.ScanRow(row, &id); err == nil {
+		return id
+	}
+	return ""
+}
+
+func ReadGroupDesc(groupID string) string {
+	row := db.QueryRow(`SELECT desc FROM groups WHERE id=?;`, groupID)
+	var desc string
+	if err := db.ScanRow(row, &desc); err == nil {
+		return desc
+	}
+	return ""
+}
+
+func ReadGroupHeaderMsg(groupID string) string {
+	row := db.QueryRow(`SELECT header_msg FROM groups WHERE id=?;`, groupID)
+	var headerMsg string
+	if err := db.ScanRow(row, &headerMsg); err == nil {
+		return headerMsg
+	}
+	return ""
+}
+
+func ReadGroupName(groupID string) string {
+	row := db.QueryRow(`SELECT name FROM groups WHERE id=?;`, groupID)
+	var name string
+	if err := db.ScanRow(row, &name); err == nil {
+		return name
+	}
+	return ""
+}
+
+func ReadGroupIsDeleted(groupID string) bool {
+	row := db.QueryRow(`SELECT is_closed FROM groups WHERE id=?;`, groupID)
+	var isDeleted string
+	if err := db.ScanRow(row, &isDeleted); err == nil {
+		return isDeleted == "1"
+	}
+	return false
+}
+
+func UpdateGroup(groupID string, name string, desc string, headerMsg string) {
+	db.Exec(`UPDATE groups SET name=?, desc=?, header_msg=?, updated_date=? WHERE id=?`, name, desc, headerMsg, int(time.Now().Unix()), groupID)
+}
+
+func DeleteGroup(groupID string) {
+	db.Exec(`UPDATE groups SET is_closed=1 WHERE id=?;`, groupID)
+}
+
+func UndeleteGroup(groupID string) {
+	db.Exec(`UPDATE groups SET is_closed=0 WHERE id=?;`, groupID)
+}
+
+func CreateMod(userName string, groupID string) {
+	if uid, err := ReadUserIDByName(userName); err == nil {
+		db.Exec(`INSERT INTO mods(userid, groupid, created_date) VALUES(?, ?, ?);`, uid, groupID, int64(time.Now().Unix()))
+	}
+}
+
+func ReadMods(groupID string) []string {
+	rows := db.Query(`SELECT users.username FROM users INNER JOIN mods ON users.id=mods.userid WHERE mods.groupid=?;`, groupID)
+	var mods []string
+	for rows.Next() {
+		var mod string
+		rows.Scan(&mod)
+		mods = append(mods, mod)
+	}
+	return mods
+}
+
+func DeleteMods(groupID string) {
+	db.Exec(`DELETE FROM admins WHERE groupid=?;`, groupID)
+}
+
+
+func CreateAdmin(userName string, groupID string) {
+	if uid, err := ReadUserIDByName(userName); err == nil {
+		db.Exec(`INSERT INTO admins(userid, groupid, created_date) VALUES(?, ?, ?);`, uid, groupID, int64(time.Now().Unix()))
+	}
+}
+
+func ReadAdmins(groupID string) []string {
+	rows := db.Query(`SELECT users.username FROM users INNER JOIN admins ON users.id=admins.userid WHERE admins.groupid=?;`, groupID)
+	var admins []string
+	for rows.Next() {
+		var admin string
+		rows.Scan(&admin)
+		admins = append(admins, admin)
+	}
+	return admins
+}
+
+func IsUserGroupAdmin(userID string, groupID string) bool {
+	r := db.QueryRow(`SELECT id FROM admins WHERE userid=? AND groupid=?`, userID, groupID)
+	var tmp string
+	if err := db.ScanRow(r, &tmp); err == nil {
+		return true
+	}
+	return false
+}
+
+func DeleteAdmins(groupID string) {
+	db.Exec(`DELETE FROM mods WHERE groupid=?;`, groupID)
+}
+
+
 
 func CreateExtraNote(name string, URL string, content string) {
 	now := time.Now()

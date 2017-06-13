@@ -11,6 +11,7 @@ import (
 	"strings"
 	"errors"
 	"html/template"
+	"strconv"
 )
 
 func ErrServerHandler(w http.ResponseWriter, r *http.Request) {
@@ -30,13 +31,176 @@ func ErrForbiddenHandler(w http.ResponseWriter, r *http.Request) {
 
 func IndexHandler(w http.ResponseWriter, r *http.Request) {
 	defer ErrServerHandler(w, r)
+	sess := models.OpenSession(w, r)
 	if r.URL.Path != "/" {
 		ErrNotFoundHandler(w, r)
 		return
 	}
-	sess := models.OpenSession(w, r)
+
 	templates.Render(w, "index.html", map[string]interface{}{
 		"Common": models.ReadCommonData(sess),
+		"GroupCreationDisabled": models.Config(models.GroupCreationDisabled) == "1",
+	})
+}
+
+func validateName(name string) error {
+	if len(name) == 0 {
+		return errors.New("Name cannot be blank.")
+	}
+	hasSpecial := false
+	for _, ch := range name {
+		if (ch < 'A' || ch > 'Z') && (ch < 'a' || ch > 'z') && ch != '_' && (ch < '0' || ch > '9') {
+			hasSpecial = true
+		}
+	}
+	if hasSpecial {
+		return errors.New("Name can contain only alphabets, numbers, and underscore.")
+	}
+	return nil
+}
+
+func GroupHandler(w http.ResponseWriter, r *http.Request) {
+	defer ErrServerHandler(w, r)
+	sess := models.OpenSession(w, r)
+	if r.Method == "POST" && r.PostFormValue("csrf") != sess.CSRFToken {
+		ErrForbiddenHandler(w, r)
+		return
+	}
+
+	name := r.FormValue("name")
+	id := models.ReadGroupIDByName(name)
+	if id == "" || models.ReadGroupIsDeleted(id) {
+		ErrNotFoundHandler(w, r)
+		return
+	}
+
+	templates.Render(w, "groupindex.html", map[string]interface{}{
+		"Common": models.ReadCommonData(sess),
+		"Name": name,
+		"ID": id,
+		"IsAdmin": sess.IsUserValid() && models.IsUserGroupAdmin(strconv.Itoa(int(sess.UserID.Int64)), id),
+	})
+}
+
+func GroupEditHandler(w http.ResponseWriter, r *http.Request) {
+	defer ErrServerHandler(w, r)
+	sess := models.OpenSession(w, r)
+	if r.Method == "POST" && r.PostFormValue("csrf") != sess.CSRFToken {
+		ErrForbiddenHandler(w, r)
+		return
+	}
+	if models.Config(models.GroupCreationDisabled) == "1" || !sess.IsUserValid() {
+		ErrForbiddenHandler(w, r)
+		return
+	}
+
+	userName, _ := sess.UserName()
+
+	groupID := r.FormValue("id")
+	name := r.FormValue("name")
+	desc := r.FormValue("desc")
+	headerMsg := r.FormValue("header_msg")
+	isDeleted := false
+	mods := strings.Split(r.FormValue("mods"), ",")
+	for i, mod := range mods {
+		mods[i] = strings.TrimSpace(mod)
+	}
+	admins := strings.Split(r.FormValue("admins"), ",")
+	for i, admin := range admins {
+		admins[i] = strings.TrimSpace(admin)
+	}
+	isUserInAdminList := false
+	for _, u := range admins {
+		if u == userName {
+			isUserInAdminList = true
+			break
+		}
+	}
+	if !isUserInAdminList {
+		if admins[0] == "" {
+			admins[0] = userName
+		} else {
+			admins = append(admins, userName)
+		}
+	}
+	action := r.FormValue("action")
+
+	if groupID != "" {
+		if !models.IsUserGroupAdmin(strconv.Itoa(int(sess.UserID.Int64)), groupID) {
+			ErrForbiddenHandler(w, r)
+			return
+		}
+	}
+
+	if r.Method == "POST" {
+		if action == "Create" {
+			if err := validateName(name); err != nil {
+				sess.SetFlashMsg(err.Error())
+				http.Redirect(w, r, "/groups/edit", http.StatusSeeOther)
+				return
+			}
+			models.CreateGroup(name, desc, headerMsg)
+			groupID := models.ReadGroupIDByName(name)
+			for _, mod := range mods {
+				if mod != "" {
+					models.CreateMod(mod, groupID)
+				}
+			}
+			for _, admin := range admins {
+				if admin != "" {
+					models.CreateAdmin(admin, groupID)
+				}
+			}
+			http.Redirect(w, r, "/groups?name="+name, http.StatusSeeOther)
+		} else if action == "Update" {
+			if err := validateName(name); err != nil {
+				sess.SetFlashMsg(err.Error())
+				http.Redirect(w, r, "/groups/edit?id="+groupID, http.StatusSeeOther)
+				return
+			}
+			models.UpdateGroup(groupID, name, desc, headerMsg)
+			models.DeleteAdmins(groupID)
+			models.DeleteMods(groupID)
+			for _, mod := range mods {
+				if mod != "" {
+					models.CreateMod(mod, groupID)
+				}
+			}
+			for _, admin := range admins {
+				if admin != "" {
+					models.CreateAdmin(admin, groupID)
+				}
+			}
+			http.Redirect(w, r, "/groups?name="+name, http.StatusSeeOther)
+		} else if action == "Delete" {
+			models.DeleteGroup(groupID)
+			http.Redirect(w, r, "/groups/edit?id="+groupID, http.StatusSeeOther)
+		} else if action == "Undelete" {
+			models.UndeleteGroup(groupID)
+			http.Redirect(w, r, "/groups/edit?id="+groupID, http.StatusSeeOther)
+		}
+		return
+ 	}
+
+	if groupID != "" {
+		// Open to edit
+		name = models.ReadGroupName(groupID)
+		desc = models.ReadGroupDesc(groupID)
+		headerMsg = models.ReadGroupHeaderMsg(groupID)
+		isDeleted = models.ReadGroupIsDeleted(groupID)
+		mods = models.ReadMods(groupID)
+		admins = models.ReadAdmins(groupID)
+	}
+
+	templates.Render(w, "groupnew.html", map[string]interface{}{
+		"Common": models.ReadCommonData(sess),
+		"ID": groupID,
+		"Name": name,
+		"Desc": desc,
+		"HeaderMsg": headerMsg,
+		"IsDeleted": isDeleted,
+		"Mods": strings.Join(mods, ", "),
+		"Admins": strings.Join(admins, ", "),
 	})
 }
 

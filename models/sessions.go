@@ -60,8 +60,8 @@ func OpenSession(w http.ResponseWriter, r *http.Request) Session {
 		sess.SessionID, sess.UserID, sess.CSRFToken, sess.Msg, int64(sess.CreatedDate.Unix()), int64(sess.UpdatedDate.Unix()))
 	db.Exec(`DELETE FROM sessions WHERE updated_date < ?;`, int64(time.Now().Add(-maxSessionLife).Unix()))
 
-	http.SetCookie(w, &http.Cookie{Name: "sessionid", Value: sess.SessionID, HttpOnly: true})
-	http.SetCookie(w, &http.Cookie{Name: "csrftoken", Value: sess.CSRFToken})
+	http.SetCookie(w, &http.Cookie{Name: "sessionid", Path: "/", Value: sess.SessionID, HttpOnly: true})
+	http.SetCookie(w, &http.Cookie{Name: "csrftoken", Path: "/", Value: sess.CSRFToken})
 
 	return sess
 }

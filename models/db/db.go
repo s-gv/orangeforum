@@ -41,9 +41,10 @@ func CreateTables() {
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
 		       		name TEXT,
 		       		desc TEXT,
-		       		is_sticky INTEGER,
-		       		is_private INTEGER,
-		       		is_closed INTEGER,
+		       		header_msg TEXT,
+		       		is_sticky INTEGER DEFAULT 0,
+		       		is_private INTEGER DEFAULT 0,
+		       		is_closed INTEGER DEFAULT 0,
 		       		created_date INTEGER,
 		       		updated_date INTEGER
 	);`); err != nil { panic(err) }
