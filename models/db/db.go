@@ -46,7 +46,7 @@ func CreateTables() {
 
 	if _, err := db.Exec(`CREATE TABLE groups(
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
-		       		name TEXT,
+		       		name VARCHAR(200),
 		       		desc TEXT,
 		       		header_msg TEXT,
 		       		is_sticky INTEGER DEFAULT 0,
@@ -56,7 +56,7 @@ func CreateTables() {
 		       		updated_date INTEGER
 	);`); err != nil { panic(err) }
 	if _, err := db.Exec(`CREATE INDEX groups_sticky_index on groups(is_sticky);`); err != nil { panic(err) }
-	if _, err := db.Exec(`CREATE INDEX groups_created_index on groups(created_date);`); err != nil { panic(err) }
+	if _, err := db.Exec(`CREATE INDEX groups_name_index on groups(name);`); err != nil { panic(err) }
 
 
 	if _, err := db.Exec(`CREATE TABLE topics(

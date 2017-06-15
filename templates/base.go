@@ -83,6 +83,21 @@ const baseSrc = `<!DOCTYPE html>
 			margin-left: 20px;
 		}
 	}
+	.muted {
+		color: grey;
+	}
+	.row {
+		margin-top: 20px;
+	}
+	.link-btn, .link-btn:link, .link-btn:visited {
+		color: white;
+		background: #07C;
+		padding: 10px 20px;
+		text-align: center;
+	}
+	.link-btn:hover {
+		background: #3af;
+	}
 	</style>
 	<title>{{ .Common.ForumName }}</title>
 	{{ block "head" . }}{{ end }}
@@ -106,6 +121,7 @@ const baseSrc = `<!DOCTYPE html>
 				{{ end }}
 			</div>
 		</div>
+		<hr>
 		<div id="content">
 		{{ block "content" . }}{{ end }}
 		</div>

@@ -38,9 +38,22 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	type Group struct {
+		Name string
+		Desc string
+	}
+	groups := []Group{}
+	rows := db.Query(`SELECT name, desc FROM groups WHERE is_closed=0 ORDER BY name ASC LIMIT 50;`)
+	for rows.Next() {
+		groups = append(groups, Group{})
+		rows.Scan(&groups[len(groups)-1].Name, &groups[len(groups)-1].Desc)
+	}
+
 	templates.Render(w, "index.html", map[string]interface{}{
 		"Common": models.ReadCommonData(sess),
 		"GroupCreationDisabled": models.Config(models.GroupCreationDisabled) == "1",
+		"ShowGroups": len(groups) < 50,
+		"Groups": groups,
 	})
 }
 
@@ -90,8 +103,12 @@ func GroupEditHandler(w http.ResponseWriter, r *http.Request) {
 		ErrForbiddenHandler(w, r)
 		return
 	}
-	if models.Config(models.GroupCreationDisabled) == "1" || !sess.IsUserValid() {
+	if models.Config(models.GroupCreationDisabled) == "1" {
 		ErrForbiddenHandler(w, r)
+		return
+	}
+	if !sess.IsUserValid() {
+		http.Redirect(w, r, "/login?next=/groups/edit", http.StatusSeeOther)
 		return
 	}
 
