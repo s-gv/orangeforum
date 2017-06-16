@@ -117,28 +117,6 @@ func CreateTables() {
 	if _, err := db.Exec(`CREATE INDEX admins_groupid_index on admins(groupid);`); err != nil { panic(err) }
 
 
-	if _, err := db.Exec(`CREATE TABLE topicvotes(
-				id INTEGER PRIMARY KEY,
-				userid INTEGER REFERENCES users(id) ON DELETE CASCADE,
-				topicid INTEGER REFERENCES topics(id) ON DELETE CASCADE,
-				votetype INTEGER,
-				created_date INTEGER
-	);`); err != nil { panic(err) }
-	if _, err := db.Exec(`CREATE INDEX topicvotes_userid_index on topicvotes(userid);`); err != nil { panic(err) }
-	if _, err := db.Exec(`CREATE INDEX topicvotes_topicid_index on topicvotes(topicid);`); err != nil { panic(err) }
-
-
-	if _, err := db.Exec(`CREATE TABLE commentvotes(
-				id INTEGER PRIMARY KEY,
-				userid INTEGER REFERENCES users(id) ON DELETE CASCADE,
-				commentid INTEGER REFERENCES comments(id) ON DELETE CASCADE,
-				votetype INTEGER,
-				created_date INTEGER
-	);`); err != nil { panic(err) }
-	if _, err := db.Exec(`CREATE INDEX commentvotes_userid_index on commentvotes(userid);`); err != nil { panic(err) }
-	if _, err := db.Exec(`CREATE INDEX commentvotes_commentid_index on commentvotes(commentid);`); err != nil { panic(err) }
-
-
 	if _, err := db.Exec(`CREATE TABLE topicsubscriptions(
 				id INTEGER PRIMARY KEY,
 				userid INTEGER REFERENCES users(id) ON DELETE CASCADE,
@@ -180,9 +158,6 @@ func CreateTables() {
 	);`); err != nil { panic(err) }
 	if _, err := db.Exec(`CREATE INDEX sessions_sessionid_index on sessions(sessionid);`); err != nil { panic(err) }
 	if _, err := db.Exec(`CREATE INDEX sessions_userid_index on sessions(userid);`); err != nil { panic(err) }
-
-
-
 }
 
 
