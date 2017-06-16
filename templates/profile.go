@@ -39,10 +39,6 @@ input[type="text"], input[type="number"], input[type="email"], textarea {
 	<div class="col2">{{ .UserName }}</div>
 </div>
 <div class="row clearfix">
-	<div class="col1">Karma{{ if .IsSelf }} (public){{ end }}</div>
-	<div class="col2">{{ .Karma }}</div>
-</div>
-<div class="row clearfix">
 	<div class="col1">About{{ if .IsSelf }} (public){{ end }}</div>
 	<div class="col2">
 	{{ if .IsSelf }}

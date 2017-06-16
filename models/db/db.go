@@ -31,7 +31,6 @@ func CreateTables() {
 		       		passwdhash VARCHAR(250) NOT NULL,
 		       		email VARCHAR(250) DEFAULT "",
 		       		about TEXT DEFAULT "",
-		       		karma INTEGER DEFAULT 0,
 		       		reset_token VARCHAR(250) DEFAULT "",
 		       		is_banned INTEGER DEFAULT 0,
 				is_superadmin INTEGER DEFAULT 0,
@@ -50,7 +49,6 @@ func CreateTables() {
 		       		desc TEXT,
 		       		header_msg TEXT,
 		       		is_sticky INTEGER DEFAULT 0,
-		       		is_private INTEGER DEFAULT 0,
 		       		is_closed INTEGER DEFAULT 0,
 		       		created_date INTEGER,
 		       		updated_date INTEGER
@@ -68,9 +66,6 @@ func CreateTables() {
 				is_sticky INTEGER,
 				is_closed INTEGER,
 				numcomments INTEGER,
-				upvotes INTEGER,
-				downvotes INTEGER,
-				flagvotes INTEGER,
 				created_date INTEGER,
 				updated_date INTEGER
 	);`); err != nil { panic(err) }
@@ -86,9 +81,6 @@ func CreateTables() {
 				parentid INTEGER REFERENCES comments(id) ON DELETE CASCADE,
 				is_deleted INTEGER,
 				is_sticky INTEGER,
-				upvotes INTEGER,
-				downvotes INTEGER,
-				flagvotes INTEGER,
 				created_date INTEGER,
 				updated_date INTEGER
 	);`); err != nil { panic(err) }

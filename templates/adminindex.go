@@ -59,6 +59,10 @@ input[type="text"], input[type="number"], textarea {
 	<div class="tcol2"><input type="text" name="header_msg" value="{{ index .Config "header_msg" }}"></div>
 </div>
 <div class="row clearfix">
+	<div class="tcol1">Body Appendage</div>
+	<div class="tcol2"><textarea name="body_appendage" rows="4" placeholder="<script>Analytics or something</script>">{{ index .Config "body_appendage" }}</textarea></div>
+</div>
+<div class="row clearfix">
 	<div class="tcol1">Data Directory</div>
 	<div class="tcol2"><input type="text" name="data_dir" value="{{ index .Config "data_dir" }}"></div>
 </div>

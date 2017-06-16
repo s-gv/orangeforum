@@ -28,6 +28,7 @@ const (
 	AllowGroupSubscription string = "allow_group_subscription"
 	AllowTopicSubscription string = "allow_topic_subscription"
 	DataDir string = "data_dir"
+	BodyAppendage string = "body_appendage"
 	DefaultFromMail string = "default_from_mail"
 	SMTPHost string = "smtp_host"
 	SMTPPort string = "smtp_port"
@@ -45,7 +46,6 @@ type User struct {
 	PasswdHash string
 	Email string
 	About string
-	Karma int
 	IsBanned bool
 	IsSuperAdmin bool
 	CreatedDate time.Time
@@ -151,8 +151,8 @@ type CommonData struct {
 	CSRF string
 	Msg string
 	UserName string
-	Karma int
 	ForumName string
+	BodyAppendage string
 	ExtraNotesShort []ExtraNote
 }
 
@@ -187,15 +187,6 @@ func ReadUserAbout(userName string) string {
 		return about
 	}
 	return ""
-}
-
-func ReadUserKarma(userName string) int {
-	r := db.QueryRow(`SELECT karma FROM users WHERE username=?; `, userName)
-	var karma int
-	if err := r.Scan(&karma); err == nil {
-		return karma
-	}
-	return 0
 }
 
 func ReadUserEmail(userName string) string {
@@ -426,17 +417,16 @@ func DeleteExtraNote(id string) {
 
 func ReadCommonData(sess Session) CommonData {
 	userName := ""
-	karma := 0
 	if sess.UserID.Valid {
-		r := db.QueryRow(`SELECT username, karma FROM users WHERE id=?;`, sess.UserID)
-		r.Scan(&userName, &karma)
+		r := db.QueryRow(`SELECT username FROM users WHERE id=?;`, sess.UserID)
+		r.Scan(&userName)
 	}
 	return CommonData{
 		CSRF:sess.CSRFToken,
 		Msg:sess.FlashMsg(),
 		UserName:userName,
-		Karma:karma,
 		ForumName:Config(ForumName),
+		BodyAppendage:Config(BodyAppendage),
 		ExtraNotesShort:ReadExtraNotesShort(),
 	}
 }
@@ -475,6 +465,7 @@ func ConfigAllVals() map[string]interface{} {
 		"allow_group_subscription": Config(AllowGroupSubscription) == "1",
 		"allow_topic_subscription": Config(AllowTopicSubscription) == "1",
 		"data_dir": Config(DataDir),
+		"body_appendage": Config(BodyAppendage),
 		"default_from_mail": Config(DefaultFromMail),
 		"smtp_host": Config(SMTPHost),
 		"smtp_port": Config(SMTPPort),
@@ -540,6 +531,7 @@ func Migrate() {
 	WriteConfig(AllowGroupSubscription, "0")
 	WriteConfig(AllowTopicSubscription, "0")
 	WriteConfig(DataDir, "")
+	WriteConfig(BodyAppendage, "")
 	WriteConfig(DefaultFromMail, "admin@example.com")
 	WriteConfig(SMTPHost, "")
 	WriteConfig(SMTPPort, "25")

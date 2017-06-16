@@ -13,6 +13,7 @@ import (
 	"html/template"
 	"strconv"
 	"github.com/s-gv/orangeforum/models/db"
+	"sort"
 )
 
 func ErrServerHandler(w http.ResponseWriter, r *http.Request) {
@@ -43,16 +44,15 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 		Desc string
 	}
 	groups := []Group{}
-	rows := db.Query(`SELECT name, desc FROM groups WHERE is_closed=0 ORDER BY name ASC LIMIT 50;`)
+	rows := db.Query(`SELECT name, desc FROM groups WHERE is_closed=0 ORDER BY is_sticky ASC, RANDOM() LIMIT 25;`)
 	for rows.Next() {
 		groups = append(groups, Group{})
 		rows.Scan(&groups[len(groups)-1].Name, &groups[len(groups)-1].Desc)
 	}
-
+	sort.Slice(groups, func(i, j int) bool {return groups[i].Name < groups[j].Name})
 	templates.Render(w, "index.html", map[string]interface{}{
 		"Common": models.ReadCommonData(sess),
 		"GroupCreationDisabled": models.Config(models.GroupCreationDisabled) == "1",
-		"ShowGroups": len(groups) < 50,
 		"Groups": groups,
 	})
 }
@@ -63,7 +63,7 @@ func validateName(name string) error {
 	}
 	hasSpecial := false
 	for _, ch := range name {
-		if (ch < 'A' || ch > 'Z') && (ch < 'a' || ch > 'z') && ch != '_' && (ch < '0' || ch > '9') {
+		if (ch < 'A' || ch > 'Z') && (ch < 'a' || ch > 'z') && ch != '_' && ch != '-' && (ch < '0' || ch > '9') {
 			hasSpecial = true
 		}
 	}
@@ -510,6 +510,7 @@ func AdminIndexHandler(w http.ResponseWriter, r *http.Request) {
 		allowGroupSubscription := "0"
 		allowTopicSubscription := "0"
 		dataDir := r.PostFormValue("data_dir")
+		bodyAppendage := r.PostFormValue("body_appendage")
 		defaultFromEmail := r.PostFormValue("default_from_mail")
 		smtpHost := r.PostFormValue("smtp_host")
 		smtpPort := r.PostFormValue("smtp_port")
@@ -554,6 +555,7 @@ func AdminIndexHandler(w http.ResponseWriter, r *http.Request) {
 			models.WriteConfig(models.AllowGroupSubscription, allowGroupSubscription)
 			models.WriteConfig(models.AllowTopicSubscription, allowTopicSubscription)
 			models.WriteConfig(models.DataDir, dataDir)
+			models.WriteConfig(models.BodyAppendage, bodyAppendage)
 			models.WriteConfig(models.DefaultFromMail, defaultFromEmail)
 			models.WriteConfig(models.SMTPHost, smtpHost)
 			models.WriteConfig(models.SMTPPort, smtpPort)
@@ -634,7 +636,6 @@ func UserProfileHandler(w http.ResponseWriter, r *http.Request) {
 	templates.Render(w, "profile.html", map[string]interface{}{
 		"Common": models.ReadCommonData(sess),
 		"UserName": userName,
-		"Karma": models.ReadUserKarma(userName),
 		"About": models.ReadUserAbout(userName),
 		"Email": models.ReadUserEmail(userName),
 		"IsSelf": isSelf,

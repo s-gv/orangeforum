@@ -115,7 +115,7 @@ const baseSrc = `<!DOCTYPE html>
 			</div>
 			<div id="navright">
 				{{ if .Common.UserName }}
-				<a class="blacklink" href="/users?u={{ .Common.UserName }}">{{ .Common.UserName }}</a> &#40;{{ .Common.Karma }}&#41; | <a class="blacklink" href="/logout">Logout</a>
+				<a class="blacklink" href="/users?u={{ .Common.UserName }}">{{ .Common.UserName }}</a> | <a class="blacklink" href="/logout">Logout</a>
 				{{ else }}
 				<a class="blacklink" href="/login">Login</a>
 				{{ end }}
@@ -132,5 +132,6 @@ const baseSrc = `<!DOCTYPE html>
 		{{ end }}
 		</div>
 	</div>
+	{{ .Common.BodyAppendage }}
 </body>
 </html>`
