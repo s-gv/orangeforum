@@ -71,7 +71,7 @@ func validateName(name string) error {
 		}
 	}
 	if hasSpecial {
-		return errors.New("Name can contain only alphabets, numbers, and underscore.")
+		return errors.New("Name can contain only english alphabets, numbers, hyphens, and underscore.")
 	}
 	return nil
 }
