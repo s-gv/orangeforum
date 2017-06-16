@@ -151,6 +151,7 @@ type CommonData struct {
 	CSRF string
 	Msg string
 	UserName string
+	IsSuperAdmin bool
 	ForumName string
 	BodyAppendage string
 	ExtraNotesShort []ExtraNote
@@ -417,14 +418,16 @@ func DeleteExtraNote(id string) {
 
 func ReadCommonData(sess Session) CommonData {
 	userName := ""
+	isSuperAdmin := false
 	if sess.UserID.Valid {
-		r := db.QueryRow(`SELECT username FROM users WHERE id=?;`, sess.UserID)
-		r.Scan(&userName)
+		r := db.QueryRow(`SELECT username, is_superadmin FROM users WHERE id=?;`, sess.UserID)
+		r.Scan(&userName, &isSuperAdmin)
 	}
 	return CommonData{
 		CSRF:sess.CSRFToken,
 		Msg:sess.FlashMsg(),
 		UserName:userName,
+		IsSuperAdmin:isSuperAdmin,
 		ForumName:Config(ForumName),
 		BodyAppendage:Config(BodyAppendage),
 		ExtraNotesShort:ReadExtraNotesShort(),

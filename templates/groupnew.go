@@ -66,11 +66,12 @@ input[type="text"], input[type="number"], textarea {
 	<div class="col1">Admins (can edit this page)</div>
 	<div class="col2"><input type="text" name="admins" placeholder="user1, user2" value="{{ .Admins }}"></div>
 </div>
-
+{{ if .Common.IsSuperAdmin }}
 <div class="row clearfix">
 	<div class="col1">Sticky</div>
 	<div class="col2"><input type="checkbox" name="is_sticky"{{ if .IsSticky }} value="1" checked{{ end }}></div>
 </div>
+{{ end }}
 
 {{ if .Common.Msg }}
 <div class="row clearfix">

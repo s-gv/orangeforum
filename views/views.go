@@ -42,14 +42,17 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 	type Group struct {
 		Name string
 		Desc string
+		IsSticky int
 	}
 	groups := []Group{}
-	rows := db.Query(`SELECT name, desc FROM groups WHERE is_closed=0 ORDER BY is_sticky ASC, RANDOM() LIMIT 25;`)
+	rows := db.Query(`SELECT name, desc, is_sticky FROM groups WHERE is_closed=0 ORDER BY is_sticky DESC, RANDOM() LIMIT 25;`)
 	for rows.Next() {
 		groups = append(groups, Group{})
-		rows.Scan(&groups[len(groups)-1].Name, &groups[len(groups)-1].Desc)
+		g := &groups[len(groups)-1]
+		rows.Scan(&g.Name, &g.Desc, &g.IsSticky)
 	}
 	sort.Slice(groups, func(i, j int) bool {return groups[i].Name < groups[j].Name})
+	sort.Slice(groups, func(i, j int) bool {return groups[i].IsSticky > groups[j].IsSticky})
 	templates.Render(w, "index.html", map[string]interface{}{
 		"Common": models.ReadCommonData(sess),
 		"GroupCreationDisabled": models.Config(models.GroupCreationDisabled) == "1",
@@ -108,11 +111,12 @@ func GroupEditHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if !sess.IsUserValid() {
-		http.Redirect(w, r, "/login?next=/groups/edit", http.StatusSeeOther)
+		http.Redirect(w, r, "/login?next="+r.URL.Path, http.StatusSeeOther)
 		return
 	}
+	commonData := models.ReadCommonData(sess)
 
-	userName, _ := sess.UserName()
+	userName := commonData.UserName
 
 	groupID := r.FormValue("id")
 	name := r.FormValue("name")
@@ -128,7 +132,7 @@ func GroupEditHandler(w http.ResponseWriter, r *http.Request) {
 	for i, admin := range admins {
 		admins[i] = strings.TrimSpace(admin)
 	}
-	isUserInAdminList := false
+	isUserInAdminList := commonData.IsSuperAdmin
 	for _, u := range admins {
 		if u == userName {
 			isUserInAdminList = true
@@ -145,7 +149,7 @@ func GroupEditHandler(w http.ResponseWriter, r *http.Request) {
 	action := r.FormValue("action")
 
 	if groupID != "" {
-		if !models.IsUserGroupAdmin(strconv.Itoa(int(sess.UserID.Int64)), groupID) {
+		if !models.IsUserGroupAdmin(strconv.Itoa(int(sess.UserID.Int64)), groupID) && !commonData.IsSuperAdmin {
 			ErrForbiddenHandler(w, r)
 			return
 		}
@@ -177,7 +181,12 @@ func GroupEditHandler(w http.ResponseWriter, r *http.Request) {
 				http.Redirect(w, r, "/groups/edit?id="+groupID, http.StatusSeeOther)
 				return
 			}
-			db.Exec(`UPDATE groups SET name=?, desc=?, header_msg=?, is_sticky=? WHERE id=?`, name, desc, headerMsg, isSticky, groupID)
+			isUserSuperAdmin := false
+			db.QueryRow(`SELECT is_superadmin FROM users WHERE id=?;`, sess.UserID).Scan(&isUserSuperAdmin)
+			if !isUserSuperAdmin {
+				db.QueryRow(`SELECT is_sticky FROM groups WHERE id=?;`, groupID).Scan(&isSticky)
+			}
+			db.Exec(`UPDATE groups SET name=?, desc=?, header_msg=?, is_sticky=? WHERE id=?;`, name, desc, headerMsg, isSticky, groupID)
 			models.DeleteAdmins(groupID)
 			models.DeleteMods(groupID)
 			for _, mod := range mods {

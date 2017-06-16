@@ -103,6 +103,7 @@ func main() {
 	mux.HandleFunc("/favicon.ico", views.FaviconHandler)
 
 	mux.HandleFunc("/", views.IndexHandler)
+
 	mux.HandleFunc("/groups/edit", views.GroupEditHandler)
 	mux.HandleFunc("/groups", views.GroupHandler)
 
