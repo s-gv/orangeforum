@@ -8,4 +8,6 @@ const groupindexSrc = `
 <a href="/groups/edit?id={{ .ID }}">edit</a>
 {{ end }}
 
+<a href="/topics/new?gid={{ .ID }}">New topic</a>
+
 {{ end }}`

@@ -14,6 +14,7 @@ import (
 	"strconv"
 	"github.com/s-gv/orangeforum/models/db"
 	"sort"
+	"time"
 )
 
 func ErrServerHandler(w http.ResponseWriter, r *http.Request) {
@@ -229,6 +230,134 @@ func GroupEditHandler(w http.ResponseWriter, r *http.Request) {
 		"IsDeleted": isDeleted,
 		"Mods": strings.Join(mods, ", "),
 		"Admins": strings.Join(admins, ", "),
+	})
+}
+
+func TopicCreateHandler(w http.ResponseWriter, r *http.Request) {
+	defer ErrServerHandler(w, r)
+	sess := models.OpenSession(w, r)
+	if r.Method == "POST" && r.PostFormValue("csrf") != sess.CSRFToken {
+		ErrForbiddenHandler(w, r)
+		return
+	}
+	if !sess.UserID.Valid {
+		http.Redirect(w, r, "/login?next="+r.URL.Path, http.StatusSeeOther)
+		return
+	}
+
+	gID := r.FormValue("gid")
+	isGroupClosed := 1
+	db.QueryRow(`SELECT is_closed FROM groups WHERE id=?;`, gID).Scan(&isGroupClosed)
+	if isGroupClosed == 1 {
+		ErrForbiddenHandler(w, r)
+		return
+	}
+
+	if r.Method == "POST" {
+		title := r.PostFormValue("title")
+		content := r.PostFormValue("content")
+		if len(title) < 5 || len(title) > 150 {
+			sess.SetFlashMsg("Invalid number of characters in the title. Valid range: 5-150.")
+			http.Redirect(w, r, "/topics/new?gid="+gID, http.StatusSeeOther)
+			return
+		}
+		db.Exec(`INSERT INTO topics(title, content, authorid, groupid, created_date, updated_date) VALUES(?, ?, ?, ?, ?, ?);`,
+			title, content, sess.UserID, gID, int(time.Now().Unix()), int(time.Now().Unix()))
+		var groupName string
+		db.QueryRow(`SELECT name FROM groups WHERE id=?`, gID).Scan(&groupName)
+		http.Redirect(w, r, "/groups?name="+groupName, http.StatusSeeOther)
+		return
+	}
+
+	templates.Render(w, "topicedit.html", map[string]interface{}{
+		"Common": models.ReadCommonData(sess),
+		"GID": gID,
+		"TID": "",
+		"Title": "",
+		"Content": "",
+		"IsDeleted": false,
+	})
+}
+
+func TopicEditHandler(w http.ResponseWriter, r *http.Request) {
+	defer ErrServerHandler(w, r)
+	sess := models.OpenSession(w, r)
+	if r.Method == "POST" && r.PostFormValue("csrf") != sess.CSRFToken {
+		ErrForbiddenHandler(w, r)
+		return
+	}
+	if !sess.UserID.Valid {
+		http.Redirect(w, r, "/login?next="+r.URL.Path, http.StatusSeeOther)
+		return
+	}
+
+	tID := r.FormValue("id")
+	gID := ""
+	title := r.PostFormValue("title")
+	content := r.PostFormValue("content")
+	action := r.PostFormValue("action")
+	isSticky := r.PostFormValue("is_sticky") != ""
+	isDeleted := true
+
+	if db.QueryRow(`SELECT groupid FROM topics WHERE id=?;`, tID).Scan(&gID) != nil {
+		ErrNotFoundHandler(w, r)
+		return
+	}
+
+	isGroupClosed := 1
+	db.QueryRow(`SELECT is_closed FROM groups WHERE id=?;`, gID).Scan(&isGroupClosed)
+	if isGroupClosed == 1 {
+		ErrForbiddenHandler(w, r)
+		return
+	}
+
+	if r.Method == "POST" {
+		if len(title) < 5 || len(title) > 150 {
+			sess.SetFlashMsg("Invalid number of characters in the title. Valid range: 5-150.")
+			http.Redirect(w, r, "/topics/edit?id="+tID, http.StatusSeeOther)
+			return
+		}
+
+		var tmp int
+		var uID int64
+		db.QueryRow(`SELECT authorid FROM topics WHERE id=?;`, tID).Scan(&uID)
+
+		isOwner := (uID == sess.UserID.Int64)
+		isMod := db.QueryRow(`SELECT id FROM mods WHERE groupid=? AND userid=?;`, gID, sess.UserID).Scan(&tmp) == nil
+		isAdmin := db.QueryRow(`SELECT id FROM admins WHERE groupid=? AND userid=?;`, gID, sess.UserID).Scan(&tmp) == nil
+		isSuperAdmin := false
+		db.QueryRow(`SELECT is_superadmin FROM users WHERE id=?`, sess.UserID).Scan(&isSuperAdmin)
+
+		if !isMod && !isAdmin && !isSuperAdmin {
+			db.QueryRow(`SELECT is_sticky FROM topics WHERE id=?;`, tID).Scan(&isSticky)
+			if !isOwner {
+				ErrForbiddenHandler(w, r)
+				return
+			}
+		}
+		if action == "Update" {
+			db.Exec(`UPDATE topics SET title=?, content=?, is_sticky=?, updated_date=? WHERE id=?;`, title, content, isSticky, int(time.Now().Unix()), tID)
+		} else if action == "Delete" {
+			db.Exec(`UPDATE topics SET is_closed=1 WHERE id=?;`, tID)
+		} else if action == "Undelete" {
+			db.Exec(`UPDATE topics SET is_closed=0 WHERE id=?;`, tID)
+		}
+		http.Redirect(w, r, "/topics/edit?id="+tID, http.StatusSeeOther)
+		return
+	}
+
+	if db.QueryRow(`SELECT title, content, is_closed FROM topics WHERE id=?;`, tID).Scan(&title, &content, &isDeleted) != nil {
+		ErrNotFoundHandler(w, r)
+		return
+	}
+
+	templates.Render(w, "topicedit.html", map[string]interface{}{
+		"Common": models.ReadCommonData(sess),
+		"GID": gID,
+		"TID": tID,
+		"Title": title,
+		"Content": content,
+		"IsDeleted": isDeleted,
 	})
 }
 

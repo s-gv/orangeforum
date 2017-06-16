@@ -67,7 +67,10 @@ func init() {
 	template.Must(tmpls["signup.html"].New("signup").Parse(signupSrc))
 
 	tmpls["submit.html"] = template.Must(template.New("base").Parse(baseSrc))
-	template.Must(tmpls["submit.html"].New("submut").Parse(submitSrc))
+	template.Must(tmpls["submit.html"].New("submit").Parse(submitSrc))
+
+	tmpls["topicedit.html"] = template.Must(template.New("base").Parse(baseSrc))
+	template.Must(tmpls["topicedit.html"].New("topicedit").Parse(topiceditSrc))
 }
 
 func Render(wr io.Writer, template string, data interface{}) {

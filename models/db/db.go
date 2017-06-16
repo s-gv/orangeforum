@@ -36,7 +36,7 @@ func CreateTables() {
 				is_superadmin INTEGER DEFAULT 0,
 		       		created_date INTEGER,
 		       		updated_date INTEGER,
-		       		reset_token_date INTEGER
+		       		reset_token_date INTEGER DEFAULT 0
 	);`); err != nil { panic(err) }
 	if _, err := db.Exec(`CREATE UNIQUE INDEX users_username_index on users(username);`); err != nil { panic(err) }
 	if _, err := db.Exec(`CREATE INDEX users_email_index on users(email);`); err != nil { panic(err) }
@@ -46,8 +46,8 @@ func CreateTables() {
 	if _, err := db.Exec(`CREATE TABLE groups(
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
 		       		name VARCHAR(200),
-		       		desc TEXT,
-		       		header_msg TEXT,
+		       		desc TEXT DEFAULT "",
+		       		header_msg TEXT DEFAULT "",
 		       		is_sticky INTEGER DEFAULT 0,
 		       		is_closed INTEGER DEFAULT 0,
 		       		created_date INTEGER,
@@ -59,13 +59,14 @@ func CreateTables() {
 
 	if _, err := db.Exec(`CREATE TABLE topics(
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
-				content TEXT,
+				title VARCHAR(200) DEFAULT "",
+				content TEXT DEFAULT "",
 				authorid INTEGER REFERENCES users(id) ON DELETE CASCADE,
 				groupid INTEGER REFERENCES groups(id) ON DELETE CASCADE,
-				is_deleted INTEGER,
-				is_sticky INTEGER,
-				is_closed INTEGER,
-				numcomments INTEGER,
+				is_deleted INTEGER DEFAULT 0,
+				is_sticky INTEGER DEFAULT 0,
+				is_closed INTEGER DEFAULT 0,
+				numcomments INTEGER DEFAULT 0,
 				created_date INTEGER,
 				updated_date INTEGER
 	);`); err != nil { panic(err) }
@@ -75,12 +76,12 @@ func CreateTables() {
 
 	if _, err := db.Exec(`CREATE TABLE comments(
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
-				content TEXT,
+				content TEXT DEFAULT "",
 				authorid INTEGER REFERENCES users(id) ON DELETE CASCADE,
 				topicid INTEGER REFERENCES topics(id) ON DELETE CASCADE,
 				parentid INTEGER REFERENCES comments(id) ON DELETE CASCADE,
-				is_deleted INTEGER,
-				is_sticky INTEGER,
+				is_deleted INTEGER DEFAULT 0,
+				is_sticky INTEGER DEFAULT 0,
 				created_date INTEGER,
 				updated_date INTEGER
 	);`); err != nil { panic(err) }
@@ -132,8 +133,8 @@ func CreateTables() {
 	if _, err := db.Exec(`CREATE TABLE extranotes(
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
 				name VARCHAR(250) NOT NULL,
-				content TEXT,
-				URL VARCHAR(250),
+				content TEXT DEFAULT "",
+				URL VARCHAR(250) DEFAULT "",
 				created_date INTEGER,
 				updated_date INTEGER
 	);`); err != nil { panic(err) }
