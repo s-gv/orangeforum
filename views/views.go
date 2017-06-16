@@ -118,6 +118,7 @@ func GroupEditHandler(w http.ResponseWriter, r *http.Request) {
 	name := r.FormValue("name")
 	desc := r.FormValue("desc")
 	headerMsg := r.FormValue("header_msg")
+	isSticky := r.FormValue("is_sticky") != ""
 	isDeleted := false
 	mods := strings.Split(r.FormValue("mods"), ",")
 	for i, mod := range mods {
@@ -157,7 +158,7 @@ func GroupEditHandler(w http.ResponseWriter, r *http.Request) {
 				http.Redirect(w, r, "/groups/edit", http.StatusSeeOther)
 				return
 			}
-			models.CreateGroup(name, desc, headerMsg)
+			db.Exec(`INSERT INTO groups(name, desc, header_msg, is_sticky) VALUES(?, ?, ?, ?);`, name, desc, headerMsg, isSticky)
 			groupID := models.ReadGroupIDByName(name)
 			for _, mod := range mods {
 				if mod != "" {
@@ -176,7 +177,7 @@ func GroupEditHandler(w http.ResponseWriter, r *http.Request) {
 				http.Redirect(w, r, "/groups/edit?id="+groupID, http.StatusSeeOther)
 				return
 			}
-			models.UpdateGroup(groupID, name, desc, headerMsg)
+			db.Exec(`UPDATE groups SET name=?, desc=?, header_msg=?, is_sticky=? WHERE id=?`, name, desc, headerMsg, isSticky, groupID)
 			models.DeleteAdmins(groupID)
 			models.DeleteMods(groupID)
 			for _, mod := range mods {
@@ -202,8 +203,8 @@ func GroupEditHandler(w http.ResponseWriter, r *http.Request) {
 
 	if groupID != "" {
 		// Open to edit
-		db.QueryRow(`SELECT name, desc, header_msg, is_closed FROM groups WHERE id=?;`, groupID).Scan(
-			&name, &desc, &headerMsg, &isDeleted,
+		db.QueryRow(`SELECT name, desc, header_msg, is_sticky, is_closed FROM groups WHERE id=?;`, groupID).Scan(
+			&name, &desc, &headerMsg, &isSticky, &isDeleted,
 		)
 		mods = models.ReadMods(groupID)
 		admins = models.ReadAdmins(groupID)
@@ -215,6 +216,7 @@ func GroupEditHandler(w http.ResponseWriter, r *http.Request) {
 		"Name": name,
 		"Desc": desc,
 		"HeaderMsg": headerMsg,
+		"IsSticky": isSticky,
 		"IsDeleted": isDeleted,
 		"Mods": strings.Join(mods, ", "),
 		"Admins": strings.Join(admins, ", "),
