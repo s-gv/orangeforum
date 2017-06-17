@@ -32,9 +32,39 @@ func ErrForbiddenHandler(w http.ResponseWriter, r *http.Request) {
 	http.Error(w, "403 Forbidden", http.StatusForbidden)
 }
 
-func IndexHandler(w http.ResponseWriter, r *http.Request) {
-	defer ErrServerHandler(w, r)
-	sess := models.OpenSession(w, r)
+func UA(handler func(w http.ResponseWriter, r *http.Request, sess models.Session)) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		defer ErrServerHandler(w, r)
+		sess := models.OpenSession(w, r)
+		if r.Method == "POST" && r.PostFormValue("csrf") != sess.CSRFToken {
+			ErrForbiddenHandler(w, r)
+			return
+		}
+		handler(w, r, sess)
+	}
+}
+
+func A(handler func(w http.ResponseWriter, r *http.Request, sess models.Session)) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		defer ErrServerHandler(w, r)
+		sess := models.OpenSession(w, r)
+		if r.Method == "POST" && r.PostFormValue("csrf") != sess.CSRFToken {
+			ErrForbiddenHandler(w, r)
+			return
+		}
+		if !sess.UserID.Valid {
+			redirectURL := r.URL.Path
+			if r.URL.RawQuery != "" {
+				redirectURL += "?"+r.URL.RawQuery
+			}
+			http.Redirect(w, r, "/login?next="+redirectURL, http.StatusSeeOther)
+			return
+		}
+		handler(w, r, sess)
+	}
+}
+
+var IndexHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.Session) {
 	if r.URL.Path != "/" {
 		ErrNotFoundHandler(w, r)
 		return
@@ -59,7 +89,7 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 		"GroupCreationDisabled": models.Config(models.GroupCreationDisabled) == "1",
 		"Groups": groups,
 	})
-}
+})
 
 func validateName(name string) error {
 	if len(name) == 0 {
@@ -77,14 +107,7 @@ func validateName(name string) error {
 	return nil
 }
 
-func GroupHandler(w http.ResponseWriter, r *http.Request) {
-	defer ErrServerHandler(w, r)
-	sess := models.OpenSession(w, r)
-	if r.Method == "POST" && r.PostFormValue("csrf") != sess.CSRFToken {
-		ErrForbiddenHandler(w, r)
-		return
-	}
-
+var GroupHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.Session) {
 	name := r.FormValue("name")
 	var groupID string
 	if db.QueryRow(`SELECT id FROM groups WHERE name=?;`, name).Scan(&groupID) != nil {
@@ -153,15 +176,9 @@ func GroupHandler(w http.ResponseWriter, r *http.Request) {
 		"IsSuperAdmin": isSuperAdmin,
 		"LastTopicDate": lastTopicDate,
 	})
-}
+})
 
-func GroupEditHandler(w http.ResponseWriter, r *http.Request) {
-	defer ErrServerHandler(w, r)
-	sess := models.OpenSession(w, r)
-	if r.Method == "POST" && r.PostFormValue("csrf") != sess.CSRFToken {
-		ErrForbiddenHandler(w, r)
-		return
-	}
+var GroupEditHandler = A(func(w http.ResponseWriter, r *http.Request, sess models.Session) {
 	if models.Config(models.GroupCreationDisabled) == "1" {
 		ErrForbiddenHandler(w, r)
 		return
@@ -286,24 +303,9 @@ func GroupEditHandler(w http.ResponseWriter, r *http.Request) {
 		"Mods": strings.Join(mods, ", "),
 		"Admins": strings.Join(admins, ", "),
 	})
-}
+})
 
-func TopicCreateHandler(w http.ResponseWriter, r *http.Request) {
-	defer ErrServerHandler(w, r)
-	sess := models.OpenSession(w, r)
-	if r.Method == "POST" && r.PostFormValue("csrf") != sess.CSRFToken {
-		ErrForbiddenHandler(w, r)
-		return
-	}
-	if !sess.UserID.Valid {
-		redirectURL := r.URL.Path
-		if r.URL.RawQuery != "" {
-			redirectURL += "?"+r.URL.RawQuery
-		}
-		http.Redirect(w, r, "/login?next="+redirectURL, http.StatusSeeOther)
-		return
-	}
-
+var TopicCreateHandler = A(func(w http.ResponseWriter, r *http.Request, sess models.Session) {
 	groupID := r.FormValue("gid")
 	isGroupClosed := 1
 	db.QueryRow(`SELECT is_closed FROM groups WHERE id=?;`, groupID).Scan(&isGroupClosed)
@@ -347,20 +349,9 @@ func TopicCreateHandler(w http.ResponseWriter, r *http.Request) {
 		"IsAdmin": isAdmin,
 		"IsSuperAdmin": isSuperAdmin,
 	})
-}
+})
 
-func TopicUpdateHandler(w http.ResponseWriter, r *http.Request) {
-	defer ErrServerHandler(w, r)
-	sess := models.OpenSession(w, r)
-	if r.Method == "POST" && r.PostFormValue("csrf") != sess.CSRFToken {
-		ErrForbiddenHandler(w, r)
-		return
-	}
-	if !sess.UserID.Valid {
-		http.Redirect(w, r, "/login?next="+r.URL.Path, http.StatusSeeOther)
-		return
-	}
-
+var TopicUpdateHandler = A(func(w http.ResponseWriter, r *http.Request, sess models.Session) {
 	topicID := r.FormValue("id")
 	groupID := ""
 	title := r.PostFormValue("title")
@@ -434,16 +425,9 @@ func TopicUpdateHandler(w http.ResponseWriter, r *http.Request) {
 		"IsAdmin": isAdmin,
 		"IsSuperAdmin": isSuperAdmin,
 	})
-}
+})
 
-func SignupHandler(w http.ResponseWriter, r *http.Request) {
-	defer ErrServerHandler(w, r)
-	sess := models.OpenSession(w, r)
-	if r.Method == "POST" && r.PostFormValue("csrf") != sess.CSRFToken {
-		ErrForbiddenHandler(w, r)
-		return
-	}
-
+var SignupHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.Session) {
 	redirectURL := r.FormValue("next")
 	if redirectURL == "" {
 		redirectURL = "/"
@@ -492,16 +476,9 @@ func SignupHandler(w http.ResponseWriter, r *http.Request) {
 		"Common": models.ReadCommonData(sess),
 		"next": template.URL(redirectURL),
 	})
-}
+})
 
-func LoginHandler(w http.ResponseWriter, r *http.Request) {
-	defer ErrServerHandler(w, r)
-	sess := models.OpenSession(w, r)
-	if r.Method == "POST" && r.PostFormValue("csrf") != sess.CSRFToken {
-		ErrForbiddenHandler(w, r)
-		return
-	}
-
+var LoginHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.Session) {
 	redirectURL := r.FormValue("next")
 	if redirectURL == "" {
 		redirectURL = "/"
@@ -527,16 +504,9 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		"Common": models.ReadCommonData(sess),
 		"next": template.URL(redirectURL),
 	})
-}
+})
 
-func ChangePasswdHandler(w http.ResponseWriter, r *http.Request) {
-	defer ErrServerHandler(w, r)
-	sess := models.OpenSession(w, r)
-	if r.Method == "POST" && r.PostFormValue("csrf") != sess.CSRFToken {
-		ErrForbiddenHandler(w, r)
-		return
-	}
-
+var ChangePasswdHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.Session) {
 	userName, err := sess.UserName()
 	if err != nil {
 		http.Redirect(w, r, "/", http.StatusSeeOther)
@@ -566,16 +536,9 @@ func ChangePasswdHandler(w http.ResponseWriter, r *http.Request) {
 	templates.Render(w, "changepass.html", map[string]interface{}{
 		"Common": models.ReadCommonData(sess),
 	})
-}
+})
 
-func ForgotPasswdHandler(w http.ResponseWriter, r *http.Request) {
-	defer ErrServerHandler(w, r)
-	sess := models.OpenSession(w, r)
-	if r.Method == "POST" && r.PostFormValue("csrf") != sess.CSRFToken {
-		ErrForbiddenHandler(w, r)
-		return
-	}
-
+var ForgotPasswdHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.Session) {
 	if r.Method == "POST" {
 		userName := r.PostFormValue("username")
 		if userName == "" || !models.ProbeUser(userName) {
@@ -603,7 +566,7 @@ func ForgotPasswdHandler(w http.ResponseWriter, r *http.Request) {
 	templates.Render(w, "forgotpass.html", map[string]interface{}{
 		"Common": models.ReadCommonData(sess),
 	})
-}
+})
 
 func validatePasswd(passwd string, passwdConfirm string) error {
 	if len(passwd) < 8 {
@@ -615,14 +578,7 @@ func validatePasswd(passwd string, passwdConfirm string) error {
 	return nil
 }
 
-func ResetPasswdHandler(w http.ResponseWriter, r *http.Request) {
-	defer ErrServerHandler(w, r)
-	sess := models.OpenSession(w, r)
-	if r.Method == "POST" && r.PostFormValue("csrf") != sess.CSRFToken {
-		ErrForbiddenHandler(w, r)
-		return
-	}
-
+var ResetPasswdHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.Session) {
 	resetToken := r.FormValue("r")
 	userName, err := models.ReadUserNameByToken(resetToken)
 	if err != nil {
@@ -646,7 +602,7 @@ func ResetPasswdHandler(w http.ResponseWriter, r *http.Request) {
 		"ResetToken": resetToken,
 		"Common": models.ReadCommonData(sess),
 	})
-}
+})
 
 func TestHandler(w http.ResponseWriter, r *http.Request) {
 	defer ErrServerHandler(w, r)
@@ -661,21 +617,9 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
-func CreateGroupHandler(w http.ResponseWriter, r *http.Request) {
-	defer ErrServerHandler(w, r)
-	sess := models.OpenSession(w, r)
-	if r.Method == "POST" && r.PostFormValue("csrf") != sess.CSRFToken {
-		ErrForbiddenHandler(w, r)
-		return
-	}
-	if !sess.IsUserValid() {
-		http.Redirect(w, r, "/login?next=/creategroup", http.StatusSeeOther)
-		return
-	}
-
+var CreateGroupHandler = A(func(w http.ResponseWriter, r *http.Request, sess models.Session) {
 	if r.Method == "POST" {
 		groupName := r.PostFormValue("name")
-		//groupDesc := r.PostFormValue("desc")
 		if groupName == "" {
 			sess.SetFlashMsg("Group name is empty.")
 			http.Redirect(w, r, "/creategroup", http.StatusSeeOther)
@@ -699,15 +643,9 @@ func CreateGroupHandler(w http.ResponseWriter, r *http.Request) {
 	templates.Render(w, "creategroup.html", map[string]interface{}{
 		"Common": models.ReadCommonData(sess),
 	})
-}
+})
 
-func AdminIndexHandler(w http.ResponseWriter, r *http.Request) {
-	defer ErrServerHandler(w, r)
-	sess := models.OpenSession(w, r)
-	if r.Method == "POST" && r.PostFormValue("csrf") != sess.CSRFToken {
-		ErrForbiddenHandler(w, r)
-		return
-	}
+var AdminIndexHandler = A(func (w http.ResponseWriter, r *http.Request, sess models.Session) {
 	if !sess.IsUserSuperAdmin() {
 		ErrForbiddenHandler(w, r)
 		return
@@ -814,16 +752,9 @@ func AdminIndexHandler(w http.ResponseWriter, r *http.Request) {
 		"NumTopics": models.NumTopics(),
 		"NumComments": models.NumComments(),
 	})
-}
+})
 
-func UserProfileHandler(w http.ResponseWriter, r *http.Request) {
-	defer ErrServerHandler(w, r)
-	sess := models.OpenSession(w, r)
-	if r.Method == "POST" && r.PostFormValue("csrf") != sess.CSRFToken {
-		ErrForbiddenHandler(w, r)
-		return
-	}
-
+var UserProfileHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.Session) {
 	if r.Method == "POST" {
 		userName, err := sess.UserName()
 		if err == nil {
@@ -855,11 +786,9 @@ func UserProfileHandler(w http.ResponseWriter, r *http.Request) {
 		"Email": models.ReadUserEmail(userName),
 		"IsSelf": isSelf,
 	})
-}
+})
 
-func NoteHandler(w http.ResponseWriter, r *http.Request) {
-	defer ErrServerHandler(w, r)
-	sess := models.OpenSession(w, r)
+var NoteHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.Session) {
 	id := r.FormValue("id")
 	if e, err := models.ReadExtraNote(id); err == nil {
 		if e.URL == "" {
@@ -876,7 +805,7 @@ func NoteHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	ErrNotFoundHandler(w, r)
-}
+})
 
 func FaviconHandler(w http.ResponseWriter, r *http.Request) {
 	defer ErrServerHandler(w, r)
