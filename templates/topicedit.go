@@ -31,17 +31,17 @@ input[type="text"], input[type="number"], textarea {
 
 {{ define "content" }}
 
-{{ if not .TID }}
+{{ if not .TopicID }}
 <h1>New topic</h1>
 {{ else }}
 <h1>Edit topic</h1>
 {{ end }}
 
 
-<form action="{{ if .TID }}/topics/edit{{ else }}/topics/new{{ end }}" method="POST">
+<form action="{{ if .TopicID }}/topics/edit{{ else }}/topics/new{{ end }}" method="POST">
 <input type="hidden" name="csrf" value="{{ .Common.CSRF }}">
-<input type="hidden" name="id" value="{{ .TID }}">
-<input type="hidden" name="gid" value="{{ .GID }}">
+<input type="hidden" name="id" value="{{ .TopicID }}">
+<input type="hidden" name="gid" value="{{ .GroupID }}">
 
 <div class="row clearfix">
 	<div class="col1">Title</div>
@@ -53,6 +53,13 @@ input[type="text"], input[type="number"], textarea {
 	<div class="col2"><textarea name="content" rows="4">{{ .Content }}</textarea></div>
 </div>
 
+{{ if or .IsMod .IsAdmin .IsSuperAdmin }}
+<div class="row clearfix">
+	<div class="col1">Sticky</div>
+	<div class="col2"><input type="checkbox" name="is_sticky"{{ if .IsSticky }} checked{{ end }}></div>
+</div>
+{{ end }}
+
 {{ if .Common.Msg }}
 <div class="row clearfix">
 	<div class="col1-offset col2">
@@ -63,7 +70,7 @@ input[type="text"], input[type="number"], textarea {
 
 <div class="row clearfix">
 	<div class="col1-offset col2">
-	{{ if .TID }}
+	{{ if .TopicID }}
 		{{ if not .IsDeleted }}
 		<input type="submit" name="action" value="Update">
 		<input type="submit" name="action" value="Delete">

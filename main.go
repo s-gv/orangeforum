@@ -108,7 +108,7 @@ func main() {
 	mux.HandleFunc("/groups", views.GroupHandler)
 
 	mux.HandleFunc("/topics/new", views.TopicCreateHandler)
-	mux.HandleFunc("/topics/edit", views.TopicEditHandler)
+	mux.HandleFunc("/topics/edit", views.TopicUpdateHandler)
 
 	mux.HandleFunc("/test", views.TestHandler)
 

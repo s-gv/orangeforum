@@ -86,17 +86,55 @@ func GroupHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	name := r.FormValue("name")
-	id := models.ReadGroupIDByName(name)
-	if id == "" || models.ReadGroupIsDeleted(id) {
+	var groupID string
+	if db.QueryRow(`SELECT id FROM groups WHERE name=?;`, name).Scan(&groupID) != nil {
 		ErrNotFoundHandler(w, r)
 		return
+	}
+
+	type Topic struct {
+		ID int
+		Title string
+		Owner string
+		NumComments int
+		CreatedDate string
+	}
+	var topics []Topic
+	rows := db.Query(`SELECT topics.id, topics.title, topics.numcomments, topics.created_date, users.username FROM topics INNER JOIN users ON topics.authorid = users.id AND topics.groupid=? ORDER BY topics.is_sticky DESC, topics.created_date DESC LIMIT 50;`, groupID)
+	for rows.Next() {
+		topics = append(topics, Topic{})
+		t := &topics[len(topics)-1]
+		var cDateUnix int64
+		rows.Scan(&t.ID, &t.Title, &t.NumComments, &cDateUnix, &t.Owner)
+		diff := time.Now().Sub(time.Unix(cDateUnix, 0))
+		if diff.Hours() > 24 {
+			t.CreatedDate = strconv.Itoa(int(diff.Hours()/24)) + " ago"
+		} else if diff.Hours() >= 2 {
+			t.CreatedDate = strconv.Itoa(int(diff.Hours())) + " hours ago"
+		} else {
+			t.CreatedDate = strconv.Itoa(int(diff.Minutes())) + " minutes ago"
+		}
+	}
+
+	isSuperAdmin := false
+	isAdmin := false
+	isMod := false
+	if sess.IsUserValid() {
+		db.QueryRow(`SELECT is_superadmin FROM users WHERE id=?;`, sess.UserID).Scan(&isSuperAdmin)
+
+		var tmp string
+		isAdmin = db.QueryRow(`SELECT id FROM admins WHERE groupid=? AND userid=?;`, groupID, sess.UserID).Scan(&tmp) == nil
+		isMod = db.QueryRow(`SELECT id FROM mods WHERE groupid=? AND userid=?;`, groupID, sess.UserID).Scan(&tmp) == nil
 	}
 
 	templates.Render(w, "groupindex.html", map[string]interface{}{
 		"Common": models.ReadCommonData(sess),
 		"Name": name,
-		"ID": id,
-		"IsAdmin": sess.IsUserValid() && models.IsUserGroupAdmin(strconv.Itoa(int(sess.UserID.Int64)), id),
+		"GroupID": groupID,
+		"Topics": topics,
+		"IsMod": isMod,
+		"IsAdmin": isAdmin,
+		"IsSuperAdmin": isSuperAdmin,
 	})
 }
 
@@ -241,45 +279,60 @@ func TopicCreateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if !sess.UserID.Valid {
-		http.Redirect(w, r, "/login?next="+r.URL.Path, http.StatusSeeOther)
+		redirectURL := r.URL.Path
+		if r.URL.RawQuery != "" {
+			redirectURL += "?"+r.URL.RawQuery
+		}
+		http.Redirect(w, r, "/login?next="+redirectURL, http.StatusSeeOther)
 		return
 	}
 
-	gID := r.FormValue("gid")
+	groupID := r.FormValue("gid")
 	isGroupClosed := 1
-	db.QueryRow(`SELECT is_closed FROM groups WHERE id=?;`, gID).Scan(&isGroupClosed)
+	db.QueryRow(`SELECT is_closed FROM groups WHERE id=?;`, groupID).Scan(&isGroupClosed)
 	if isGroupClosed == 1 {
 		ErrForbiddenHandler(w, r)
 		return
 	}
 
+	var tmp int
+	isMod := db.QueryRow(`SELECT id FROM mods WHERE groupid=? AND userid=?;`, groupID, sess.UserID).Scan(&tmp) == nil
+	isAdmin := db.QueryRow(`SELECT id FROM admins WHERE groupid=? AND userid=?;`, groupID, sess.UserID).Scan(&tmp) == nil
+	isSuperAdmin := false
+	db.QueryRow(`SELECT is_superadmin FROM users WHERE id=?`, sess.UserID).Scan(&isSuperAdmin)
+
 	if r.Method == "POST" {
 		title := r.PostFormValue("title")
 		content := r.PostFormValue("content")
+		isSticky := r.PostFormValue("is_sticky") != ""
 		if len(title) < 5 || len(title) > 150 {
 			sess.SetFlashMsg("Invalid number of characters in the title. Valid range: 5-150.")
-			http.Redirect(w, r, "/topics/new?gid="+gID, http.StatusSeeOther)
+			http.Redirect(w, r, "/topics/new?gid="+groupID, http.StatusSeeOther)
 			return
 		}
-		db.Exec(`INSERT INTO topics(title, content, authorid, groupid, created_date, updated_date) VALUES(?, ?, ?, ?, ?, ?);`,
-			title, content, sess.UserID, gID, int(time.Now().Unix()), int(time.Now().Unix()))
+		db.Exec(`INSERT INTO topics(title, content, authorid, groupid, is_sticky, created_date, updated_date) VALUES(?, ?, ?, ?, ?, ?, ?);`,
+			title, content, sess.UserID, groupID, isSticky, int(time.Now().Unix()), int(time.Now().Unix()))
 		var groupName string
-		db.QueryRow(`SELECT name FROM groups WHERE id=?`, gID).Scan(&groupName)
+		db.QueryRow(`SELECT name FROM groups WHERE id=?`, groupID).Scan(&groupName)
 		http.Redirect(w, r, "/groups?name="+groupName, http.StatusSeeOther)
 		return
 	}
 
 	templates.Render(w, "topicedit.html", map[string]interface{}{
-		"Common": models.ReadCommonData(sess),
-		"GID": gID,
-		"TID": "",
-		"Title": "",
-		"Content": "",
+		"Common":    models.ReadCommonData(sess),
+		"GroupID":   groupID,
+		"TopicID":   "",
+		"Title":     "",
+		"Content":   "",
+		"IsSticky": false,
 		"IsDeleted": false,
+		"IsMod": isMod,
+		"IsAdmin": isAdmin,
+		"IsSuperAdmin": isSuperAdmin,
 	})
 }
 
-func TopicEditHandler(w http.ResponseWriter, r *http.Request) {
+func TopicUpdateHandler(w http.ResponseWriter, r *http.Request) {
 	defer ErrServerHandler(w, r)
 	sess := models.OpenSession(w, r)
 	if r.Method == "POST" && r.PostFormValue("csrf") != sess.CSRFToken {
@@ -291,73 +344,78 @@ func TopicEditHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tID := r.FormValue("id")
-	gID := ""
+	topicID := r.FormValue("id")
+	groupID := ""
 	title := r.PostFormValue("title")
 	content := r.PostFormValue("content")
 	action := r.PostFormValue("action")
 	isSticky := r.PostFormValue("is_sticky") != ""
 	isDeleted := true
 
-	if db.QueryRow(`SELECT groupid FROM topics WHERE id=?;`, tID).Scan(&gID) != nil {
+	if db.QueryRow(`SELECT groupid FROM topics WHERE id=?;`, topicID).Scan(&groupID) != nil {
 		ErrNotFoundHandler(w, r)
 		return
 	}
 
 	isGroupClosed := 1
-	db.QueryRow(`SELECT is_closed FROM groups WHERE id=?;`, gID).Scan(&isGroupClosed)
+	db.QueryRow(`SELECT is_closed FROM groups WHERE id=?;`, groupID).Scan(&isGroupClosed)
 	if isGroupClosed == 1 {
 		ErrForbiddenHandler(w, r)
 		return
 	}
 
+	var tmp int
+	var uID int64
+	db.QueryRow(`SELECT authorid FROM topics WHERE id=?;`, topicID).Scan(&uID)
+
+	isOwner := (uID == sess.UserID.Int64)
+	isMod := db.QueryRow(`SELECT id FROM mods WHERE groupid=? AND userid=?;`, groupID, sess.UserID).Scan(&tmp) == nil
+	isAdmin := db.QueryRow(`SELECT id FROM admins WHERE groupid=? AND userid=?;`, groupID, sess.UserID).Scan(&tmp) == nil
+	isSuperAdmin := false
+	db.QueryRow(`SELECT is_superadmin FROM users WHERE id=?`, sess.UserID).Scan(&isSuperAdmin)
+
+	if !isMod && !isAdmin && !isSuperAdmin {
+		db.QueryRow(`SELECT is_sticky FROM topics WHERE id=?;`, topicID).Scan(&isSticky)
+		if !isOwner {
+			ErrForbiddenHandler(w, r)
+			return
+		}
+	}
+
 	if r.Method == "POST" {
 		if len(title) < 5 || len(title) > 150 {
 			sess.SetFlashMsg("Invalid number of characters in the title. Valid range: 5-150.")
-			http.Redirect(w, r, "/topics/edit?id="+tID, http.StatusSeeOther)
+			http.Redirect(w, r, "/topics/edit?id="+topicID, http.StatusSeeOther)
 			return
 		}
 
-		var tmp int
-		var uID int64
-		db.QueryRow(`SELECT authorid FROM topics WHERE id=?;`, tID).Scan(&uID)
-
-		isOwner := (uID == sess.UserID.Int64)
-		isMod := db.QueryRow(`SELECT id FROM mods WHERE groupid=? AND userid=?;`, gID, sess.UserID).Scan(&tmp) == nil
-		isAdmin := db.QueryRow(`SELECT id FROM admins WHERE groupid=? AND userid=?;`, gID, sess.UserID).Scan(&tmp) == nil
-		isSuperAdmin := false
-		db.QueryRow(`SELECT is_superadmin FROM users WHERE id=?`, sess.UserID).Scan(&isSuperAdmin)
-
-		if !isMod && !isAdmin && !isSuperAdmin {
-			db.QueryRow(`SELECT is_sticky FROM topics WHERE id=?;`, tID).Scan(&isSticky)
-			if !isOwner {
-				ErrForbiddenHandler(w, r)
-				return
-			}
-		}
 		if action == "Update" {
-			db.Exec(`UPDATE topics SET title=?, content=?, is_sticky=?, updated_date=? WHERE id=?;`, title, content, isSticky, int(time.Now().Unix()), tID)
+			db.Exec(`UPDATE topics SET title=?, content=?, is_sticky=?, updated_date=? WHERE id=?;`, title, content, isSticky, int(time.Now().Unix()), topicID)
 		} else if action == "Delete" {
-			db.Exec(`UPDATE topics SET is_closed=1 WHERE id=?;`, tID)
+			db.Exec(`UPDATE topics SET is_closed=1 WHERE id=?;`, topicID)
 		} else if action == "Undelete" {
-			db.Exec(`UPDATE topics SET is_closed=0 WHERE id=?;`, tID)
+			db.Exec(`UPDATE topics SET is_closed=0 WHERE id=?;`, topicID)
 		}
-		http.Redirect(w, r, "/topics/edit?id="+tID, http.StatusSeeOther)
+		http.Redirect(w, r, "/topics/edit?id="+topicID, http.StatusSeeOther)
 		return
 	}
 
-	if db.QueryRow(`SELECT title, content, is_closed FROM topics WHERE id=?;`, tID).Scan(&title, &content, &isDeleted) != nil {
+	if db.QueryRow(`SELECT title, content, is_sticky, is_closed FROM topics WHERE id=?;`, topicID).Scan(&title, &content, &isSticky, &isDeleted) != nil {
 		ErrNotFoundHandler(w, r)
 		return
 	}
 
 	templates.Render(w, "topicedit.html", map[string]interface{}{
 		"Common": models.ReadCommonData(sess),
-		"GID": gID,
-		"TID": tID,
+		"GroupID": groupID,
+		"TopicID": topicID,
 		"Title": title,
 		"Content": content,
+		"IsSticky": isSticky,
 		"IsDeleted": isDeleted,
+		"IsMod": isMod,
+		"IsAdmin": isAdmin,
+		"IsSuperAdmin": isSuperAdmin,
 	})
 }
 
