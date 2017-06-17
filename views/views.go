@@ -92,21 +92,32 @@ func GroupHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	numTopicsPerPage := 30
+	lastTopicDate, err := strconv.ParseInt(r.FormValue("ltd"), 10, 64)
+	if err != nil {
+		lastTopicDate = 0
+	}
+
 	type Topic struct {
 		ID int
 		Title string
 		Owner string
 		NumComments int
 		CreatedDate string
+		cDateUnix int64
 	}
 	var topics []Topic
-	rows := db.Query(`SELECT topics.id, topics.title, topics.numcomments, topics.created_date, users.username FROM topics INNER JOIN users ON topics.authorid = users.id AND topics.groupid=? ORDER BY topics.is_sticky DESC, topics.created_date DESC LIMIT 50;`, groupID)
+	var rows *db.Rows
+	if lastTopicDate == 0 {
+		rows = db.Query(`SELECT topics.id, topics.title, topics.num_comments, topics.created_date, users.username FROM topics INNER JOIN users ON topics.userid = users.id AND topics.groupid=? ORDER BY topics.is_sticky DESC, topics.created_date DESC LIMIT ?;`, groupID, numTopicsPerPage)
+	} else {
+		rows = db.Query(`SELECT topics.id, topics.title, topics.num_comments, topics.created_date, users.username FROM topics INNER JOIN users ON topics.userid = users.id AND topics.groupid=? AND topics.is_sticky=0 AND topics.created_date < ? ORDER BY topics.created_date DESC LIMIT ?;`, groupID, lastTopicDate, numTopicsPerPage)
+	}
 	for rows.Next() {
 		topics = append(topics, Topic{})
 		t := &topics[len(topics)-1]
-		var cDateUnix int64
-		rows.Scan(&t.ID, &t.Title, &t.NumComments, &cDateUnix, &t.Owner)
-		diff := time.Now().Sub(time.Unix(cDateUnix, 0))
+		rows.Scan(&t.ID, &t.Title, &t.NumComments, &t.cDateUnix, &t.Owner)
+		diff := time.Now().Sub(time.Unix(t.cDateUnix, 0))
 		if diff.Hours() > 24 {
 			t.CreatedDate = strconv.Itoa(int(diff.Hours()/24)) + " ago"
 		} else if diff.Hours() >= 2 {
@@ -121,20 +132,26 @@ func GroupHandler(w http.ResponseWriter, r *http.Request) {
 	isMod := false
 	if sess.IsUserValid() {
 		db.QueryRow(`SELECT is_superadmin FROM users WHERE id=?;`, sess.UserID).Scan(&isSuperAdmin)
-
 		var tmp string
 		isAdmin = db.QueryRow(`SELECT id FROM admins WHERE groupid=? AND userid=?;`, groupID, sess.UserID).Scan(&tmp) == nil
 		isMod = db.QueryRow(`SELECT id FROM mods WHERE groupid=? AND userid=?;`, groupID, sess.UserID).Scan(&tmp) == nil
 	}
 
+	if len(topics) >= numTopicsPerPage {
+		lastTopicDate = topics[len(topics)-1].cDateUnix
+	} else {
+		lastTopicDate = 0
+	}
+
 	templates.Render(w, "groupindex.html", map[string]interface{}{
 		"Common": models.ReadCommonData(sess),
-		"Name": name,
+		"GroupName": name,
 		"GroupID": groupID,
 		"Topics": topics,
 		"IsMod": isMod,
 		"IsAdmin": isAdmin,
 		"IsSuperAdmin": isSuperAdmin,
+		"LastTopicDate": lastTopicDate,
 	})
 }
 
@@ -305,12 +322,12 @@ func TopicCreateHandler(w http.ResponseWriter, r *http.Request) {
 		title := r.PostFormValue("title")
 		content := r.PostFormValue("content")
 		isSticky := r.PostFormValue("is_sticky") != ""
-		if len(title) < 5 || len(title) > 150 {
-			sess.SetFlashMsg("Invalid number of characters in the title. Valid range: 5-150.")
+		if len(title) < 1 || len(title) > 150 {
+			sess.SetFlashMsg("Invalid number of characters in the title. Valid range: 1-150.")
 			http.Redirect(w, r, "/topics/new?gid="+groupID, http.StatusSeeOther)
 			return
 		}
-		db.Exec(`INSERT INTO topics(title, content, authorid, groupid, is_sticky, created_date, updated_date) VALUES(?, ?, ?, ?, ?, ?, ?);`,
+		db.Exec(`INSERT INTO topics(title, content, userid, groupid, is_sticky, created_date, updated_date) VALUES(?, ?, ?, ?, ?, ?, ?);`,
 			title, content, sess.UserID, groupID, isSticky, int(time.Now().Unix()), int(time.Now().Unix()))
 		var groupName string
 		db.QueryRow(`SELECT name FROM groups WHERE id=?`, groupID).Scan(&groupName)
@@ -366,7 +383,7 @@ func TopicUpdateHandler(w http.ResponseWriter, r *http.Request) {
 
 	var tmp int
 	var uID int64
-	db.QueryRow(`SELECT authorid FROM topics WHERE id=?;`, topicID).Scan(&uID)
+	db.QueryRow(`SELECT userid FROM topics WHERE id=?;`, topicID).Scan(&uID)
 
 	isOwner := (uID == sess.UserID.Int64)
 	isMod := db.QueryRow(`SELECT id FROM mods WHERE groupid=? AND userid=?;`, groupID, sess.UserID).Scan(&tmp) == nil
@@ -383,8 +400,8 @@ func TopicUpdateHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == "POST" {
-		if len(title) < 5 || len(title) > 150 {
-			sess.SetFlashMsg("Invalid number of characters in the title. Valid range: 5-150.")
+		if len(title) < 1 || len(title) > 150 {
+			sess.SetFlashMsg("Invalid number of characters in the title. Valid range: 1-150.")
 			http.Redirect(w, r, "/topics/edit?id="+topicID, http.StatusSeeOther)
 			return
 		}

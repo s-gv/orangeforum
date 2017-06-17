@@ -61,23 +61,23 @@ func CreateTables() {
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
 				title VARCHAR(200) DEFAULT "",
 				content TEXT DEFAULT "",
-				authorid INTEGER REFERENCES users(id) ON DELETE CASCADE,
+				userid INTEGER REFERENCES users(id) ON DELETE CASCADE,
 				groupid INTEGER REFERENCES groups(id) ON DELETE CASCADE,
 				is_deleted INTEGER DEFAULT 0,
 				is_sticky INTEGER DEFAULT 0,
 				is_closed INTEGER DEFAULT 0,
-				numcomments INTEGER DEFAULT 0,
+				num_comments INTEGER DEFAULT 0,
 				created_date INTEGER,
 				updated_date INTEGER
 	);`); err != nil { panic(err) }
-	if _, err := db.Exec(`CREATE INDEX topics_authorid_index on topics(authorid);`); err != nil { panic(err) }
+	if _, err := db.Exec(`CREATE INDEX topics_userid_index on topics(userid);`); err != nil { panic(err) }
 	if _, err := db.Exec(`CREATE INDEX topics_groupid_index on topics(groupid);`); err != nil { panic(err) }
 
 
 	if _, err := db.Exec(`CREATE TABLE comments(
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
 				content TEXT DEFAULT "",
-				authorid INTEGER REFERENCES users(id) ON DELETE CASCADE,
+				userid INTEGER REFERENCES users(id) ON DELETE CASCADE,
 				topicid INTEGER REFERENCES topics(id) ON DELETE CASCADE,
 				parentid INTEGER REFERENCES comments(id) ON DELETE CASCADE,
 				is_deleted INTEGER DEFAULT 0,
@@ -85,7 +85,7 @@ func CreateTables() {
 				created_date INTEGER,
 				updated_date INTEGER
 	);`); err != nil { panic(err) }
-	if _, err := db.Exec(`CREATE INDEX comments_authorid_index on comments(authorid);`); err != nil { panic(err) }
+	if _, err := db.Exec(`CREATE INDEX comments_userid_index on comments(userid);`); err != nil { panic(err) }
 	if _, err := db.Exec(`CREATE INDEX comments_topicid_index on comments(topicid);`); err != nil { panic(err) }
 	if _, err := db.Exec(`CREATE INDEX comments_parentid_index on comments(parentid);`); err != nil { panic(err) }
 
@@ -190,18 +190,18 @@ func makeStmt(query string) *sql.Stmt {
 
 }
 
-func QueryRow(query string, args ...interface{}) *sql.Row {
+func QueryRow(query string, args ...interface{}) *Row {
 	stmt := makeStmt(query)
-	return stmt.QueryRow(args...)
+	return &Row{stmt.QueryRow(args...)}
 }
 
-func Query(query string, args ...interface{}) *sql.Rows {
+func Query(query string, args ...interface{}) *Rows {
 	stmt := makeStmt(query)
 	rows, err := stmt.Query(args...)
 	if err != nil {
 		log.Panicf("[ERROR] Error scanning rows: %s\n", err)
 	}
-	return rows
+	return &Rows{rows}
 }
 
 func (r *Row) Scan(args ...interface{}) error {
