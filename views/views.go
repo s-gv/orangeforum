@@ -15,6 +15,7 @@ import (
 	"github.com/s-gv/orangeforum/models/db"
 	"sort"
 	"time"
+	"net/url"
 )
 
 func ErrServerHandler(w http.ResponseWriter, r *http.Request) {
@@ -57,7 +58,7 @@ func A(handler func(w http.ResponseWriter, r *http.Request, sess models.Session)
 			if r.URL.RawQuery != "" {
 				redirectURL += "?"+r.URL.RawQuery
 			}
-			http.Redirect(w, r, "/login?next="+redirectURL, http.StatusSeeOther)
+			http.Redirect(w, r, "/login?next="+url.QueryEscape(redirectURL), http.StatusSeeOther)
 			return
 		}
 		handler(w, r, sess)
@@ -428,8 +429,8 @@ var TopicUpdateHandler = A(func(w http.ResponseWriter, r *http.Request, sess mod
 })
 
 var SignupHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.Session) {
-	redirectURL := r.FormValue("next")
-	if redirectURL == "" {
+	redirectURL, err := url.QueryUnescape(r.FormValue("next"))
+	if redirectURL == "" || err != nil {
 		redirectURL = "/"
 	}
 	if sess.IsUserValid() {
@@ -474,13 +475,13 @@ var SignupHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.
 	}
 	templates.Render(w, "signup.html", map[string]interface{}{
 		"Common": models.ReadCommonData(sess),
-		"next": template.URL(redirectURL),
+		"next": template.URL(url.QueryEscape(redirectURL)),
 	})
 })
 
 var LoginHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.Session) {
-	redirectURL := r.FormValue("next")
-	if redirectURL == "" {
+	redirectURL, err := url.QueryUnescape(r.FormValue("next"))
+	if redirectURL == "" || err != nil {
 		redirectURL = "/"
 	}
 	if sess.IsUserValid() {
@@ -502,7 +503,7 @@ var LoginHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.S
 	}
 	templates.Render(w, "login.html", map[string]interface{}{
 		"Common": models.ReadCommonData(sess),
-		"next": template.URL(redirectURL),
+		"next": template.URL(url.QueryEscape(redirectURL)),
 	})
 })
 
