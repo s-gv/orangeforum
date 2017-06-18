@@ -16,6 +16,7 @@ import (
 	"sort"
 	"time"
 	"net/url"
+	"database/sql"
 )
 
 func ErrServerHandler(w http.ResponseWriter, r *http.Request) {
@@ -92,6 +93,18 @@ var IndexHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.S
 	})
 })
 
+func timeAgoFromNow(t time.Time) string {
+	diff := time.Now().Sub(t)
+	if diff.Hours() > 24 {
+		return strconv.Itoa(int(diff.Hours()/24)) + " ago"
+	} else if diff.Hours() >= 2 {
+		return strconv.Itoa(int(diff.Hours())) + " hours ago"
+	} else {
+		return strconv.Itoa(int(diff.Minutes())) + " minutes ago"
+	}
+	return ""
+}
+
 func validateName(name string) error {
 	if len(name) == 0 {
 		return errors.New("Name cannot be blank.")
@@ -108,84 +121,9 @@ func validateName(name string) error {
 	return nil
 }
 
-var GroupHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.Session) {
-	name := r.FormValue("name")
-	var groupID string
-	if db.QueryRow(`SELECT id FROM groups WHERE name=?;`, name).Scan(&groupID) != nil {
-		ErrNotFoundHandler(w, r)
-		return
-	}
-
-	numTopicsPerPage := 30
-	lastTopicDate, err := strconv.ParseInt(r.FormValue("ltd"), 10, 64)
-	if err != nil {
-		lastTopicDate = 0
-	}
-
-	type Topic struct {
-		ID int
-		Title string
-		Owner string
-		NumComments int
-		CreatedDate string
-		cDateUnix int64
-	}
-	var topics []Topic
-	var rows *db.Rows
-	if lastTopicDate == 0 {
-		rows = db.Query(`SELECT topics.id, topics.title, topics.num_comments, topics.created_date, users.username FROM topics INNER JOIN users ON topics.userid = users.id AND topics.groupid=? ORDER BY topics.is_sticky DESC, topics.created_date DESC LIMIT ?;`, groupID, numTopicsPerPage)
-	} else {
-		rows = db.Query(`SELECT topics.id, topics.title, topics.num_comments, topics.created_date, users.username FROM topics INNER JOIN users ON topics.userid = users.id AND topics.groupid=? AND topics.is_sticky=0 AND topics.created_date < ? ORDER BY topics.created_date DESC LIMIT ?;`, groupID, lastTopicDate, numTopicsPerPage)
-	}
-	for rows.Next() {
-		topics = append(topics, Topic{})
-		t := &topics[len(topics)-1]
-		rows.Scan(&t.ID, &t.Title, &t.NumComments, &t.cDateUnix, &t.Owner)
-		diff := time.Now().Sub(time.Unix(t.cDateUnix, 0))
-		if diff.Hours() > 24 {
-			t.CreatedDate = strconv.Itoa(int(diff.Hours()/24)) + " ago"
-		} else if diff.Hours() >= 2 {
-			t.CreatedDate = strconv.Itoa(int(diff.Hours())) + " hours ago"
-		} else {
-			t.CreatedDate = strconv.Itoa(int(diff.Minutes())) + " minutes ago"
-		}
-	}
-
-	isSuperAdmin := false
-	isAdmin := false
-	isMod := false
-	if sess.IsUserValid() {
-		db.QueryRow(`SELECT is_superadmin FROM users WHERE id=?;`, sess.UserID).Scan(&isSuperAdmin)
-		var tmp string
-		isAdmin = db.QueryRow(`SELECT id FROM admins WHERE groupid=? AND userid=?;`, groupID, sess.UserID).Scan(&tmp) == nil
-		isMod = db.QueryRow(`SELECT id FROM mods WHERE groupid=? AND userid=?;`, groupID, sess.UserID).Scan(&tmp) == nil
-	}
-
-	if len(topics) >= numTopicsPerPage {
-		lastTopicDate = topics[len(topics)-1].cDateUnix
-	} else {
-		lastTopicDate = 0
-	}
-
-	templates.Render(w, "groupindex.html", map[string]interface{}{
-		"Common": models.ReadCommonData(sess),
-		"GroupName": name,
-		"GroupID": groupID,
-		"Topics": topics,
-		"IsMod": isMod,
-		"IsAdmin": isAdmin,
-		"IsSuperAdmin": isSuperAdmin,
-		"LastTopicDate": lastTopicDate,
-	})
-})
-
 var GroupEditHandler = A(func(w http.ResponseWriter, r *http.Request, sess models.Session) {
 	if models.Config(models.GroupCreationDisabled) == "1" {
 		ErrForbiddenHandler(w, r)
-		return
-	}
-	if !sess.IsUserValid() {
-		http.Redirect(w, r, "/login?next="+r.URL.Path, http.StatusSeeOther)
 		return
 	}
 	commonData := models.ReadCommonData(sess)
@@ -303,6 +241,77 @@ var GroupEditHandler = A(func(w http.ResponseWriter, r *http.Request, sess model
 		"IsDeleted": isDeleted,
 		"Mods": strings.Join(mods, ", "),
 		"Admins": strings.Join(admins, ", "),
+	})
+})
+
+var GroupHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.Session) {
+	name := r.FormValue("name")
+	var groupID string
+	if db.QueryRow(`SELECT id FROM groups WHERE name=?;`, name).Scan(&groupID) != nil {
+		ErrNotFoundHandler(w, r)
+		return
+	}
+
+	numTopicsPerPage := 30
+	lastTopicDate, err := strconv.ParseInt(r.FormValue("ltd"), 10, 64)
+	if err != nil {
+		lastTopicDate = 0
+	}
+
+	type Topic struct {
+		ID int
+		Title string
+		Owner string
+		NumComments int
+		CreatedDate string
+		cDateUnix int64
+	}
+	var topics []Topic
+	var rows *db.Rows
+	if lastTopicDate == 0 {
+		rows = db.Query(`SELECT topics.id, topics.title, topics.num_comments, topics.created_date, users.username FROM topics INNER JOIN users ON topics.userid = users.id AND topics.groupid=? ORDER BY topics.is_sticky DESC, topics.created_date DESC LIMIT ?;`, groupID, numTopicsPerPage)
+	} else {
+		rows = db.Query(`SELECT topics.id, topics.title, topics.num_comments, topics.created_date, users.username FROM topics INNER JOIN users ON topics.userid = users.id AND topics.groupid=? AND topics.is_sticky=0 AND topics.created_date < ? ORDER BY topics.created_date DESC LIMIT ?;`, groupID, lastTopicDate, numTopicsPerPage)
+	}
+	for rows.Next() {
+		topics = append(topics, Topic{})
+		t := &topics[len(topics)-1]
+		rows.Scan(&t.ID, &t.Title, &t.NumComments, &t.cDateUnix, &t.Owner)
+		diff := time.Now().Sub(time.Unix(t.cDateUnix, 0))
+		if diff.Hours() > 24 {
+			t.CreatedDate = strconv.Itoa(int(diff.Hours()/24)) + " ago"
+		} else if diff.Hours() >= 2 {
+			t.CreatedDate = strconv.Itoa(int(diff.Hours())) + " hours ago"
+		} else {
+			t.CreatedDate = strconv.Itoa(int(diff.Minutes())) + " minutes ago"
+		}
+	}
+
+	isSuperAdmin := false
+	isAdmin := false
+	isMod := false
+	if sess.IsUserValid() {
+		db.QueryRow(`SELECT is_superadmin FROM users WHERE id=?;`, sess.UserID).Scan(&isSuperAdmin)
+		var tmp string
+		isAdmin = db.QueryRow(`SELECT id FROM admins WHERE groupid=? AND userid=?;`, groupID, sess.UserID).Scan(&tmp) == nil
+		isMod = db.QueryRow(`SELECT id FROM mods WHERE groupid=? AND userid=?;`, groupID, sess.UserID).Scan(&tmp) == nil
+	}
+
+	if len(topics) >= numTopicsPerPage {
+		lastTopicDate = topics[len(topics)-1].cDateUnix
+	} else {
+		lastTopicDate = 0
+	}
+
+	templates.Render(w, "groupindex.html", map[string]interface{}{
+		"Common": models.ReadCommonData(sess),
+		"GroupName": name,
+		"GroupID": groupID,
+		"Topics": topics,
+		"IsMod": isMod,
+		"IsAdmin": isAdmin,
+		"IsSuperAdmin": isSuperAdmin,
+		"LastTopicDate": lastTopicDate,
 	})
 })
 
@@ -425,6 +434,257 @@ var TopicUpdateHandler = A(func(w http.ResponseWriter, r *http.Request, sess mod
 		"IsMod": isMod,
 		"IsAdmin": isAdmin,
 		"IsSuperAdmin": isSuperAdmin,
+	})
+})
+
+var TopicHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.Session) {
+	topicID := r.FormValue("id")
+	lastCommentDate, err := strconv.ParseInt(r.FormValue("lcd"), 10, 64)
+	if err != nil {
+		lastCommentDate = 0
+	}
+	var title, content, groupID, groupName string
+	var isDeleted, isClosed bool
+	var ownerID int64
+	if db.QueryRow(`SELECT title, content, userid, groupid, is_deleted, is_closed FROM topics WHERE id=?;`, topicID).Scan(
+			&title, &content, &ownerID, &groupID, &isDeleted, &isClosed) != nil {
+		ErrNotFoundHandler(w, r)
+		return
+	}
+	if isDeleted {
+		ErrNotFoundHandler(w, r)
+		return
+	}
+
+	type Comment struct {
+		ID string
+		Content string
+		CreatedDate string
+		UserName string
+		IsOwner bool
+		IsDeleted bool
+	}
+	numCommentsPerPage := 100
+
+	var comments []Comment
+	var cDate int64
+	var rows *db.Rows
+	if lastCommentDate == 0 {
+		rows = db.Query(`SELECT users.id, users.username, comments.id, comments.content, comments.is_deleted, comments.created_date FROM comments INNER JOIN users ON comments.userid=users.id AND comments.topicid=? ORDER BY comments.is_sticky DESC, comments.created_date ASC LIMIT ?;`, topicID, numCommentsPerPage)
+	} else {
+		rows = db.Query(`SELECT users.id, users.username, comments.id, comments.content, comments.is_deleted, comments.created_date FROM comments INNER JOIN users ON comments.userid=users.id AND comments.topicid=? AND comments.created_date > ? AND comments.is_sticky=0 ORDER BY comments.created_date ASC LIMIT ?;`, topicID, lastCommentDate, numCommentsPerPage)
+	}
+	for rows.Next() {
+		comments = append(comments, Comment{})
+		c := &comments[len(comments)-1]
+		var ownerID int64
+		rows.Scan(&ownerID, &c.UserName, &c.ID, &c.Content, &c.IsDeleted, &cDate)
+		c.CreatedDate = timeAgoFromNow(time.Unix(cDate, 0))
+		c.IsOwner = sess.UserID.Valid && (ownerID == sess.UserID.Int64)
+	}
+	if len(comments) >= numCommentsPerPage {
+		lastCommentDate = cDate
+	} else {
+		lastCommentDate = 0
+	}
+
+	var tmp string
+	db.QueryRow(`SELECT name FROM groups WHERE id=?;`, groupID).Scan(&groupName)
+	isMod := db.QueryRow(`SELECT id FROM mods WHERE groupid=? AND userid=?;`, groupID, sess.UserID).Scan(&tmp) == nil
+	isAdmin := db.QueryRow(`SELECT id FROM admins WHERE groupid=? AND userid=?;`, groupID, sess.UserID).Scan(&tmp) == nil
+	isSuperAdmin := false
+	db.QueryRow(`SELECT is_superadmin FROM users WHERE id=?`, sess.UserID).Scan(&isSuperAdmin)
+	isOwner := sess.UserID.Valid && ownerID == sess.UserID.Int64
+
+	templates.Render(w, "topicindex.html", map[string]interface{}{
+		"Common": models.ReadCommonData(sess),
+		"GroupID": groupID,
+		"TopicID": topicID,
+		"GroupName": groupName,
+		"Title": title,
+		"Content": content,
+		"IsClosed": isClosed,
+		"IsOwner": isOwner,
+		"IsMod": isMod,
+		"IsAdmin": isAdmin,
+		"IsSuperAdmin": isSuperAdmin,
+		"Comments": comments,
+		"LastCommentDate": lastCommentDate,
+	})
+})
+
+var CommentCreateHandler = A(func(w http.ResponseWriter, r *http.Request, sess models.Session) {
+	topicID := r.FormValue("tid")
+	content := r.PostFormValue("content")
+	isSticky := r.PostFormValue("is_sticky") != ""
+	var groupID, groupName, topicName, parentComment string
+
+	if db.QueryRow(`SELECT groupid, title, content FROM topics WHERE id=?;`, topicID).Scan(
+			&groupID, &topicName, &parentComment) != nil {
+		ErrNotFoundHandler(w, r)
+		return
+	}
+	isClosed := true
+	db.QueryRow(`SELECT is_closed FROM groups WHERE id=?;`, groupID).Scan(&isClosed)
+
+	if isClosed {
+		ErrForbiddenHandler(w, r)
+		return
+	}
+
+	var tmp string
+	db.QueryRow(`SELECT name FROM groups WHERE id=?;`, groupID).Scan(&groupName)
+	isMod := db.QueryRow(`SELECT id FROM mods WHERE groupid=? AND userid=?;`, groupID, sess.UserID).Scan(&tmp) == nil
+	isAdmin := db.QueryRow(`SELECT id FROM admins WHERE groupid=? AND userid=?;`, groupID, sess.UserID).Scan(&tmp) == nil
+	isSuperAdmin := false
+	db.QueryRow(`SELECT is_superadmin FROM users WHERE id=?`, sess.UserID).Scan(&isSuperAdmin)
+
+	if r.Method == "POST" {
+		if content == "" {
+			http.Redirect(w, r, "/comments/new?tid="+topicID, http.StatusSeeOther)
+			return
+		}
+		if !isMod && !isAdmin && !isSuperAdmin {
+			isSticky = false
+		}
+		db.Exec(`INSERT INTO comments(content, topicid, userid, parentid, is_sticky, created_date, updated_date) VALUES(?, ?, ?, ?, ?, ?, ?);`,
+			content, topicID, sess.UserID, sql.NullInt64{Valid:false}, isSticky, int64(time.Now().Unix()), int64(time.Now().Unix()))
+		http.Redirect(w, r, "/topics?id="+topicID, http.StatusSeeOther)
+		return
+	}
+
+	templates.Render(w, "commentedit.html", map[string]interface{}{
+		"Common": models.ReadCommonData(sess),
+		"TopicID": topicID,
+		"CommentID": "",
+		"TopicName": topicName,
+		"GroupName": groupName,
+		"ParentComment": parentComment,
+		"Content": "",
+		"IsSticky": false,
+		"IsMod": isMod,
+		"IsAdmin": isAdmin,
+		"IsSuperAdmin": isSuperAdmin,
+	})
+})
+
+var CommentUpdateHandler = A(func(w http.ResponseWriter, r *http.Request, sess models.Session) {
+	commentID := r.FormValue("id")
+	content := r.PostFormValue("content")
+	isSticky := r.PostFormValue("is_sticky") != ""
+
+	var groupID, topicID, groupName, topicName, parentComment string
+	if db.QueryRow(`SELECT topicid FROM comments WHERE id=?;`, commentID).Scan(&topicID) != nil {
+		ErrNotFoundHandler(w, r)
+		return
+	}
+	if db.QueryRow(`SELECT groupid, title, content FROM topics WHERE id=?;`, topicID).Scan(
+		&groupID, &topicName, &parentComment) != nil {
+		ErrNotFoundHandler(w, r)
+		return
+	}
+	isClosed := true
+	db.QueryRow(`SELECT is_closed FROM groups WHERE id=?;`, groupID).Scan(&isClosed)
+	if !isClosed {
+		db.QueryRow(`SELECT is_closed FROM topics WHERE id=?;`, topicID).Scan(&isClosed)
+	}
+
+	if isClosed {
+		ErrForbiddenHandler(w, r)
+		return
+	}
+
+	var tmp string
+	db.QueryRow(`SELECT name FROM groups WHERE id=?;`, groupID).Scan(&groupName)
+	isMod := db.QueryRow(`SELECT id FROM mods WHERE groupid=? AND userid=?;`, groupID, sess.UserID).Scan(&tmp) == nil
+	isAdmin := db.QueryRow(`SELECT id FROM admins WHERE groupid=? AND userid=?;`, groupID, sess.UserID).Scan(&tmp) == nil
+	isSuperAdmin := false
+	db.QueryRow(`SELECT is_superadmin FROM users WHERE id=?`, sess.UserID).Scan(&isSuperAdmin)
+	isOwner := db.QueryRow(`SELECT userid FROM comments WHERE id=?;`, commentID).Scan(&tmp) == nil
+
+	if !isOwner && !isMod && !isAdmin && !isSuperAdmin {
+		ErrForbiddenHandler(w, r)
+		return
+	}
+
+	if r.Method == "POST" {
+		action := r.PostFormValue("action")
+		if action == "Update" {
+			if content == "" {
+				http.Redirect(w, r, "/comments/edit?id="+commentID, http.StatusSeeOther)
+				return
+			}
+			if !isMod && !isAdmin && !isSuperAdmin {
+				db.QueryRow(`SELECT is_sticky FROM comments WHERE id=?;`, commentID).Scan(&isSticky)
+			}
+			db.Exec(`UPDATE comments SET content=?, is_sticky=?, updated_date=? WHERE id=?;`, content, isSticky, int64(time.Now().Unix()), commentID)
+			http.Redirect(w, r, "/topics?id="+topicID, http.StatusSeeOther)
+		}
+		if action == "Delete" {
+			db.Exec(`UPDATE comments SET is_deleted=1 WHERE id=?;`, commentID)
+			http.Redirect(w, r, "/comments/edit?id="+commentID, http.StatusSeeOther)
+		}
+		if action == "Undelete" {
+			db.Exec(`UPDATE comments SET is_deleted=0 WHERE id=?;`, commentID)
+			http.Redirect(w, r, "/comments/edit?id="+commentID, http.StatusSeeOther)
+		}
+		return
+	}
+	isDeleted := false
+	db.QueryRow(`SELECT content, is_sticky, is_deleted FROM comments WHERE id=?;`, commentID).Scan(&content, &isSticky, &isDeleted)
+
+	templates.Render(w, "commentedit.html", map[string]interface{}{
+		"Common": models.ReadCommonData(sess),
+		"TopicID": topicID,
+		"CommentID": commentID,
+		"TopicName": topicName,
+		"GroupName": groupName,
+		"ParentComment": parentComment,
+		"Content": content,
+		"IsSticky": isSticky,
+		"IsMod": isMod,
+		"IsAdmin": isAdmin,
+		"IsSuperAdmin": isSuperAdmin,
+		"IsDeleted": isDeleted,
+	})
+})
+
+var CommentHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.Session) {
+	commentID := r.FormValue("id")
+	var groupID, topicID, topicName, groupName, ownerID, ownerName, content string
+	var cDate int64
+	var isDeleted bool
+
+	if db.QueryRow(`SELECT userid, topicid, content, is_deleted, created_date FROM comments WHERE id=?;`, commentID).Scan(
+			&ownerID, &topicID, &content, &isDeleted, &cDate) != nil {
+		ErrNotFoundHandler(w, r)
+		return
+	}
+	db.QueryRow(`SELECT groupid, title FROM topics WHERE id=?;`, topicID).Scan(&groupID, &topicName)
+	db.QueryRow(`SELECT username FROM users WHERE id=?;`, ownerID).Scan(&ownerName)
+	db.QueryRow(`SELECT name FROM groups WHERE id=?;`, groupID).Scan(&groupName)
+
+	var tmp string
+	db.QueryRow(`SELECT name FROM groups WHERE id=?;`, groupID).Scan(&groupName)
+	isMod := db.QueryRow(`SELECT id FROM mods WHERE groupid=? AND userid=?;`, groupID, sess.UserID).Scan(&tmp) == nil
+	isAdmin := db.QueryRow(`SELECT id FROM admins WHERE groupid=? AND userid=?;`, groupID, sess.UserID).Scan(&tmp) == nil
+	isSuperAdmin := false
+	db.QueryRow(`SELECT is_superadmin FROM users WHERE id=?`, sess.UserID).Scan(&isSuperAdmin)
+	isOwner := db.QueryRow(`SELECT userid FROM comments WHERE id=?;`, commentID).Scan(&tmp) == nil
+
+	templates.Render(w, "commentindex.html", map[string]interface{}{
+		"Common": models.ReadCommonData(sess),
+		"ID": commentID,
+		"TopicID": topicID,
+		"TopicName": topicName,
+		"GroupName": groupName,
+		"Content": content,
+		"IsMod": isMod,
+		"IsAdmin": isAdmin,
+		"IsSuperAdmin": isSuperAdmin,
+		"IsOwner": isOwner,
+		"IsDeleted": isDeleted,
+		"CreatedDate": timeAgoFromNow(time.Unix(cDate, 0)),
 	})
 })
 

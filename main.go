@@ -109,6 +109,11 @@ func main() {
 
 	mux.HandleFunc("/topics/new", views.TopicCreateHandler)
 	mux.HandleFunc("/topics/edit", views.TopicUpdateHandler)
+	mux.HandleFunc("/topics", views.TopicHandler)
+
+	mux.HandleFunc("/comments/new", views.CommentCreateHandler)
+	mux.HandleFunc("/comments/edit", views.CommentUpdateHandler)
+	mux.HandleFunc("/comments", views.CommentHandler)
 
 	mux.HandleFunc("/test", views.TestHandler)
 

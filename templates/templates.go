@@ -15,6 +15,12 @@ func init() {
 	tmpls["changepass.html"] = template.Must(template.New("base").Parse(baseSrc))
 	template.Must(tmpls["changepass.html"].New("changepass").Parse(changepassSrc))
 
+	tmpls["commentedit.html"] = template.Must(template.New("base").Parse(baseSrc))
+	template.Must(tmpls["commentedit.html"].New("commentedit").Parse(commenteditSrc))
+
+	tmpls["commentindex.html"] = template.Must(template.New("base").Parse(baseSrc))
+	template.Must(tmpls["commentindex.html"].New("commentindex").Parse(commentindexSrc))
+
 	tmpls["creategroup.html"] = template.Must(template.New("base").Parse(baseSrc))
 	template.Must(tmpls["creategroup.html"].New("creategroup").Parse(creategroupSrc))
 
@@ -71,6 +77,9 @@ func init() {
 
 	tmpls["topicedit.html"] = template.Must(template.New("base").Parse(baseSrc))
 	template.Must(tmpls["topicedit.html"].New("topicedit").Parse(topiceditSrc))
+
+	tmpls["topicindex.html"] = template.Must(template.New("base").Parse(baseSrc))
+	template.Must(tmpls["topicindex.html"].New("topicindex").Parse(topicindexSrc))
 }
 
 func Render(wr io.Writer, template string, data interface{}) {
