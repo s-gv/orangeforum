@@ -678,6 +678,38 @@ var CommentHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models
 	})
 })
 
+var TopicSubscribeHandler = A(func(w http.ResponseWriter, r *http.Request, sess models.Session) {
+	topicID := r.FormValue("id")
+	if r.Method == "POST" {
+		db.Exec(`INSERT INTO `)
+	}
+	http.Redirect(w, r, "/topics?id="+topicID, http.StatusSeeOther)
+})
+
+var TopicUnsubscribeHandler = A(func(w http.ResponseWriter, r *http.Request, sess models.Session) {
+	topicID := r.FormValue("id")
+	if r.Method == "POST" {
+
+	}
+	http.Redirect(w, r, "/topics?id="+topicID, http.StatusSeeOther)
+})
+
+var GroupSubscribeHandler = A(func(w http.ResponseWriter, r *http.Request, sess models.Session) {
+	groupID := r.FormValue("id")
+	if r.Method == "POST" {
+
+	}
+	http.Redirect(w, r, "/groups?id="+groupID, http.StatusSeeOther)
+})
+
+var GroupUnsubscribeHandler = A(func(w http.ResponseWriter, r *http.Request, sess models.Session) {
+	groupID := r.FormValue("id")
+	if r.Method == "POST" {
+
+	}
+	http.Redirect(w, r, "/groups?id="+groupID, http.StatusSeeOther)
+})
+
 var SignupHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.Session) {
 	redirectURL, err := url.QueryUnescape(r.FormValue("next"))
 	if redirectURL == "" || err != nil {

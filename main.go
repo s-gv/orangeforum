@@ -105,10 +105,14 @@ func main() {
 	mux.HandleFunc("/", views.IndexHandler)
 
 	mux.HandleFunc("/groups/edit", views.GroupEditHandler)
+	mux.HandleFunc("/groups/subscribe", views.GroupSubscribeHandler)
+	mux.HandleFunc("/groups/unsubscribe", views.GroupUnsubscribeHandler)
 	mux.HandleFunc("/groups", views.GroupHandler)
 
 	mux.HandleFunc("/topics/new", views.TopicCreateHandler)
 	mux.HandleFunc("/topics/edit", views.TopicUpdateHandler)
+	mux.HandleFunc("/topics/subscribe", views.TopicSubscribeHandler)
+	mux.HandleFunc("/topics/unsubscribe", views.TopicUnsubscribeHandler)
 	mux.HandleFunc("/topics", views.TopicHandler)
 
 	mux.HandleFunc("/comments/new", views.CommentCreateHandler)
