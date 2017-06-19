@@ -42,6 +42,7 @@ func UA(handler func(w http.ResponseWriter, r *http.Request, sess models.Session
 			ErrForbiddenHandler(w, r)
 			return
 		}
+		//log.Printf("[INFO] Request: %s\n", r.URL)
 		handler(w, r, sess)
 	}
 }
@@ -62,6 +63,7 @@ func A(handler func(w http.ResponseWriter, r *http.Request, sess models.Session)
 			http.Redirect(w, r, "/login?next="+url.QueryEscape(redirectURL), http.StatusSeeOther)
 			return
 		}
+		//log.Printf("[INFO] Request: %s\n", r.URL)
 		handler(w, r, sess)
 	}
 }
@@ -241,6 +243,12 @@ var GroupHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.S
 		return
 	}
 
+	subToken := ""
+	if sess.UserID.Valid {
+		db.QueryRow(`SELECT token FROM groupsubscriptions WHERE groupid=? AND userid=?;`, groupID, sess.UserID).Scan(&subToken)
+	}
+
+
 	numTopicsPerPage := 30
 	lastTopicDate, err := strconv.ParseInt(r.FormValue("ltd"), 10, 64)
 	if err != nil {
@@ -296,6 +304,7 @@ var GroupHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.S
 		"Common": models.ReadCommonData(r, sess),
 		"GroupName": name,
 		"GroupID": groupID,
+		"SubToken": subToken,
 		"Topics": topics,
 		"IsMod": isMod,
 		"IsAdmin": isAdmin,
@@ -330,8 +339,22 @@ var TopicCreateHandler = A(func(w http.ResponseWriter, r *http.Request, sess mod
 		}
 		db.Exec(`INSERT INTO topics(title, content, userid, groupid, is_sticky, created_date, updated_date) VALUES(?, ?, ?, ?, ?, ?, ?);`,
 			title, content, sess.UserID, groupID, isSticky, int(time.Now().Unix()), int(time.Now().Unix()))
+
 		var groupName string
 		db.QueryRow(`SELECT name FROM groups WHERE id=?`, groupID).Scan(&groupName)
+		if models.Config(models.AllowGroupSubscription) != "0" {
+			groupURL := "http://" + r.Host + "/groups?name=" + groupName
+			rows := db.Query(`SELECT users.email, groupsubscriptions.token FROM users INNER JOIN groupsubscriptions ON users.id=groupsubscriptions.userid AND groupsubscriptions.groupid=?;`, groupID)
+			for rows.Next() {
+				var email, token string
+				rows.Scan(&email, &token)
+				if email != "" {
+					unSubURL := "http://" + r.Host + "/groups/unsubscribe?token=" + token
+					utils.SendMail(email, `New topic in `+groupName,
+						`A new topic titled "`+title+`" has been posted to <a href="`+groupURL+`">`+groupName+`</a>.\r\n\r\n. If you do not want these emails, <a href="`+unSubURL+`">unsubscribe</a>. Or, follow this link: \r\n`+unSubURL)
+				}
+			}
+		}
 		http.Redirect(w, r, "/groups?name="+groupName, http.StatusSeeOther)
 		return
 	}
@@ -445,6 +468,11 @@ var TopicHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.S
 		return
 	}
 
+	subToken := ""
+	if sess.UserID.Valid {
+		db.QueryRow(`SELECT token FROM topicsubscriptions WHERE topicid=? AND userid=?;`, topicID, sess.UserID).Scan(&subToken)
+	}
+
 	type Comment struct {
 		ID string
 		Content string
@@ -491,6 +519,7 @@ var TopicHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.S
 		"TopicID": topicID,
 		"GroupName": groupName,
 		"TopicName": title,
+		"SubToken": subToken,
 		"Title": title,
 		"Content": content,
 		"IsClosed": isClosed,
@@ -539,6 +568,19 @@ var CommentCreateHandler = A(func(w http.ResponseWriter, r *http.Request, sess m
 		}
 		db.Exec(`INSERT INTO comments(content, topicid, userid, parentid, is_sticky, created_date, updated_date) VALUES(?, ?, ?, ?, ?, ?, ?);`,
 			content, topicID, sess.UserID, sql.NullInt64{Valid:false}, isSticky, int64(time.Now().Unix()), int64(time.Now().Unix()))
+		if models.Config(models.AllowTopicSubscription) != "0" {
+			topicURL := "http://" + r.Host + "/topics?id=" + topicID
+			rows := db.Query(`SELECT users.email, topicsubscriptions.token FROM users INNER JOIN topicsubscriptions ON users.id=topicsubscriptions.userid AND topicsubscriptions.topicid=?;`, topicID)
+			for rows.Next() {
+				var email, token string
+				rows.Scan(&email, &token)
+				if email != "" {
+					unSubURL := "http://" + r.Host + "/topics/unsubscribe?token=" + token
+					utils.SendMail(email, `New comment in "`+topicName+`"`,
+						`A new comment has been posted in <a href="`+topicURL+`">`+topicName+`</a>\r\n\r\n. If you do not want these emails, <a href="`+unSubURL+`">unsubscribe</a>. Or, follow this link: \r\n`+unSubURL)
+				}
+			}
+		}
 		http.Redirect(w, r, "/topics?id="+topicID, http.StatusSeeOther)
 		return
 	}
@@ -680,34 +722,94 @@ var CommentHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models
 
 var TopicSubscribeHandler = A(func(w http.ResponseWriter, r *http.Request, sess models.Session) {
 	topicID := r.FormValue("id")
+	if models.Config(models.AllowTopicSubscription) == "0" {
+		ErrForbiddenHandler(w, r)
+		return
+	}
+	var tmp string
+	if db.QueryRow(`SELECT id FROM topics WHERE id=?;`, topicID).Scan(&tmp) != nil {
+		ErrNotFoundHandler(w, r)
+		return
+	}
 	if r.Method == "POST" {
-		db.Exec(`INSERT INTO `)
+		db.Exec(`INSERT OR REPLACE INTO topicsubscriptions(userid, topicid, token, created_date) VALUES(?, ?, ?, ?);`,
+				sess.UserID, topicID, models.RandSeq(64), time.Now().Unix())
 	}
 	http.Redirect(w, r, "/topics?id="+topicID, http.StatusSeeOther)
 })
 
-var TopicUnsubscribeHandler = A(func(w http.ResponseWriter, r *http.Request, sess models.Session) {
-	topicID := r.FormValue("id")
-	if r.Method == "POST" {
-
+var TopicUnsubscribeHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.Session) {
+	token := r.FormValue("token")
+	var topicID, topicName string
+	if db.QueryRow(`SELECT topicid FROM topicsubscriptions WHERE token=?;`, token).Scan(&topicID) != nil {
+		ErrNotFoundHandler(w, r)
+		return
 	}
-	http.Redirect(w, r, "/topics?id="+topicID, http.StatusSeeOther)
+	db.QueryRow(`SELECT title FROM topics WHERE id=?;`, topicID).Scan(&topicName)
+	if r.Method == "POST" {
+		db.Exec(`DELETE FROM topicsubscriptions WHERE token=?;`, token)
+		if r.PostFormValue("noredirect") != "" {
+			w.Write([]byte("Unsubscribed."))
+		} else {
+			http.Redirect(w, r, "/topics?id="+topicID, http.StatusSeeOther)
+		}
+		return
+	}
+	w.Write([]byte(`<!DOCTYPE html><html><head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1"></head>
+	<body><form action="/topics/unsubscribe" method="POST">
+	Unsubscribe from `+ topicName +`?
+	<input type="hidden" name="token" value=`+token+`>
+	<input type="hidden" name="noredirect" value="1">
+	<input type="submit" value="Unsubscribe">
+	</form></body></html>`))
 })
 
 var GroupSubscribeHandler = A(func(w http.ResponseWriter, r *http.Request, sess models.Session) {
 	groupID := r.FormValue("id")
-	if r.Method == "POST" {
-
+	if models.Config(models.AllowGroupSubscription) == "0" {
+		ErrForbiddenHandler(w, r)
+		return
 	}
-	http.Redirect(w, r, "/groups?id="+groupID, http.StatusSeeOther)
+	var groupName string
+	if db.QueryRow(`SELECT name FROM groups WHERE id=?;`, groupID).Scan(&groupName) != nil {
+		ErrNotFoundHandler(w, r)
+		return
+	}
+	if r.Method == "POST" {
+		db.Exec(`INSERT OR REPLACE INTO groupsubscriptions(userid, groupid, token, created_date) VALUES(?, ?, ?, ?);`,
+			sess.UserID, groupID, models.RandSeq(64), time.Now().Unix())
+	}
+	http.Redirect(w, r, "/groups?name="+groupName, http.StatusSeeOther)
 })
 
-var GroupUnsubscribeHandler = A(func(w http.ResponseWriter, r *http.Request, sess models.Session) {
-	groupID := r.FormValue("id")
-	if r.Method == "POST" {
-
+var GroupUnsubscribeHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.Session) {
+	token := r.FormValue("token")
+	var groupID, groupName string
+	if db.QueryRow(`SELECT groupid FROM groupsubscriptions WHERE token=?;`, token).Scan(&groupID) != nil {
+		ErrNotFoundHandler(w, r)
+		return
 	}
-	http.Redirect(w, r, "/groups?id="+groupID, http.StatusSeeOther)
+	db.QueryRow(`SELECT name FROM groups WHERE id=?;`, groupID).Scan(&groupName)
+	if r.Method == "POST" {
+		db.Exec(`DELETE FROM groupsubscriptions WHERE token=?;`, token)
+		if r.PostFormValue("noredirect") != "" {
+			w.Write([]byte("Unsubscribed."))
+		} else {
+			http.Redirect(w, r, "/groups?name="+groupName, http.StatusSeeOther)
+		}
+		return
+	}
+	w.Write([]byte(`<!DOCTYPE html><html><head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1"></head>
+	<body><form action="/groups/unsubscribe" method="POST">
+	Unsubscribe from `+groupName+`?
+	<input type="hidden" name="token" value=`+token+`>
+	<input type="hidden" name="noredirect" value="1">
+	<input type="submit" value="Unsubscribe">
+	</form></body></html>`))
 })
 
 var SignupHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.Session) {

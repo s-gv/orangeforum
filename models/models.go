@@ -158,6 +158,8 @@ type CommonData struct {
 	ForumName string
 	CurrentURL template.URL
 	BodyAppendage string
+	IsGroupSubAllowed bool
+	IsTopicSubAllowed bool
 	ExtraNotesShort []ExtraNote
 }
 
@@ -441,6 +443,8 @@ func ReadCommonData(r *http.Request, sess Session) CommonData {
 		IsSuperAdmin:isSuperAdmin,
 		ForumName:Config(ForumName),
 		CurrentURL:template.URL(url.QueryEscape(currentURL)),
+		IsGroupSubAllowed:Config(AllowGroupSubscription) != "0",
+		IsTopicSubAllowed:Config(AllowTopicSubscription) != "0",
 		BodyAppendage:Config(BodyAppendage),
 		ExtraNotesShort:ReadExtraNotesShort(),
 	}

@@ -18,6 +18,20 @@ const topicindexSrc = `
 <a href="/comments/new?tid={{ .TopicID }}">reply</a>
 {{ end }}
 
+{{ if .Common.IsTopicSubAllowed }}
+{{ if .SubToken }}
+<form action="/topics/unsubscribe?token={{ .SubToken }}" method="POST">
+	<input type="hidden" name="csrf" value="{{ .Common.CSRF }}">
+	<input type="submit" value="Unsubscribe">
+</form>
+{{ else }}
+<form action="/topics/subscribe?id={{ .TopicID }}" method="POST">
+	<input type="hidden" name="csrf" value="{{ .Common.CSRF }}">
+	<input type="submit" value="Subscribe">
+</form>
+{{ end }}
+{{ end }}
+
 {{ if .Comments }}
 {{ range .Comments }}
 <div class="row">

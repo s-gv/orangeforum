@@ -114,20 +114,24 @@ func CreateTables() {
 				id INTEGER PRIMARY KEY,
 				userid INTEGER REFERENCES users(id) ON DELETE CASCADE,
 				topicid INTEGER REFERENCES topics(id) ON DELETE CASCADE,
+				token VARCHAR(128),
 				created_date INTEGER
 	);`); err != nil { panic(err) }
 	if _, err := db.Exec(`CREATE INDEX topicsubscriptions_userid_index on topicsubscriptions(userid);`); err != nil { panic(err) }
 	if _, err := db.Exec(`CREATE INDEX topicsubscriptions_topicid_index on topicsubscriptions(topicid);`); err != nil { panic(err) }
+	if _, err := db.Exec(`CREATE INDEX topicsubscriptions_token_index on topicsubscriptions(token);`); err != nil { panic(err) }
 
 
 	if _, err := db.Exec(`CREATE TABLE groupsubscriptions(
 				id INTEGER PRIMARY KEY,
 				userid INTEGER REFERENCES users(id) ON DELETE CASCADE,
 				groupid INTEGER REFERENCES groups(id) ON DELETE CASCADE,
+				token VARCHAR(128),
 				created_date INTEGER
 	);`); err != nil { panic(err) }
 	if _, err := db.Exec(`CREATE INDEX groupsubscriptions_userid_index on groupsubscriptions(userid);`); err != nil { panic(err) }
 	if _, err := db.Exec(`CREATE INDEX groupsubscriptions_groupid_index on groupsubscriptions(groupid);`); err != nil { panic(err) }
+	if _, err := db.Exec(`CREATE INDEX groupsubscriptions_token_index on groupsubscriptions(token);`); err != nil { panic(err) }
 
 
 	if _, err := db.Exec(`CREATE TABLE extranotes(
