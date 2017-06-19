@@ -27,7 +27,7 @@ const topicindexSrc = `
 {{ end }}
 {{ else }}
 <div class="row">
-	<div class="muted">No comments here.</div>
+	<div class="muted">No comments to show.</div>
 </div>
 {{ end }}
 

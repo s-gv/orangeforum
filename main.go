@@ -131,6 +131,9 @@ func main() {
 	mux.HandleFunc("/admin", views.AdminIndexHandler)
 
 	mux.HandleFunc("/users", views.UserProfileHandler)
+	mux.HandleFunc("/users/comments", views.UserCommentsHandler)
+	mux.HandleFunc("/users/topics", views.UserTopicsHandler)
+	mux.HandleFunc("/users/groups", views.UserGroupsHandler)
 
 
 	srv := &http.Server{

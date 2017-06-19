@@ -60,17 +60,14 @@ input[type="text"], input[type="number"], input[type="email"], textarea {
 </form>
 
 <div class="row clearfix">
-	<div class="col1-offset col2"><a href="/topics?u={{ .UserName }}">topics</a>{{ if .IsSelf }} (public){{ end }}</div>
+	<div class="col1-offset col2"><a href="/users/topics?u={{ .UserName }}">topics</a>{{ if .IsSelf }} (public){{ end }}</div>
 </div>
 <div class="row clearfix">
-	<div class="col1-offset col2"><a href="/comments?u={{ .UserName }}">comments</a>{{ if .IsSelf }} (public){{ end }}</div>
-</div>
-<div class="row clearfix">
-	<div class="col1-offset col2"><a href="/groups?u={{ .UserName }}">groups {{ if .IsSelf }} (public){{ end }}</a></div>
+	<div class="col1-offset col2"><a href="/users/comments?u={{ .UserName }}">comments</a>{{ if .IsSelf }} (public){{ end }}</div>
 </div>
 {{ if .IsSelf }}
 <div class="row clearfix">
-	<div class="col1-offset col2"><a href="/upvotes?u={{ .UserName }}">upvotes</a> (private)</div>
+	<div class="col1-offset col2"><a href="/users/groups">groups</a>{{ if .IsSelf }} (private){{ end }}</div>
 </div>
 {{ end }}
 

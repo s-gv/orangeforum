@@ -63,6 +63,15 @@ func init() {
 	tmpls["profile.html"] = template.Must(template.New("base").Parse(baseSrc))
 	template.Must(tmpls["profile.html"].New("profile").Parse(profileSrc))
 
+	tmpls["profilecomments.html"] = template.Must(template.New("base").Parse(baseSrc))
+	template.Must(tmpls["profilecomments.html"].New("profilecomments").Parse(profilecommentsSrc))
+
+	tmpls["profiletopics.html"] = template.Must(template.New("base").Parse(baseSrc))
+	template.Must(tmpls["profiletopics.html"].New("profiletopics").Parse(profiletopicsSrc))
+
+	tmpls["profilegroups.html"] = template.Must(template.New("base").Parse(baseSrc))
+	template.Must(tmpls["profilegroups.html"].New("profilegroups").Parse(profilegroupsSrc))
+
 	tmpls["reply.html"] = template.Must(template.New("base").Parse(baseSrc))
 	template.Must(tmpls["reply.html"].New("reply").Parse(replySrc))
 
