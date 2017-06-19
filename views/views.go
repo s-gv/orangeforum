@@ -87,7 +87,7 @@ var IndexHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.S
 	sort.Slice(groups, func(i, j int) bool {return groups[i].Name < groups[j].Name})
 	sort.Slice(groups, func(i, j int) bool {return groups[i].IsSticky > groups[j].IsSticky})
 	templates.Render(w, "index.html", map[string]interface{}{
-		"Common": models.ReadCommonData(sess),
+		"Common": models.ReadCommonData(r, sess),
 		"GroupCreationDisabled": models.Config(models.GroupCreationDisabled) == "1",
 		"Groups": groups,
 	})
@@ -126,7 +126,7 @@ var GroupEditHandler = A(func(w http.ResponseWriter, r *http.Request, sess model
 		ErrForbiddenHandler(w, r)
 		return
 	}
-	commonData := models.ReadCommonData(sess)
+	commonData := models.ReadCommonData(r, sess)
 
 	userName := commonData.UserName
 
@@ -232,7 +232,7 @@ var GroupEditHandler = A(func(w http.ResponseWriter, r *http.Request, sess model
 	}
 
 	templates.Render(w, "groupnew.html", map[string]interface{}{
-		"Common": models.ReadCommonData(sess),
+		"Common": models.ReadCommonData(r, sess),
 		"ID": groupID,
 		"Name": name,
 		"Desc": desc,
@@ -304,7 +304,7 @@ var GroupHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.S
 	}
 
 	templates.Render(w, "groupindex.html", map[string]interface{}{
-		"Common": models.ReadCommonData(sess),
+		"Common": models.ReadCommonData(r, sess),
 		"GroupName": name,
 		"GroupID": groupID,
 		"Topics": topics,
@@ -348,7 +348,7 @@ var TopicCreateHandler = A(func(w http.ResponseWriter, r *http.Request, sess mod
 	}
 
 	templates.Render(w, "topicedit.html", map[string]interface{}{
-		"Common":    models.ReadCommonData(sess),
+		"Common":    models.ReadCommonData(r, sess),
 		"GroupID":   groupID,
 		"TopicID":   "",
 		"Title":     "",
@@ -424,7 +424,7 @@ var TopicUpdateHandler = A(func(w http.ResponseWriter, r *http.Request, sess mod
 	}
 
 	templates.Render(w, "topicedit.html", map[string]interface{}{
-		"Common": models.ReadCommonData(sess),
+		"Common": models.ReadCommonData(r, sess),
 		"GroupID": groupID,
 		"TopicID": topicID,
 		"Title": title,
@@ -497,10 +497,11 @@ var TopicHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.S
 	isOwner := sess.UserID.Valid && ownerID == sess.UserID.Int64
 
 	templates.Render(w, "topicindex.html", map[string]interface{}{
-		"Common": models.ReadCommonData(sess),
+		"Common": models.ReadCommonData(r, sess),
 		"GroupID": groupID,
 		"TopicID": topicID,
 		"GroupName": groupName,
+		"TopicName": title,
 		"Title": title,
 		"Content": content,
 		"IsClosed": isClosed,
@@ -554,7 +555,7 @@ var CommentCreateHandler = A(func(w http.ResponseWriter, r *http.Request, sess m
 	}
 
 	templates.Render(w, "commentedit.html", map[string]interface{}{
-		"Common": models.ReadCommonData(sess),
+		"Common": models.ReadCommonData(r, sess),
 		"TopicID": topicID,
 		"CommentID": "",
 		"TopicName": topicName,
@@ -634,7 +635,7 @@ var CommentUpdateHandler = A(func(w http.ResponseWriter, r *http.Request, sess m
 	db.QueryRow(`SELECT content, is_sticky, is_deleted FROM comments WHERE id=?;`, commentID).Scan(&content, &isSticky, &isDeleted)
 
 	templates.Render(w, "commentedit.html", map[string]interface{}{
-		"Common": models.ReadCommonData(sess),
+		"Common": models.ReadCommonData(r, sess),
 		"TopicID": topicID,
 		"CommentID": commentID,
 		"TopicName": topicName,
@@ -673,7 +674,7 @@ var CommentHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models
 	isOwner := db.QueryRow(`SELECT userid FROM comments WHERE id=?;`, commentID).Scan(&tmp) == nil
 
 	templates.Render(w, "commentindex.html", map[string]interface{}{
-		"Common": models.ReadCommonData(sess),
+		"Common": models.ReadCommonData(r, sess),
 		"ID": commentID,
 		"TopicID": topicID,
 		"TopicName": topicName,
@@ -734,7 +735,7 @@ var SignupHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.
 		http.Redirect(w, r, redirectURL, http.StatusSeeOther)
 	}
 	templates.Render(w, "signup.html", map[string]interface{}{
-		"Common": models.ReadCommonData(sess),
+		"Common": models.ReadCommonData(r, sess),
 		"next": template.URL(url.QueryEscape(redirectURL)),
 	})
 })
@@ -762,7 +763,7 @@ var LoginHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.S
 		}
 	}
 	templates.Render(w, "login.html", map[string]interface{}{
-		"Common": models.ReadCommonData(sess),
+		"Common": models.ReadCommonData(r, sess),
 		"next": template.URL(url.QueryEscape(redirectURL)),
 	})
 })
@@ -795,7 +796,7 @@ var ChangePasswdHandler = UA(func(w http.ResponseWriter, r *http.Request, sess m
 		return
 	}
 	templates.Render(w, "changepass.html", map[string]interface{}{
-		"Common": models.ReadCommonData(sess),
+		"Common": models.ReadCommonData(r, sess),
 	})
 })
 
@@ -825,7 +826,7 @@ var ForgotPasswdHandler = UA(func(w http.ResponseWriter, r *http.Request, sess m
 
 	}
 	templates.Render(w, "forgotpass.html", map[string]interface{}{
-		"Common": models.ReadCommonData(sess),
+		"Common": models.ReadCommonData(r, sess),
 	})
 })
 
@@ -861,7 +862,7 @@ var ResetPasswdHandler = UA(func(w http.ResponseWriter, r *http.Request, sess mo
 	}
 	templates.Render(w, "resetpass.html", map[string]interface{}{
 		"ResetToken": resetToken,
-		"Common": models.ReadCommonData(sess),
+		"Common": models.ReadCommonData(r, sess),
 	})
 })
 
@@ -902,7 +903,7 @@ var CreateGroupHandler = A(func(w http.ResponseWriter, r *http.Request, sess mod
 	}
 
 	templates.Render(w, "creategroup.html", map[string]interface{}{
-		"Common": models.ReadCommonData(sess),
+		"Common": models.ReadCommonData(r, sess),
 	})
 })
 
@@ -1005,7 +1006,7 @@ var AdminIndexHandler = A(func (w http.ResponseWriter, r *http.Request, sess mod
 	}
 
 	templates.Render(w, "adminindex.html", map[string]interface{}{
-		"Common": models.ReadCommonData(sess),
+		"Common": models.ReadCommonData(r, sess),
 		"Config": models.ConfigAllVals(),
 		"ExtraNotes": models.ReadExtraNotes(),
 		"NumUsers": models.NumUsers(),
@@ -1041,7 +1042,7 @@ var UserProfileHandler = UA(func(w http.ResponseWriter, r *http.Request, sess mo
 		}
 	}
 	templates.Render(w, "profile.html", map[string]interface{}{
-		"Common": models.ReadCommonData(sess),
+		"Common": models.ReadCommonData(r, sess),
 		"UserName": userName,
 		"About": models.ReadUserAbout(userName),
 		"Email": models.ReadUserEmail(userName),
@@ -1054,7 +1055,7 @@ var NoteHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.Se
 	if e, err := models.ReadExtraNote(id); err == nil {
 		if e.URL == "" {
 			templates.Render(w, "extranote.html", map[string]interface{}{
-				"Common": models.ReadCommonData(sess),
+				"Common": models.ReadCommonData(r, sess),
 				"Name": e.Name,
 				"UpdatedDate": e.UpdatedDate,
 				"Content": template.HTML(e.Content),

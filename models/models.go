@@ -8,6 +8,9 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"encoding/hex"
 	"database/sql"
+	"net/http"
+	"html/template"
+	"net/url"
 )
 
 const (
@@ -153,6 +156,7 @@ type CommonData struct {
 	UserName string
 	IsSuperAdmin bool
 	ForumName string
+	CurrentURL template.URL
 	BodyAppendage string
 	ExtraNotesShort []ExtraNote
 }
@@ -416,12 +420,19 @@ func DeleteExtraNote(id string) {
 	db.Exec(`DELETE FROM extranotes WHERE id=?;`, id)
 }
 
-func ReadCommonData(sess Session) CommonData {
+func ReadCommonData(r *http.Request, sess Session) CommonData {
 	userName := ""
 	isSuperAdmin := false
 	if sess.UserID.Valid {
 		r := db.QueryRow(`SELECT username, is_superadmin FROM users WHERE id=?;`, sess.UserID)
 		r.Scan(&userName, &isSuperAdmin)
+	}
+	currentURL := "/"
+	if r.URL.Path != "" {
+		currentURL = r.URL.Path
+		if r.URL.RawQuery != "" {
+			currentURL = currentURL + "?" + r.URL.RawQuery
+		}
 	}
 	return CommonData{
 		CSRF:sess.CSRFToken,
@@ -429,6 +440,7 @@ func ReadCommonData(sess Session) CommonData {
 		UserName:userName,
 		IsSuperAdmin:isSuperAdmin,
 		ForumName:Config(ForumName),
+		CurrentURL:template.URL(url.QueryEscape(currentURL)),
 		BodyAppendage:Config(BodyAppendage),
 		ExtraNotesShort:ReadExtraNotesShort(),
 	}

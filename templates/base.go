@@ -117,7 +117,7 @@ const baseSrc = `<!DOCTYPE html>
 				{{ if .Common.UserName }}
 				<a class="blacklink" href="/users?u={{ .Common.UserName }}">{{ .Common.UserName }}</a> | <a class="blacklink" href="/logout">Logout</a>
 				{{ else }}
-				<a class="blacklink" href="/login">Login</a>
+				<a class="blacklink" href="/login?next={{ .Common.CurrentURL }}">Login</a>
 				{{ end }}
 			</div>
 		</div>
