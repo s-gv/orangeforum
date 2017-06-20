@@ -70,5 +70,10 @@ input[type="text"], input[type="number"], input[type="email"], textarea {
 	<div class="col1-offset col2"><a href="/users/groups">groups</a>{{ if .IsSelf }} (private){{ end }}</div>
 </div>
 {{ end }}
+{{ if .Common.IsSuperAdmin }}
+<div class="row clearfix">
+	<div class="col1-offset col2"><a href="/admin">admin</a> (private)</div>
+</div>
+{{ end }}
 
 {{ end }}`

@@ -140,13 +140,13 @@ func saveImage(r *http.Request) string {
 				io.Copy(f, file)
 				imageName = fileName
 			} else {
-				log.Printf("[ERROR] Error writing opening file: %s\n", err)
+				log.Panicf("[ERROR] Error writing opening file: %s\n", err)
 			}
 		} else {
-			log.Printf("[ERROR] Error in file upload: %s\n", err)
+			log.Panicf("[ERROR] Error in file upload: %s\n", err)
 		}
 	} else {
-		log.Printf("[ERROR] Unable to accept file upload. DataDir not configured.\n")
+		log.Panicf("[ERROR] Unable to accept file upload. DataDir not configured.\n")
 	}
 	return imageName
 }

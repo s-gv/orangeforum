@@ -53,7 +53,7 @@ func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
 	dbFileName := flag.String("dbname", "orangeforum.db", "Database file path (default: orangeforum.db)")
-	port := flag.String("port", "9123", "Port to listen on (default: 9123)")
+	port := flag.String("addr", ":9123", "Port to listen on (default: :9123)")
 	shouldMigrate := flag.Bool("migrate", false, "Migrate DB (default: false)")
 	createSuperUser := flag.Bool("createsuperuser", false, "Create superuser")
 	createUser := flag.Bool("createuser", false, "Create user")
@@ -100,9 +100,15 @@ func main() {
 
 	mux := http.NewServeMux()
 
+	mux.HandleFunc("/", views.IndexHandler)
+
 	mux.HandleFunc("/favicon.ico", views.FaviconHandler)
 
-	mux.HandleFunc("/", views.IndexHandler)
+	mux.HandleFunc("/img", views.ImageHandler)
+
+	mux.HandleFunc("/note", views.NoteHandler)
+
+	mux.HandleFunc("/admin", views.AdminIndexHandler)
 
 	mux.HandleFunc("/groups/edit", views.GroupEditHandler)
 	mux.HandleFunc("/groups/subscribe", views.GroupSubscribeHandler)
@@ -119,10 +125,6 @@ func main() {
 	mux.HandleFunc("/comments/edit", views.CommentUpdateHandler)
 	mux.HandleFunc("/comments", views.CommentHandler)
 
-	mux.HandleFunc("/test", views.TestHandler)
-
-	mux.HandleFunc("/creategroup", views.CreateGroupHandler)
-
 	mux.HandleFunc("/signup", views.SignupHandler)
 	mux.HandleFunc("/login", views.LoginHandler)
 	mux.HandleFunc("/logout", views.LogoutHandler)
@@ -130,21 +132,14 @@ func main() {
 	mux.HandleFunc("/forgotpass", views.ForgotPasswdHandler)
 	mux.HandleFunc("/resetpass", views.ResetPasswdHandler)
 
-	mux.HandleFunc("/note", views.NoteHandler)
-
-	mux.HandleFunc("/admin", views.AdminIndexHandler)
-
-	mux.HandleFunc("/img", views.ImageHandler)
-
 	mux.HandleFunc("/users", views.UserProfileHandler)
 	mux.HandleFunc("/users/comments", views.UserCommentsHandler)
 	mux.HandleFunc("/users/topics", views.UserTopicsHandler)
 	mux.HandleFunc("/users/groups", views.UserGroupsHandler)
 
-
 	srv := &http.Server{
 		Handler: mux,
-		Addr: ":" + *port,
+		Addr: *port,
 		WriteTimeout: 45 * time.Second,
 		ReadTimeout:  45 * time.Second,
 	}

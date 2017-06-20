@@ -65,37 +65,6 @@ type Group struct {
 	UpdatedDate time.Time
 }
 
-type Topic struct {
-	ID int
-	Content string
-	AuthorID int
-	GroupID int
-	IsDeleted bool
-	IsSticky bool
-	IsClosed bool
-	NumComments int
-	Upvotes int
-	Downvotes int
-	Flagvotes int
-	CreatedDate time.Time
-	UpdatedDate time.Time
-}
-
-type Comment struct {
-	ID int
-	Content string
-	AuthorID int
-	TopicID int
-	ParentID int
-	IsDeleted bool
-	IsSticky bool
-	Upvotes int
-	Downvotes int
-	Flagvotes int
-	CreatedDate time.Time
-	UpdatedDate time.Time
-}
-
 type Mod struct {
 	ID int
 	UserID int
@@ -110,33 +79,11 @@ type Admin struct {
 	CreatedDate time.Time
 }
 
-type TopicVote struct {
-	ID int
-	UserID int
-	TopicID int
-	VoteType int
-	CreatedDate time.Time
-}
-
 type CommentVote struct {
 	ID int
 	UserID int
 	CommentID int
 	VoteType int
-	CreatedDate time.Time
-}
-
-type TopicSubscription struct {
-	ID int
-	UserID int
-	TopicID int
-	CreatedDate time.Time
-}
-
-type GroupSubscription struct {
-	ID int
-	UserID int
-	GroupID int
 	CreatedDate time.Time
 }
 
@@ -492,13 +439,6 @@ func ConfigAllVals() map[string]interface{} {
 	return vals
 }
 
-func ConfigCommonVals() map[string]string {
-	vals := map[string]string{
-		"forum_name": Config(ForumName),
-	}
-	return vals
-}
-
 func NumUsers() int64 {
 	r := db.QueryRow(`SELECT MAX(_ROWID_) FROM users LIMIT 1;`)
 	var n sql.NullInt64
@@ -535,8 +475,137 @@ func NumComments() int64 {
 	return 0
 }
 
+func CreateTables() {
+	db.Exec(`CREATE TABLE configs(key VARCHAR(250), val TEXT);`)
+	db.Exec(`CREATE UNIQUE INDEX configs_key_index on configs(key);`)
+
+	db.Exec(`CREATE TABLE users(
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+		       		username VARCHAR(32) NOT NULL,
+		       		passwdhash VARCHAR(250) NOT NULL,
+		       		email VARCHAR(250) DEFAULT "",
+		       		about TEXT DEFAULT "",
+		       		reset_token VARCHAR(250) DEFAULT "",
+		       		is_banned INTEGER DEFAULT 0,
+				is_superadmin INTEGER DEFAULT 0,
+		       		created_date INTEGER,
+		       		updated_date INTEGER,
+		       		reset_token_date INTEGER DEFAULT 0
+	);`)
+	db.Exec(`CREATE UNIQUE INDEX users_username_index on users(username);`)
+	db.Exec(`CREATE INDEX users_email_index on users(email);`)
+	db.Exec(`CREATE INDEX users_reset_token_index on users(reset_token);`)
+
+	db.Exec(`CREATE TABLE groups(
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+		       		name VARCHAR(200),
+		       		desc TEXT DEFAULT "",
+		       		header_msg TEXT DEFAULT "",
+		       		is_sticky INTEGER DEFAULT 0,
+		       		is_closed INTEGER DEFAULT 0,
+		       		created_date INTEGER,
+		       		updated_date INTEGER
+	);`)
+	db.Exec(`CREATE INDEX groups_sticky_index on groups(is_sticky);`)
+	db.Exec(`CREATE INDEX groups_name_index on groups(name);`)
+
+	db.Exec(`CREATE TABLE topics(
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				title VARCHAR(200) DEFAULT "",
+				content TEXT DEFAULT "",
+				image TEXT DEFAULT "",
+				userid INTEGER REFERENCES users(id) ON DELETE CASCADE,
+				groupid INTEGER REFERENCES groups(id) ON DELETE CASCADE,
+				is_deleted INTEGER DEFAULT 0,
+				is_sticky INTEGER DEFAULT 0,
+				is_closed INTEGER DEFAULT 0,
+				num_comments INTEGER DEFAULT 0,
+				created_date INTEGER,
+				updated_date INTEGER
+	);`)
+	db.Exec(`CREATE INDEX topics_userid_index on topics(userid);`)
+	db.Exec(`CREATE INDEX topics_groupid_index on topics(groupid);`)
+
+	db.Exec(`CREATE TABLE comments(
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				content TEXT DEFAULT "",
+				image TEXT DEFAULT "",
+				userid INTEGER REFERENCES users(id) ON DELETE CASCADE,
+				topicid INTEGER REFERENCES topics(id) ON DELETE CASCADE,
+				parentid INTEGER REFERENCES comments(id) ON DELETE CASCADE,
+				is_deleted INTEGER DEFAULT 0,
+				is_sticky INTEGER DEFAULT 0,
+				created_date INTEGER,
+				updated_date INTEGER
+	);`)
+	db.Exec(`CREATE INDEX comments_userid_index on comments(userid);`)
+	db.Exec(`CREATE INDEX comments_topicid_index on comments(topicid);`)
+	db.Exec(`CREATE INDEX comments_parentid_index on comments(parentid);`)
+
+	db.Exec(`CREATE TABLE mods(
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+		       		userid INTEGER REFERENCES users(id) ON DELETE CASCADE,
+				groupid INTEGER REFERENCES groups(id) ON DELETE CASCADE,
+		       		created_date INTEGER
+	);`)
+	db.Exec(`CREATE INDEX mods_userid_index on mods(userid);`)
+	db.Exec(`CREATE INDEX mods_groupid_index on mods(groupid);`)
+
+	db.Exec(`CREATE TABLE admins(
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+		       		userid INTEGER REFERENCES users(id) ON DELETE CASCADE,
+				groupid INTEGER REFERENCES groups(id) ON DELETE CASCADE,
+		       		created_date INTEGER
+	);`)
+	db.Exec(`CREATE INDEX admins_userid_index on admins(userid);`)
+	db.Exec(`CREATE INDEX admins_groupid_index on admins(groupid);`)
+
+	db.Exec(`CREATE TABLE topicsubscriptions(
+				id INTEGER PRIMARY KEY,
+				userid INTEGER REFERENCES users(id) ON DELETE CASCADE,
+				topicid INTEGER REFERENCES topics(id) ON DELETE CASCADE,
+				token VARCHAR(128),
+				created_date INTEGER
+	);`)
+	db.Exec(`CREATE INDEX topicsubscriptions_userid_index on topicsubscriptions(userid);`)
+	db.Exec(`CREATE INDEX topicsubscriptions_topicid_index on topicsubscriptions(topicid);`)
+	db.Exec(`CREATE INDEX topicsubscriptions_token_index on topicsubscriptions(token);`)
+
+	db.Exec(`CREATE TABLE groupsubscriptions(
+				id INTEGER PRIMARY KEY,
+				userid INTEGER REFERENCES users(id) ON DELETE CASCADE,
+				groupid INTEGER REFERENCES groups(id) ON DELETE CASCADE,
+				token VARCHAR(128),
+				created_date INTEGER
+	);`)
+	db.Exec(`CREATE INDEX groupsubscriptions_userid_index on groupsubscriptions(userid);`)
+	db.Exec(`CREATE INDEX groupsubscriptions_groupid_index on groupsubscriptions(groupid);`)
+	db.Exec(`CREATE INDEX groupsubscriptions_token_index on groupsubscriptions(token);`)
+
+	db.Exec(`CREATE TABLE extranotes(
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				name VARCHAR(250) NOT NULL,
+				content TEXT DEFAULT "",
+				URL VARCHAR(250) DEFAULT "",
+				created_date INTEGER,
+				updated_date INTEGER
+	);`)
+
+	db.Exec(`CREATE TABLE sessions(
+				id INTEGER PRIMARY KEY,
+				sessionid VARCHAR(250) NOT NULL,
+				userid INTEGER REFERENCES users(id) ON DELETE CASCADE,
+				csrf VARCHAR(250) NOT NULL,
+				msg VARCHAR(250) NOT NULL,
+				created_date INTEGER NOT NULL,
+				updated_date INTEGER NOT NULL
+	);`)
+	db.Exec(`CREATE INDEX sessions_sessionid_index on sessions(sessionid);`)
+	db.Exec(`CREATE INDEX sessions_userid_index on sessions(userid);`)
+}
+
 func Migrate() {
-	db.CreateTables()
+	CreateTables()
 
 	WriteConfig("version", "1");
 	WriteConfig(HeaderMsg, "")
@@ -556,6 +625,6 @@ func Migrate() {
 }
 
 func IsMigrationNeeded() bool {
-	dbver := db.DBVersion()
+	dbver := db.Version()
 	return dbver != ModelVersion
 }
