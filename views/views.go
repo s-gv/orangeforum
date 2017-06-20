@@ -134,14 +134,17 @@ func saveImage(r *http.Request) string {
 		if err == nil {
 			defer file.Close()
 			if handler.Filename != "" {
-				fileName := models.RandSeq(64) + filepath.Ext(handler.Filename)
-				f, err := os.OpenFile(dataDir+fileName, os.O_WRONLY|os.O_CREATE, 0666)
-				if err == nil {
-					defer f.Close()
-					io.Copy(f, file)
-					imageName = fileName
-				} else {
-					log.Panicf("[ERROR] Error writing opening file: %s\n", err)
+				ext := strings.ToLower(filepath.Ext(handler.Filename))
+				if ext == ".jpg" || ext == ".png" || ext == ".jpeg" {
+					fileName := models.RandSeq(64) + ext
+					f, err := os.OpenFile(dataDir+fileName, os.O_WRONLY|os.O_CREATE, 0666)
+					if err == nil {
+						defer f.Close()
+						io.Copy(f, file)
+						imageName = fileName
+					} else {
+						log.Panicf("[ERROR] Error writing opening file: %s\n", err)
+					}
 				}
 			}
 		}
