@@ -134,6 +134,8 @@ func main() {
 
 	mux.HandleFunc("/admin", views.AdminIndexHandler)
 
+	mux.HandleFunc("/img", views.ImageHandler)
+
 	mux.HandleFunc("/users", views.UserProfileHandler)
 	mux.HandleFunc("/users/comments", views.UserCommentsHandler)
 	mux.HandleFunc("/users/topics", views.UserTopicsHandler)

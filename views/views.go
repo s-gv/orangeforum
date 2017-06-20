@@ -17,6 +17,9 @@ import (
 	"time"
 	"net/url"
 	"database/sql"
+	"os"
+	"io"
+	"path/filepath"
 )
 
 func ErrServerHandler(w http.ResponseWriter, r *http.Request) {
@@ -121,6 +124,31 @@ func validateName(name string) error {
 		return errors.New("Name can contain only english alphabets, numbers, hyphens, and underscore.")
 	}
 	return nil
+}
+
+func saveImage(r *http.Request) string {
+	imageName := ""
+	if dataDir := models.Config(models.DataDir); dataDir != "" {
+		r.ParseMultipartForm(32*1024*1024)
+		file, handler, err := r.FormFile("img")
+		if err == nil {
+			defer file.Close()
+			fileName := models.RandSeq(64) + filepath.Ext(handler.Filename)
+			f, err := os.OpenFile(dataDir+fileName, os.O_WRONLY|os.O_CREATE, 0666)
+			if err == nil {
+				defer f.Close()
+				io.Copy(f, file)
+				imageName = fileName
+			} else {
+				log.Printf("[ERROR] Error writing opening file: %s\n", err)
+			}
+		} else {
+			log.Printf("[ERROR] Error in file upload: %s\n", err)
+		}
+	} else {
+		log.Printf("[ERROR] Unable to accept file upload. DataDir not configured.\n")
+	}
+	return imageName
 }
 
 var GroupEditHandler = A(func(w http.ResponseWriter, r *http.Request, sess models.Session) {
@@ -476,6 +504,7 @@ var TopicHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.S
 	type Comment struct {
 		ID string
 		Content string
+		ImgSrc string
 		CreatedDate string
 		UserName string
 		IsOwner bool
@@ -487,15 +516,15 @@ var TopicHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.S
 	var cDate int64
 	var rows *db.Rows
 	if lastCommentDate == 0 {
-		rows = db.Query(`SELECT users.id, users.username, comments.id, comments.content, comments.is_deleted, comments.created_date FROM comments INNER JOIN users ON comments.userid=users.id AND comments.topicid=? ORDER BY comments.is_sticky DESC, comments.created_date ASC LIMIT ?;`, topicID, numCommentsPerPage)
+		rows = db.Query(`SELECT users.id, users.username, comments.id, comments.content, comments.image, comments.is_deleted, comments.created_date FROM comments INNER JOIN users ON comments.userid=users.id AND comments.topicid=? ORDER BY comments.is_sticky DESC, comments.created_date ASC LIMIT ?;`, topicID, numCommentsPerPage)
 	} else {
-		rows = db.Query(`SELECT users.id, users.username, comments.id, comments.content, comments.is_deleted, comments.created_date FROM comments INNER JOIN users ON comments.userid=users.id AND comments.topicid=? AND comments.created_date > ? AND comments.is_sticky=0 ORDER BY comments.created_date ASC LIMIT ?;`, topicID, lastCommentDate, numCommentsPerPage)
+		rows = db.Query(`SELECT users.id, users.username, comments.id, comments.content, comments.image, comments.is_deleted, comments.created_date FROM comments INNER JOIN users ON comments.userid=users.id AND comments.topicid=? AND comments.created_date > ? AND comments.is_sticky=0 ORDER BY comments.created_date ASC LIMIT ?;`, topicID, lastCommentDate, numCommentsPerPage)
 	}
 	for rows.Next() {
 		comments = append(comments, Comment{})
 		c := &comments[len(comments)-1]
 		var ownerID int64
-		rows.Scan(&ownerID, &c.UserName, &c.ID, &c.Content, &c.IsDeleted, &cDate)
+		rows.Scan(&ownerID, &c.UserName, &c.ID, &c.Content, &c.ImgSrc, &c.IsDeleted, &cDate)
 		c.CreatedDate = timeAgoFromNow(time.Unix(cDate, 0))
 		c.IsOwner = sess.UserID.Valid && (ownerID == sess.UserID.Int64)
 	}
@@ -536,6 +565,7 @@ var CommentCreateHandler = A(func(w http.ResponseWriter, r *http.Request, sess m
 	topicID := r.FormValue("tid")
 	content := r.PostFormValue("content")
 	isSticky := r.PostFormValue("is_sticky") != ""
+	isImageUploadEnabled := models.Config(models.ImageUploadEnabled) != "0"
 	var groupID, groupName, topicName, parentComment string
 
 	if db.QueryRow(`SELECT groupid, title, content FROM topics WHERE id=?;`, topicID).Scan(
@@ -566,8 +596,12 @@ var CommentCreateHandler = A(func(w http.ResponseWriter, r *http.Request, sess m
 		if !isMod && !isAdmin && !isSuperAdmin {
 			isSticky = false
 		}
-		db.Exec(`INSERT INTO comments(content, topicid, userid, parentid, is_sticky, created_date, updated_date) VALUES(?, ?, ?, ?, ?, ?, ?);`,
-			content, topicID, sess.UserID, sql.NullInt64{Valid:false}, isSticky, int64(time.Now().Unix()), int64(time.Now().Unix()))
+		imageName := ""
+		if isImageUploadEnabled {
+			imageName = saveImage(r)
+		}
+		db.Exec(`INSERT INTO comments(content, image, topicid, userid, parentid, is_sticky, created_date, updated_date) VALUES(?, ?, ?, ?, ?, ?, ?, ?);`,
+			content, imageName, topicID, sess.UserID, sql.NullInt64{Valid:false}, isSticky, int64(time.Now().Unix()), int64(time.Now().Unix()))
 		if models.Config(models.AllowTopicSubscription) != "0" {
 			topicURL := "http://" + r.Host + "/topics?id=" + topicID
 			rows := db.Query(`SELECT users.email, topicsubscriptions.token FROM users INNER JOIN topicsubscriptions ON users.id=topicsubscriptions.userid AND topicsubscriptions.topicid=?;`, topicID)
@@ -597,6 +631,7 @@ var CommentCreateHandler = A(func(w http.ResponseWriter, r *http.Request, sess m
 		"IsMod": isMod,
 		"IsAdmin": isAdmin,
 		"IsSuperAdmin": isSuperAdmin,
+		"IsImageUploadEnabled": isImageUploadEnabled,
 	})
 })
 
@@ -678,17 +713,18 @@ var CommentUpdateHandler = A(func(w http.ResponseWriter, r *http.Request, sess m
 		"IsAdmin": isAdmin,
 		"IsSuperAdmin": isSuperAdmin,
 		"IsDeleted": isDeleted,
+		"IsImageUploadEnabled": false,
 	})
 })
 
 var CommentHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.Session) {
 	commentID := r.FormValue("id")
-	var groupID, topicID, topicName, groupName, ownerID, ownerName, content string
+	var groupID, topicID, topicName, groupName, ownerID, ownerName, content, imgSrc string
 	var cDate int64
 	var isDeleted bool
 
-	if db.QueryRow(`SELECT userid, topicid, content, is_deleted, created_date FROM comments WHERE id=?;`, commentID).Scan(
-			&ownerID, &topicID, &content, &isDeleted, &cDate) != nil {
+	if db.QueryRow(`SELECT userid, topicid, content, image, is_deleted, created_date FROM comments WHERE id=?;`, commentID).Scan(
+			&ownerID, &topicID, &content, &imgSrc, &isDeleted, &cDate) != nil {
 		ErrNotFoundHandler(w, r)
 		return
 	}
@@ -711,6 +747,7 @@ var CommentHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models
 		"TopicName": topicName,
 		"GroupName": groupName,
 		"Content": content,
+		"ImgSrc": imgSrc,
 		"IsMod": isMod,
 		"IsAdmin": isAdmin,
 		"IsSuperAdmin": isSuperAdmin,
@@ -1044,7 +1081,6 @@ var AdminIndexHandler = A(func (w http.ResponseWriter, r *http.Request, sess mod
 		signupDisabled := "0"
 		groupCreationDisabled := "0"
 		imageUploadEnabled := "0"
-		fileUploadEnabled := "0"
 		allowGroupSubscription := "0"
 		allowTopicSubscription := "0"
 		dataDir := r.PostFormValue("data_dir")
@@ -1063,9 +1099,6 @@ var AdminIndexHandler = A(func (w http.ResponseWriter, r *http.Request, sess mod
 		if r.PostFormValue("image_upload_enabled") != "" {
 			imageUploadEnabled = "1"
 		}
-		if r.PostFormValue("file_upload_enabled") != "" {
-			fileUploadEnabled = "1"
-		}
 		if r.PostFormValue("allow_group_subscription") != "" {
 			allowGroupSubscription = "1"
 		}
@@ -1073,8 +1106,8 @@ var AdminIndexHandler = A(func (w http.ResponseWriter, r *http.Request, sess mod
 			allowTopicSubscription = "1"
 		}
 		if dataDir != "" {
-			if dataDir[len(dataDir)-1] == '/' {
-				dataDir = dataDir[:len(dataDir)-1]
+			if dataDir[len(dataDir)-1] != '/' {
+				dataDir = dataDir + "/"
 			}
 		}
 
@@ -1089,7 +1122,6 @@ var AdminIndexHandler = A(func (w http.ResponseWriter, r *http.Request, sess mod
 			models.WriteConfig(models.SignupDisabled, signupDisabled)
 			models.WriteConfig(models.GroupCreationDisabled, groupCreationDisabled)
 			models.WriteConfig(models.ImageUploadEnabled, imageUploadEnabled)
-			models.WriteConfig(models.FileUploadEnabled, fileUploadEnabled)
 			models.WriteConfig(models.AllowGroupSubscription, allowGroupSubscription)
 			models.WriteConfig(models.AllowTopicSubscription, allowTopicSubscription)
 			models.WriteConfig(models.DataDir, dataDir)
@@ -1338,7 +1370,17 @@ func FaviconHandler(w http.ResponseWriter, r *http.Request) {
 	defer ErrServerHandler(w, r)
 	dataDir := models.Config(models.DataDir)
 	if dataDir != "" {
-		http.ServeFile(w, r, dataDir+"/favicon.ico")
+		http.ServeFile(w, r, dataDir+"favicon.ico")
+		return
+	}
+	ErrNotFoundHandler(w, r)
+}
+
+func ImageHandler(w http.ResponseWriter, r *http.Request) {
+	defer ErrServerHandler(w, r)
+	dataDir := models.Config(models.DataDir)
+	if dataDir != "" {
+		http.ServeFile(w, r, dataDir+r.FormValue("name"))
 		return
 	}
 	ErrNotFoundHandler(w, r)

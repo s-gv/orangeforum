@@ -37,13 +37,17 @@ input[type="text"], input[type="number"], textarea {
 
 <div>{{ .ParentComment }}</div>
 
-<form action="{{ if .CommentID }}/comments/edit{{ else }}/comments/new{{ end }}" method="POST">
+<form action="{{ if .CommentID }}/comments/edit{{ else }}/comments/new{{ end }}" method="POST" enctype="multipart/form-data">
 <input type="hidden" name="csrf" value="{{ .Common.CSRF }}">
 <input type="hidden" name="id" value="{{ .CommentID }}">
 <input type="hidden" name="tid" value="{{ .TopicID }}">
 <div>
 <textarea name="content" rows="8">{{ .Content }}</textarea>
 </div>
+
+{{ if .IsImageUploadEnabled }}
+<div>Add Image (optional): <input type="file" name="img" accept="image/*"></div>
+{{ end }}
 
 {{ if or .IsMod .IsAdmin .IsSuperAdmin }}
 <div><input type="checkbox" name="is_sticky"{{ if .IsSticky }} checked{{ end }}> Sticky</div>

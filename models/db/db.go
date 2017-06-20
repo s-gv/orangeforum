@@ -61,6 +61,7 @@ func CreateTables() {
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
 				title VARCHAR(200) DEFAULT "",
 				content TEXT DEFAULT "",
+				image TEXT DEFAULT "",
 				userid INTEGER REFERENCES users(id) ON DELETE CASCADE,
 				groupid INTEGER REFERENCES groups(id) ON DELETE CASCADE,
 				is_deleted INTEGER DEFAULT 0,
@@ -77,6 +78,7 @@ func CreateTables() {
 	if _, err := db.Exec(`CREATE TABLE comments(
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
 				content TEXT DEFAULT "",
+				image TEXT DEFAULT "",
 				userid INTEGER REFERENCES users(id) ON DELETE CASCADE,
 				topicid INTEGER REFERENCES topics(id) ON DELETE CASCADE,
 				parentid INTEGER REFERENCES comments(id) ON DELETE CASCADE,

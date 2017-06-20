@@ -99,10 +99,6 @@ input[type="text"], input[type="number"], textarea {
 	<div class="ccol2"><input type="checkbox" name="image_upload_enabled" value="1"{{ if index .Config "image_upload_enabled" }} checked{{ end }}></div>
 </div>
 <div class="row clearfix">
-	<div class="ccol1">Allow file upload</div>
-	<div class="ccol2"><input type="checkbox" name="file_upload_enabled" value="1"{{ if index .Config "file_upload_enabled" }} checked{{ end }}></div>
-</div>
-<div class="row clearfix">
 	<div class="ccol1">Allow e-mail subscriptions to groups</div>
 	<div class="ccol2"><input type="checkbox" name="allow_group_subscription" value="1"{{ if index .Config "allow_group_subscription" }} checked{{ end }}></div>
 </div>

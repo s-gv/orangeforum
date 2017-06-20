@@ -27,7 +27,6 @@ const (
 	SignupDisabled string = "signup_disabled"
 	GroupCreationDisabled string = "group_creation_disabled"
 	ImageUploadEnabled string = "image_upload_enabled"
-	FileUploadEnabled string = "file_upload_enabled"
 	AllowGroupSubscription string = "allow_group_subscription"
 	AllowTopicSubscription string = "allow_topic_subscription"
 	DataDir string = "data_dir"
@@ -480,7 +479,6 @@ func ConfigAllVals() map[string]interface{} {
 		"signup_disabled": Config(SignupDisabled) == "1",
 		"group_creation_disabled": Config(GroupCreationDisabled) == "1",
 		"image_upload_enabled": Config(ImageUploadEnabled) == "1",
-		"file_upload_enabled": Config(FileUploadEnabled) == "1",
 		"allow_group_subscription": Config(AllowGroupSubscription) == "1",
 		"allow_topic_subscription": Config(AllowTopicSubscription) == "1",
 		"data_dir": Config(DataDir),
@@ -545,7 +543,6 @@ func Migrate() {
 	WriteConfig(ForumName, "Orange Forum")
 	WriteConfig(SignupDisabled, "0")
 	WriteConfig(GroupCreationDisabled, "0")
-	WriteConfig(FileUploadEnabled, "0")
 	WriteConfig(ImageUploadEnabled, "0")
 	WriteConfig(AllowGroupSubscription, "0")
 	WriteConfig(AllowTopicSubscription, "0")
