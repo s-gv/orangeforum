@@ -11,14 +11,21 @@ func SendMail(to string, sub string, body string) {
 		smtpHost := models.Config(models.SMTPHost)
 		from := models.Config(models.DefaultFromMail)
 		if from != "" && smtpHost != "" {
-			auth := smtp.PlainAuth("", models.Config(models.SMTPUser), models.Config(models.SMTPPass), smtpHost)
-
+			smtpUser := models.Config(models.SMTPUser)
+			smtpPass := models.Config(models.SMTPPass)
+			auth := smtp.PlainAuth("", smtpUser, smtpPass, smtpHost)
 			msg := []byte("From: "+models.Config(models.ForumName)+"<"+from+">\r\n" +
 				"To: "+to+"\r\n" +
 				"Subject: "+sub+"\r\n" +
 				"\r\n" +
 				body+"\r\n")
-			err := smtp.SendMail(models.Config(models.SMTPHost)+":"+models.Config(models.SMTPPort), auth, from, []string{to}, msg)
+			var err error
+			if smtpUser != "" {
+				err = smtp.SendMail(models.Config(models.SMTPHost)+":"+models.Config(models.SMTPPort), auth, from, []string{to}, msg)
+			} else {
+				err = smtp.SendMail(models.Config(models.SMTPHost)+":"+models.Config(models.SMTPPort), nil, from, []string{to}, msg)
+			}
+
 			if err != nil {
 				log.Printf("[ERROR] Error sending mail: %s\n", err)
 			}

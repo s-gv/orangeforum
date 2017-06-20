@@ -133,17 +133,17 @@ func saveImage(r *http.Request) string {
 		file, handler, err := r.FormFile("img")
 		if err == nil {
 			defer file.Close()
-			fileName := models.RandSeq(64) + filepath.Ext(handler.Filename)
-			f, err := os.OpenFile(dataDir+fileName, os.O_WRONLY|os.O_CREATE, 0666)
-			if err == nil {
-				defer f.Close()
-				io.Copy(f, file)
-				imageName = fileName
-			} else {
-				log.Panicf("[ERROR] Error writing opening file: %s\n", err)
+			if handler.Filename != "" {
+				fileName := models.RandSeq(64) + filepath.Ext(handler.Filename)
+				f, err := os.OpenFile(dataDir+fileName, os.O_WRONLY|os.O_CREATE, 0666)
+				if err == nil {
+					defer f.Close()
+					io.Copy(f, file)
+					imageName = fileName
+				} else {
+					log.Panicf("[ERROR] Error writing opening file: %s\n", err)
+				}
 			}
-		} else {
-			log.Panicf("[ERROR] Error in file upload: %s\n", err)
 		}
 	} else {
 		log.Panicf("[ERROR] Unable to accept file upload. DataDir not configured.\n")
@@ -379,7 +379,7 @@ var TopicCreateHandler = A(func(w http.ResponseWriter, r *http.Request, sess mod
 				if email != "" {
 					unSubURL := "http://" + r.Host + "/groups/unsubscribe?token=" + token
 					utils.SendMail(email, `New topic in `+groupName,
-						`A new topic titled "`+title+`" has been posted to <a href="`+groupURL+`">`+groupName+`</a>.\r\n\r\n. If you do not want these emails, <a href="`+unSubURL+`">unsubscribe</a>. Or, follow this link: \r\n`+unSubURL)
+						"A new topic titled \""+title+"\" has been posted to "+groupName+".\r\nSee topics posted to the group at "+groupURL+"\r\n\r\nIf you do not want these emails, unsubscribe by following this link: "+unSubURL)
 				}
 			}
 		}
@@ -603,6 +603,8 @@ var CommentCreateHandler = A(func(w http.ResponseWriter, r *http.Request, sess m
 		db.Exec(`INSERT INTO comments(content, image, topicid, userid, parentid, is_sticky, created_date, updated_date) VALUES(?, ?, ?, ?, ?, ?, ?, ?);`,
 			content, imageName, topicID, sess.UserID, sql.NullInt64{Valid:false}, isSticky, int64(time.Now().Unix()), int64(time.Now().Unix()))
 		if models.Config(models.AllowTopicSubscription) != "0" {
+			var userName string
+			db.QueryRow(`SELECT username FROM users WHERE id=?;`, sess.UserID).Scan(&userName)
 			topicURL := "http://" + r.Host + "/topics?id=" + topicID
 			rows := db.Query(`SELECT users.email, topicsubscriptions.token FROM users INNER JOIN topicsubscriptions ON users.id=topicsubscriptions.userid AND topicsubscriptions.topicid=?;`, topicID)
 			for rows.Next() {
@@ -611,7 +613,7 @@ var CommentCreateHandler = A(func(w http.ResponseWriter, r *http.Request, sess m
 				if email != "" {
 					unSubURL := "http://" + r.Host + "/topics/unsubscribe?token=" + token
 					utils.SendMail(email, `New comment in "`+topicName+`"`,
-						`A new comment has been posted in <a href="`+topicURL+`">`+topicName+`</a>\r\n\r\n. If you do not want these emails, <a href="`+unSubURL+`">unsubscribe</a>. Or, follow this link: \r\n`+unSubURL)
+						"A new comment has been posted by "+userName+" in \""+topicName+"\".\r\nSee the comment at "+topicURL+"\r\n\r\nIf you do not want these emails, unsubscribe by following this link: "+unSubURL)
 				}
 			}
 		}
@@ -797,7 +799,8 @@ var TopicUnsubscribeHandler = UA(func(w http.ResponseWriter, r *http.Request, se
 	<meta name="viewport" content="width=device-width, initial-scale=1"></head>
 	<body><form action="/topics/unsubscribe" method="POST">
 	Unsubscribe from `+ topicName +`?
-	<input type="hidden" name="token" value=`+token+`>
+	<input type="hidden" name="token" value="`+token+`">
+	<input type="hidden" name="csrf" value="`+sess.CSRFToken+`">
 	<input type="hidden" name="noredirect" value="1">
 	<input type="submit" value="Unsubscribe">
 	</form></body></html>`))
@@ -844,6 +847,7 @@ var GroupUnsubscribeHandler = UA(func(w http.ResponseWriter, r *http.Request, se
 	<body><form action="/groups/unsubscribe" method="POST">
 	Unsubscribe from `+groupName+`?
 	<input type="hidden" name="token" value=`+token+`>
+	<input type="hidden" name="csrf" value="`+sess.CSRFToken+`">
 	<input type="hidden" name="noredirect" value="1">
 	<input type="submit" value="Unsubscribe">
 	</form></body></html>`))
