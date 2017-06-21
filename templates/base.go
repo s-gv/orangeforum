@@ -7,9 +7,13 @@ const baseSrc = `<!DOCTYPE html>
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<style>
+	* {
+		-webkit-box-sizing: border-box;
+		-moz-box-sizing: border-box;
+		box-sizing: border-box;
+	}
 	html, body {
 		margin: 0;
-		padding: 0;
 		height: 100%;
 	}
 	#container {
@@ -18,8 +22,6 @@ const baseSrc = `<!DOCTYPE html>
 		margin: 0 auto;
 		min-height: 100%;
 		position: relative;
-		padding-left: 10px;
-		padding-right: 10px;
 	}
 	#header {
 		padding-top: 10px;
@@ -43,6 +45,8 @@ const baseSrc = `<!DOCTYPE html>
 		font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
 		text-rendering: optimizeLegibility;
 		-webkit-font-smoothing: antialiased;
+		padding-left: 10px;
+		padding-right: 10px;
 	}
 	img {
 		max-width: 100%;

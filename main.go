@@ -53,7 +53,7 @@ func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
 	dbFileName := flag.String("dbname", "orangeforum.db", "Database file path (default: orangeforum.db)")
-	port := flag.String("addr", ":9123", "Port to listen on (default: :9123)")
+	addr := flag.String("addr", ":9123", "Port to listen on (default: :9123)")
 	shouldMigrate := flag.Bool("migrate", false, "Migrate DB (default: false)")
 	createSuperUser := flag.Bool("createsuperuser", false, "Create superuser")
 	createUser := flag.Bool("createuser", false, "Create user")
@@ -139,12 +139,12 @@ func main() {
 
 	srv := &http.Server{
 		Handler: mux,
-		Addr: *port,
+		Addr: *addr,
 		WriteTimeout: 45 * time.Second,
 		ReadTimeout:  45 * time.Second,
 	}
 
-	log.Println("[INFO] Starting orangeforum on port", *port)
+	log.Println("[INFO] Starting orangeforum at", *addr)
 	err := srv.ListenAndServe()
 	if err != nil {
 		log.Panicf("[ERROR] %s\n", err)
