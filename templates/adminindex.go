@@ -1,50 +1,13 @@
 package templates
 
 const adminindexSrc = `
-{{ define "head" }}
-<style>
-
-.ccol1 {
-	float: left;
-	max-width: 80%;
-}
-.ccol2 {
-	float: right;
-	margin-left: 15px;
-}
-@media screen and (min-width:600px) {
-	.tcol1 {
-		float: left;
-		text-align: right;
-		width: 275px;
-	}
-	.tcol2 {
-		float: left;
-		text-align: left;
-		margin-left: 15px;
-		width: 300px;
-	}
-	.ccol1 {
-		text-align: right;
-		width: 275px;
-	}
-	.ccol2 {
-		float: left;
-	}
-	.col1-offset {
-		margin-left: 290px;
-	}
-}
-</style>
-{{ end }}
-
 {{ define "content" }}
 
 <h1>Config</h1>
 
 <form action="/admin" method="POST">
 <input type="hidden" name="csrf" value="{{ .Common.CSRF }}">
-<table>
+<table class="form">
 	<tr>
 		<th><label for="forum_name">Forum Name:</label></th>
 		<td><input type="text" name="forum_name" id="forum_name" value="{{ index .Config "forum_name" }}" required></td>
@@ -108,64 +71,79 @@ const adminindexSrc = `
 </table>
 </form>
 
-<h1>Stats</h1>
-
-<div class="row clearfix">
-	<div class="ccol1">Number of users</div>
-	<div class="ccol2">{{ .NumUsers }}</div>
-</div>
-<div class="row clearfix">
-	<div class="ccol1">Number of groups</div>
-	<div class="ccol2">{{ .NumGroups }}</div>
-</div>
-<div class="row clearfix">
-	<div class="ccol1">Number of topics</div>
-	<div class="ccol2">{{ .NumTopics }}</div>
-</div>
-<div class="row clearfix">
-	<div class="ccol1">Number of comments</div>
-	<div class="ccol2">{{ .NumComments }}</div>
-</div>
-
 <h1>Footer links</h1>
 
 {{ range .ExtraNotes }}
 <form action="/admin" method="POST">
 <input type="hidden" name="csrf" value="{{ $.Common.CSRF }}">
 <input type="hidden" name="linkid" value="{{ .ID }}">
-<div class="row clearfix">
-	<div class="tcol1">Link name</div>
-	<div class="tcol2"><input type="text" name="name" value="{{ .Name }}"></div>
-</div>
-<div class="clearfix">
-	<div class="tcol1">External URL / Content</div>
-	<div class="tcol2">
-		<input type="text" name="url" value="{{ .URL }}">
-		<textarea name="content" rows="6">{{ .Content }}</textarea>
-		<input type="submit" name="submit" value="Update">
-		<input type="submit" name="submit" value="Delete">
-	</div>
-</div>
+<table class="form">
+	<tr>
+		<th>Link name:</th>
+		<td><input type="text" name="name" value="{{ .Name }}"></td>
+	</tr>
+	<tr>
+		<th>External URL / Content:</th>
+		<td><input type="text" name="url" value="{{ .URL }}"></td>
+	</tr>
+	<tr>
+		<th></th>
+		<td><textarea name="content" rows="6">{{ .Content }}</textarea></td>
+	</tr>
+	<tr>
+		<th></th>
+		<td>
+			<input type="submit" name="submit" value="Update">
+			<input type="submit" name="submit" value="Delete">
+		</td>
+	</tr>
+</table>
 </form>
 {{ end }}
 
 <form action="/admin" method="POST">
 <input type="hidden" name="csrf" value="{{ .Common.CSRF }}">
 <input type="hidden" name="linkid" value="new">
-<div class="row clearfix">
-	<div class="tcol1">New Link</div>
-	<div class="tcol2"><input type="text" name="name" placeholder="Privacy Policy"></div>
-</div>
-<div class="clearfix">
-	<div class="tcol1">External URL / Content</div>
-	<div class="tcol2">
-		<input type="text" name="url" placeholder="https://...">
-		<textarea name="content" rows="6" placeholder="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque mollis elit hendrerit mattis vulputate. Vivamus congue convallis urna. Ut mollis ligula velit, vitae feugiat nulla laoreet sit amet. Mauris hendrerit arcu ut quam vestibulum tincidunt ac id erat. Integer vehicula congue orci a sagittis. Cras arcu nibh, scelerisque et ultricies luctus, mollis sit amet ex. Donec a volutpat nibh, ac venenatis nisi. Aliquam erat volutpat. Vivamus ut ex rutrum, tristique neque et, pulvinar velit. Duis facilisis tincidunt arcu nec imperdiet. Cras semper metus nec quam ornare, eget tempor magna tincidunt. Integer fringilla nisl ligula, vel iaculis orci commodo vitae. Duis a volutpat mauris. Aenean ac felis at metus tristique hendrerit cursus a velit. Curabitur a est tellus. Morbi cursus nisi porta nisi congue iaculis."></textarea>
-		<input type="submit" value="Create new link">
-	</div>
-</div>
+<table class="form">
+	<tr>
+		<th>New Link:</th>
+		<td><input type="text" name="name" placeholder="Privacy Policy"></td>
+	</tr>
+	<tr>
+		<th>External URL / Content:</th>
+		<td><input type="text" name="url" placeholder="https://..."></td>
+	</tr>
+	<tr>
+		<th></th>
+		<td><textarea name="content" rows="6" placeholder="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque mollis elit hendrerit mattis vulputate. Vivamus congue convallis urna. Ut mollis ligula velit, vitae feugiat nulla laoreet sit amet. Mauris hendrerit arcu ut quam vestibulum tincidunt ac id erat. Integer vehicula congue orci a sagittis. Cras arcu nibh, scelerisque et ultricies luctus, mollis sit amet ex. Donec a volutpat nibh, ac venenatis nisi. Aliquam erat volutpat. Vivamus ut ex rutrum, tristique neque et, pulvinar velit. Duis facilisis tincidunt arcu nec imperdiet. Cras semper metus nec quam ornare, eget tempor magna tincidunt. Integer fringilla nisl ligula, vel iaculis orci commodo vitae. Duis a volutpat mauris. Aenean ac felis at metus tristique hendrerit cursus a velit. Curabitur a est tellus. Morbi cursus nisi porta nisi congue iaculis."></textarea></td>
+	</tr>
+	<tr>
+		<th></th>
+		<td><input type="submit" value="Create new link"></td>
+	</tr>
+</table>
 </form>
 
-{{ .Msg }}
+<h1>Stats</h1>
+<table>
+	<tr>
+		<th>Number of users:</th>
+		<td>{{ .NumUsers }}</td>
+	</tr>
+	<tr>
+		<th>Number of groups:</th>
+		<td>{{ .NumGroups }}</td>
+	</tr>
+	<tr>
+		<th>Number of topics:</th>
+		<td>{{ .NumTopics }}</td>
+	</tr>
+	<tr>
+		<th>Number of comments:</th>
+		<td>{{ .NumComments }}</td>
+	</tr>
+</table>
+
+<p>{{ .Common.Msg }}</p>
 
 {{ end }}`

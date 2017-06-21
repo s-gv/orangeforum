@@ -89,30 +89,40 @@ const baseSrc = `<!DOCTYPE html>
 	.row {
 		margin-top: 20px;
 	}
-	table {
+	th, td {
+		text-align: left;
+	}
+	table.form {
 		width: 75%;
 	}
-	th {
+	.form th {
 		text-align: right;
+		padding-top: 10px;
 	}
-	td, th {
-		padding: 5px;
+	.form td {
+		padding-top: 10px;
 	}
 	@media (max-width: 599px) {
-		table {
+		table.form {
 			width: 100%;
 		}
-		th {
-			float: none;
+		.form th {
 			display: block;
+			float: left;
 			text-align: left;
+			max-width: 75%;
+			padding-top: 20px;
 		}
-		td {
+		.form td {
 			display: block;
-			float: none;
+			text-align: right;
+			padding-top: 20px;
+		}
+		.form input[type="submit"] {
+			width: 100%;
 		}
 	}
-	input[type="text"], input[type="number"], textarea {
+	.form input[type="text"], .form input[type="number"], .form textarea {
 		width: 100%;
 	}
 	</style>
