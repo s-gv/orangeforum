@@ -75,5 +75,8 @@ input[type="text"], input[type="number"], input[type="email"], textarea {
 	<div class="col1-offset col2"><a href="/admin">admin</a> (private)</div>
 </div>
 {{ end }}
+<div class="row clearfix">
+	<div class="col1-offset col2"><a href="/logout">logout</a></div>
+</div>
 
 {{ end }}`

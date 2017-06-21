@@ -3,12 +3,7 @@ package templates
 const adminindexSrc = `
 {{ define "head" }}
 <style>
-.row {
-	margin-top: 15px;
-}
-input[type="text"], input[type="number"], textarea {
-	width: 90%;
-}
+
 .ccol1 {
 	float: left;
 	max-width: 80%;
@@ -49,67 +44,68 @@ input[type="text"], input[type="number"], textarea {
 
 <form action="/admin" method="POST">
 <input type="hidden" name="csrf" value="{{ .Common.CSRF }}">
-
-<div class="row clearfix">
-	<div class="tcol1">Forum Name</div>
-	<div class="tcol2"><input type="text" name="forum_name" value="{{ index .Config "forum_name" }}" required></div>
-</div>
-<div class="row clearfix">
-	<div class="tcol1">Announcement</div>
-	<div class="tcol2"><input type="text" name="header_msg" value="{{ index .Config "header_msg" }}"></div>
-</div>
-<div class="row clearfix">
-	<div class="tcol1">Body Appendage</div>
-	<div class="tcol2"><textarea name="body_appendage" rows="4" placeholder="<script>Analytics or something</script>">{{ index .Config "body_appendage" }}</textarea></div>
-</div>
-<div class="row clearfix">
-	<div class="tcol1">Data Directory</div>
-	<div class="tcol2"><input type="text" name="data_dir" value="{{ index .Config "data_dir" }}"></div>
-</div>
-<div class="row clearfix">
-	<div class="tcol1">FROM E-mail</div>
-	<div class="tcol2"><input type="text" name="default_from_mail" value="{{ index .Config "default_from_mail" }}"></div>
-</div>
-<div class="row clearfix">
-	<div class="tcol1">SMTP Host</div>
-	<div class="tcol2"><input type="text" name="smtp_host" value="{{ index .Config "smtp_host" }}"></div>
-</div>
-<div class="row clearfix">
-	<div class="tcol1">SMTP Port</div>
-	<div class="tcol2"><input type="number" name="smtp_port" value="{{ index .Config "smtp_port" }}"></div>
-</div>
-<div class="row clearfix">
-	<div class="tcol1">SMTP Username</div>
-	<div class="tcol2"><input type="text" name="smtp_user" value="{{ index .Config "smtp_user" }}"></div>
-</div>
-<div class="row clearfix">
-	<div class="tcol1">SMTP Password</div>
-	<div class="tcol2"><input type="text" name="smtp_pass" value="{{ index .Config "smtp_pass" }}"></div>
-</div>
-<div class="row clearfix">
-	<div class="ccol1">Signup disabled</div>
-	<div class="ccol2"><input type="checkbox" name="signup_disabled" value="1"{{ if index .Config "signup_disabled" }} checked{{ end }}></div>
-</div>
-<div class="row clearfix">
-	<div class="ccol1">Group creation disabled</div>
-	<div class="ccol2"><input type="checkbox" name="group_creation_disabled" value="1"{{ if index .Config "group_creation_disabled" }} checked{{ end }}></div>
-</div>
-<div class="row clearfix">
-	<div class="ccol1">Allow image upload</div>
-	<div class="ccol2"><input type="checkbox" name="image_upload_enabled" value="1"{{ if index .Config "image_upload_enabled" }} checked{{ end }}></div>
-</div>
-<div class="row clearfix">
-	<div class="ccol1">Allow e-mail subscriptions to groups</div>
-	<div class="ccol2"><input type="checkbox" name="allow_group_subscription" value="1"{{ if index .Config "allow_group_subscription" }} checked{{ end }}></div>
-</div>
-<div class="row clearfix">
-	<div class="ccol1">Allow e-mail subscriptions to topics</div>
-	<div class="ccol2"><input type="checkbox" name="allow_topic_subscription" value="1"{{ if index .Config "allow_topic_subscription" }} checked{{ end }}></div>
-</div>
-<div class="row clearfix">
-	<div class="col1-offset tcol2"><input type="submit" value="Update"></div>
-</div>
-
+<table>
+	<tr>
+		<th><label for="forum_name">Forum Name:</label></th>
+		<td><input type="text" name="forum_name" id="forum_name" value="{{ index .Config "forum_name" }}" required></td>
+	</tr>
+	<tr>
+		<th><label for="header_msg">Announcement:</label></th>
+		<td><input type="text" name="header_msg" id="header_msg" value="{{ index .Config "header_msg" }}"></td>
+	</tr>
+	<tr>
+		<th><label for="body_appendage"><div class="col-label">Body Appendage:</label></th>
+		<td><textarea name="body_appendage" id="body_appendage" rows="4" placeholder="<script>Analytics or something</script>">{{ index .Config "body_appendage" }}</textarea></td>
+	</tr>
+	<tr>
+		<th><label for="data_dir"><div class="col-label">Data Directory:</label></th>
+		<td><input type="text" name="data_dir" id="data_dir" value="{{ index .Config "data_dir" }}"></td>
+	</tr>
+	<tr>
+		<th><label for="default_from_mail"><div class="col-label">FROM E-mail:</label></th>
+		<td><input type="text" name="default_from_mail" id="default_from_mail" value="{{ index .Config "default_from_mail" }}"></td>
+	</tr>
+	<tr>
+		<th><label for="smtp_host">SMTP Host:</label></th>
+		<td><input type="text" name="smtp_host" id="smtp_host" value="{{ index .Config "smtp_host" }}"></td>
+	</tr>
+	<tr>
+		<th><label for="smtp_port">SMTP Port:</label></th>
+		<td><input type="number" name="smtp_port" id="smtp_port" value="{{ index .Config "smtp_port" }}"></td>
+	</tr>
+	<tr>
+		<th><label for="smtp_user">SMTP Username:</label></th>
+		<td><input type="text" name="smtp_user" id="smtp_user" value="{{ index .Config "smtp_user" }}"></td>
+	</tr>
+	<tr>
+		<th><label for="smtp_pass">SMTP Password:</label></th>
+		<td><input type="text" name="smtp_pass" id="smtp_pass" value="{{ index .Config "smtp_pass" }}"></td>
+	</tr>
+	<tr>
+		<th><label for="signup_disabled">Signup disabled:</label></th>
+		<td><input type="checkbox" name="signup_disabled" id="signup_disabled" value="1"{{ if index .Config "signup_disabled" }} checked{{ end }}></td>
+	</tr>
+	<tr>
+		<th><label for="group_creation_disabled">Group creation disabled:</label></th>
+		<td><input type="checkbox" name="group_creation_disabled" id="group_creation_disabled" value="1"{{ if index .Config "group_creation_disabled" }} checked{{ end }}></td>
+	</tr>
+	<tr>
+		<th><label for="image_upload_enabled">Allow image upload:</label></th>
+		<td><input type="checkbox" name="image_upload_enabled" id="image_upload_enabled" value="1"{{ if index .Config "image_upload_enabled" }} checked{{ end }}></td>
+	</tr>
+	<tr>
+		<th><label for="allow_group_subscription">Allow e-mail subscriptions to groups:</label></th>
+		<td><input type="checkbox" name="allow_group_subscription" id="allow_group_subscription" value="1"{{ if index .Config "allow_group_subscription" }} checked{{ end }}></td>
+	</tr>
+	<tr>
+		<th><label for="allow_topic_subscription">Allow e-mail subscriptions to topics:</label></th>
+		<td><input type="checkbox" name="allow_topic_subscription" id="allow_topic_subscription" value="1"{{ if index .Config "allow_topic_subscription" }} checked{{ end }}></td>
+	</tr>
+	<tr>
+		<th></th>
+		<td><input type="submit" value="Update"></td>
+	</tr>
+</table>
 </form>
 
 <h1>Stats</h1>

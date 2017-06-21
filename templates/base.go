@@ -27,13 +27,13 @@ const baseSrc = `<!DOCTYPE html>
 	#content {
 		clear: both;
 		padding-top: 20px;
-		padding-bottom: 60px;
+		padding-bottom: 75px;
 	}
 	#footer {
 		position: absolute;
 		bottom: 0;
 		width: 100%;
-		height: 40px;
+		height: 60px;
 		text-align: center;
 	}
 	.clearfix {
@@ -61,33 +61,11 @@ const baseSrc = `<!DOCTYPE html>
 	a:visited {
 		color: #005999;
 	}
-	a.blacklink, a.blacklink:link, a.blacklink:hover, a.blacklink:active, a.blacklink:visited {
+	#header a, #header a:link, #header a:hover, #header a:active, #header a:visited {
 		color: #000;
 	}
-	a.footerlink, a.footerlink:link, a.footerlink:hover, a.footerlink:active, a.footerlink:visited {
+	#footer a, #footer a:link, #footer a:hover, #footer a:active, #footer a:visited {
 		color: grey;
-	}
-	#navleft {
-		float: left;
-		max-width: 70%;
-	}
-	#navright {
-		float: right;
-	}
-	@media screen and (min-width:600px) {
-		#forum {
-			float: left;
-		}
-		#nav {
-			float: left;
-			margin-left: 20px;
-		}
-	}
-	.muted {
-		color: grey;
-	}
-	.row {
-		margin-top: 20px;
 	}
 	.link-btn, .link-btn:link, .link-btn:visited {
 		color: white;
@@ -98,6 +76,45 @@ const baseSrc = `<!DOCTYPE html>
 	.link-btn:hover {
 		background: #3af;
 	}
+	#navleft {
+		float: left;
+		max-width: 70%;
+	}
+	#navright {
+		float: right;
+	}
+	.muted {
+		color: grey;
+	}
+	.row {
+		margin-top: 20px;
+	}
+	table {
+		width: 75%;
+	}
+	th {
+		text-align: right;
+	}
+	td, th {
+		padding: 5px;
+	}
+	@media (max-width: 599px) {
+		table {
+			width: 100%;
+		}
+		th {
+			float: none;
+			display: block;
+			text-align: left;
+		}
+		td {
+			display: block;
+			float: none;
+		}
+	}
+	input[type="text"], input[type="number"], textarea {
+		width: 100%;
+	}
 	</style>
 	<title>{{ .Common.ForumName }}</title>
 	{{ block "head" . }}{{ end }}
@@ -107,17 +124,13 @@ const baseSrc = `<!DOCTYPE html>
 	<div id="container">
 		<div id="header" class="clearfix">
 			<div id="navleft">
-				<div id="forum"><a href="/" class="blacklink">{{ .Common.ForumName }}</a></div>
-				<div id="nav">
-				{{ block "navbar" . }}
-				{{ end }}
-				</div>
+				<a href="/">{{ .Common.ForumName }}</a>
 			</div>
 			<div id="navright">
 				{{ if .Common.UserName }}
-				<a class="blacklink" href="/users?u={{ .Common.UserName }}">{{ .Common.UserName }}</a> | <a class="blacklink" href="/logout">Logout</a>
+				<a href="/users?u={{ .Common.UserName }}">{{ .Common.UserName }}</a>
 				{{ else }}
-				<a class="blacklink" href="/login?next={{ .Common.CurrentURL }}">Login</a>
+				<a href="/login?next={{ .Common.CurrentURL }}">Login</a>
 				{{ end }}
 			</div>
 		</div>
@@ -127,8 +140,8 @@ const baseSrc = `<!DOCTYPE html>
 		</div>
 		<div id="footer">
 		{{ range $i, $e := .Common.ExtraNotesShort }}
-		{{ if $i }}&middot;{{ end }}
-		<a class="footerlink" href="/note?id={{ $e.ID }}">{{ $e.Name }}</a>
+			{{ if $i }}&middot;{{ end }}
+			<a href="/note?id={{ $e.ID }}">{{ $e.Name }}</a>
 		{{ end }}
 		</div>
 	</div>
