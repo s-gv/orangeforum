@@ -2,34 +2,6 @@ package templates
 
 
 const commenteditSrc = `
-{{ define "head" }}
-<style>
-.row {
-	margin-top: 15px;
-}
-input[type="text"], input[type="number"], textarea {
-	width: 90%;
-}
-@media screen and (min-width:600px) {
-	.col1 {
-		float: left;
-		text-align: right;
-		width: 275px;
-	}
-	.col2 {
-		float: left;
-		text-align: left;
-		margin-left: 15px;
-		width: 300px;
-	}
-	.col1-offset {
-		margin-left: 290px;
-	}
-}
-</style>
-{{ end }}
-
-
 {{ define "content" }}
 
 <h1>{{ .GroupName }}</h1>
@@ -41,9 +13,7 @@ input[type="text"], input[type="number"], textarea {
 <input type="hidden" name="csrf" value="{{ .Common.CSRF }}">
 <input type="hidden" name="id" value="{{ .CommentID }}">
 <input type="hidden" name="tid" value="{{ .TopicID }}">
-<div>
-<textarea name="content" rows="8">{{ .Content }}</textarea>
-</div>
+<textarea name="content" rows="12">{{ .Content }}</textarea>
 
 {{ if .IsImageUploadEnabled }}
 <div>Add Image (optional): <input type="file" name="img" accept="image/*"></div>

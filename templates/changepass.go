@@ -5,11 +5,26 @@ const changepassSrc = `
 
 <form action="/changepass" method="POST">
 <input type="hidden" name="csrf" value="{{ .Common.CSRF }}">
-Current password: <input type="password" name="passwd" required>
-New password: <input type="password" name="newpass" required>
-New password (again): <input type="password" name="confirm" required>
-<input type="submit" value="Change Password">
+<table class="form">
+	<tr>
+		<th><label for="passwd">Current password:</label></th>
+		<td><input type="password" name="passwd" id="passwd" required></td>
+	</tr>
+	<tr>
+		<th><label for="newpass">New password:</label></th>
+		<td><input type="password" name="newpass" id="newpass" required></td>
+	</tr>
+	<tr>
+		<th><label for="confirm">New password (again):</label></th>
+		<td><input type="password" name="confirm" id="confirm" required></td>
+	</tr>
+	<tr>
+		<th></th>
+		<td><input type="submit" value="Change Password"></td>
+	</tr>
+</table>
 </form>
+
 
 {{ .Msg }}
 

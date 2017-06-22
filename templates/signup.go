@@ -6,14 +6,38 @@ const signupSrc = `
 <form action="/signup" method="POST">
 <input type="hidden" name="csrf" value="{{ .Common.CSRF }}">
 <input type="hidden" name="next" value="{{ .next }}">
-Username: <input type="text" name="username" required>
-Password: <input type="password" name="passwd" required>
-Confirm password: <input type="password" name="confirm" required>
-Email (optional): <input type="text" name="email">
-Already have an account? <a href="/login?next={{ .next }}">Login</a>
-<input type="submit" value="Signup">
+<table class="form">
+	<tr>
+		<th><label for="username">Username:</label></th>
+		<td><input type="text" name="username" id="username" required></td>
+	</tr>
+	<tr>
+		<th><label for="passwd">Password:</label></th>
+		<td><input type="password" name="passwd" id="passwd" required></td>
+	</tr>
+	<tr>
+		<th><label for="confirm">Confirm password:</label></th>
+		<td><input type="password" name="confirm" id="confirm" required></td>
+	</tr>
+	<tr>
+		<th><label for="email">Email (optional):</label></th>
+		<td><input type="text" name="email" id="email"></td>
+	</tr>
+	<tr>
+		<th></th>
+		<td>Already have an account? <a href="/login?next={{ .next }}">Login</a></td>
+	</tr>
+{{ if .Common.Msg }}
+	<tr>
+		<th></th>
+		<td>{{ .Common.Msg }}</td>
+	</tr>
+{{ end }}
+	<tr>
+		<th></th>
+		<td><input type="submit" value="Signup"></td>
+	</tr>
+</table>
 </form>
-
-{{ .Msg }}
 
 {{ end }}`

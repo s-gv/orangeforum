@@ -96,8 +96,10 @@ const baseSrc = `<!DOCTYPE html>
 	th, td {
 		text-align: left;
 	}
-	table.form {
-		width: 75%;
+	@media (min-width: 600px) {
+		.form td {
+			width: 360px;
+		}
 	}
 	.form th {
 		text-align: right;
@@ -126,7 +128,10 @@ const baseSrc = `<!DOCTYPE html>
 			width: 100%;
 		}
 	}
-	.form input[type="text"], .form input[type="number"], .form textarea {
+	.form input[type="text"], .form input[type="number"], .form input[type="email"], .form input[type="password"] {
+		width: 100%;
+	}
+	textarea {
 		width: 100%;
 	}
 	</style>

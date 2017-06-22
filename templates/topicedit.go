@@ -1,34 +1,6 @@
 package templates
 
 const topiceditSrc = `
-{{ define "head" }}
-<style>
-.row {
-	margin-top: 15px;
-}
-input[type="text"], input[type="number"], textarea {
-	width: 90%;
-}
-@media screen and (min-width:600px) {
-	.col1 {
-		float: left;
-		text-align: right;
-		width: 275px;
-	}
-	.col2 {
-		float: left;
-		text-align: left;
-		margin-left: 15px;
-		width: 300px;
-	}
-	.col1-offset {
-		margin-left: 290px;
-	}
-}
-</style>
-{{ end }}
-
-
 {{ define "content" }}
 
 {{ if not .TopicID }}
@@ -42,47 +14,43 @@ input[type="text"], input[type="number"], textarea {
 <input type="hidden" name="csrf" value="{{ .Common.CSRF }}">
 <input type="hidden" name="id" value="{{ .TopicID }}">
 <input type="hidden" name="gid" value="{{ .GroupID }}">
-
-<div class="row clearfix">
-	<div class="col1">Title</div>
-	<div class="col2"><input type="text" name="title" placeholder="How does X work?" value="{{ .Title }}"></div>
-</div>
-
-<div class="row clearfix">
-	<div class="col1">Content</div>
-	<div class="col2"><textarea name="content" rows="4">{{ .Content }}</textarea></div>
-</div>
-
+<table class="form">
+	<tr>
+		<th>Title:</th>
+		<td><input type="text" name="title" placeholder="How does X work?" value="{{ .Title }}"></td>
+	</tr>
+	<tr>
+		<th>Content:</th>
+		<td><textarea name="content" rows="4">{{ .Content }}</textarea></td>
+	</tr>
 {{ if or .IsMod .IsAdmin .IsSuperAdmin }}
-<div class="row clearfix">
-	<div class="col1">Sticky</div>
-	<div class="col2"><input type="checkbox" name="is_sticky"{{ if .IsSticky }} checked{{ end }}></div>
-</div>
+	<tr>
+		<th>Sticky:</th>
+		<td><input type="checkbox" name="is_sticky"{{ if .IsSticky }} checked{{ end }}></td>
+	</tr>
 {{ end }}
-
 {{ if .Common.Msg }}
-<div class="row clearfix">
-	<div class="col1-offset col2">
-	{{ .Common.Msg }}
-	</div>
-</div>
+	<tr>
+		<th></th>
+		<td>{{ .Common.Msg }}</td>
+	</tr>
 {{ end }}
-
-<div class="row clearfix">
-	<div class="col1-offset col2">
-	{{ if .TopicID }}
-		{{ if not .IsDeleted }}
-		<input type="submit" name="action" value="Update">
-		<input type="submit" name="action" value="Delete">
+	<tr>
+		<th></th>
+		<td>
+		{{ if .TopicID }}
+			{{ if not .IsDeleted }}
+			<input type="submit" name="action" value="Update">
+			<input type="submit" name="action" value="Delete">
+			{{ else }}
+			<input type="submit" name="action" value="Undelete">
+			{{ end }}
 		{{ else }}
-		<input type="submit" name="action" value="Undelete">
+			<input type="submit" name="action" value="Create">
 		{{ end }}
-	{{ else }}
-	<input type="submit" name="action" value="Create">
-	{{ end }}
-	</div>
-</div>
-
+		</td>
+	</tr>
+</table>
 </form>
 
 {{ end }}`

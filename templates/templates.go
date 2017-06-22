@@ -30,8 +30,8 @@ func init() {
 	tmpls["groupindex.html"] = template.Must(template.New("base").Parse(baseSrc))
 	template.Must(tmpls["groupindex.html"].New("groupindex").Parse(groupindexSrc))
 
-	tmpls["groupnew.html"] = template.Must(template.New("base").Parse(baseSrc))
-	template.Must(tmpls["groupnew.html"].New("groupnew").Parse(groupnewSrc))
+	tmpls["groupedit.html"] = template.Must(template.New("base").Parse(baseSrc))
+	template.Must(tmpls["groupedit.html"].New("groupedit").Parse(groupeditSrc))
 
 	tmpls["groups.html"] = template.Must(template.New("base").Parse(baseSrc))
 	template.Must(tmpls["groups.html"].New("groups").Parse(groupindexSrc))

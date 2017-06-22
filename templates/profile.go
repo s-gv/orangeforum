@@ -1,82 +1,60 @@
 package templates
 
 const profileSrc = `
-{{ define "head" }}
-<style>
-.row {
-	margin-top: 10px;
-}
-input[type="text"], input[type="number"], input[type="email"], textarea {
-	width: 90%;
-}
-@media screen and (min-width:600px) {
-	.col1 {
-		float: left;
-		text-align: right;
-		width: 150px;
-	}
-	.col2 {
-		float: left;
-		text-align: left;
-		margin-left: 15px;
-		width: 300px;
-	}
-	.col1-offset {
-		margin-left: 165px;
-	}
-}
-</style>
-{{ end }}
-
-
 {{ define "content" }}
 
 
 <form action="/users" method="POST">
 <input type="hidden" name="csrf" value="{{ .Common.CSRF }}">
-<div class="row clearfix">
-	<div class="col1">Username</div>
-	<div class="col2">{{ .UserName }}</div>
-</div>
-<div class="row clearfix">
-	<div class="col1">About{{ if .IsSelf }} (public){{ end }}</div>
-	<div class="col2">
-	{{ if .IsSelf }}
-		<textarea name="about" rows="6">{{ .About }}</textarea>
-	{{ else }}
-		{{ .About }}
-	{{ end }}
-	</div>
-</div>
+<table class="form">
+	<tr>
+		<th>Username:</th>
+		<td>{{ .UserName }}</td>
+	</tr>
+	<tr>
+		<th>About{{ if .IsSelf }} (public):{{ end }}</th>
+		<td>{{ if .IsSelf }}<textarea name="about" rows="6">{{ .About }}</textarea>{{ else }}{{ .About }}{{ end }}
+		</td>
+	</tr>
 {{ if .IsSelf }}
-<div class="row clearfix">
-	<div class="col1">Email (private)</div>
-	<div class="col2"><input type="email" name="email" value={{ .Email }}></div>
-</div>
-<div class="row clearfix">
-	<div class="col1-offset col2"><input type="submit" value="Update"></div>
-</div>
+	<tr>
+		<th><label for="email">Email (private):</label></th>
+		<td><input type="email" name="email" id="email" value={{ .Email }}></td>
+	</tr>
+	<tr>
+		<th></th>
+		<td><input type="submit" value="Update"></td>
+	</tr>
 {{ end }}
-</form>
-
-<div class="row clearfix">
-	<div class="col1-offset col2"><a href="/users/topics?u={{ .UserName }}">topics</a>{{ if .IsSelf }} (public){{ end }}</div>
-</div>
-<div class="row clearfix">
-	<div class="col1-offset col2"><a href="/users/comments?u={{ .UserName }}">comments</a>{{ if .IsSelf }} (public){{ end }}</div>
-</div>
+	<tr>
+		<th><a href="/users/topics?u={{ .UserName }}">topics</a>{{ if .IsSelf }} (public){{ end }}</th>
+		<td></td>
+	</tr>
+	<tr>
+		<th><a href="/users/comments?u={{ .UserName }}">comments</a>{{ if .IsSelf }} (public){{ end }}</th>
+		<td></td>
+	</tr>
 {{ if .IsSelf }}
-<div class="row clearfix">
-	<div class="col1-offset col2"><a href="/users/groups">groups</a>{{ if .IsSelf }} (private){{ end }}</div>
-</div>
+	<tr>
+		<th><a href="/users/groups">groups</a>{{ if .IsSelf }} (private){{ end }}</th>
+		<td></td>
+	</tr>
+	<tr>
+		<th><a href="/changepass">change password</a></th>
+		<td></td>
+	</tr>
+	<tr>
+		<th><a href="/logout">logout</a></th>
+		<td></td>
+	</tr>
 {{ end }}
 {{ if .Common.IsSuperAdmin }}
-<div class="row clearfix">
-	<div class="col1-offset col2"><a href="/admin">admin</a> (private)</div>
-</div>
+	<tr>
+		<th><a href="/admin">admin</a> (private)</th>
+		<td></td>
+	</tr>
 {{ end }}
-<div class="row clearfix">
-	<div class="col1-offset col2"><a href="/logout">logout</a></div>
-</div>
+</table>
+</form>
 
 {{ end }}`

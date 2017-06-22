@@ -196,7 +196,7 @@ var GroupEditHandler = A(func(w http.ResponseWriter, r *http.Request, sess model
 				http.Redirect(w, r, "/groups/edit", http.StatusSeeOther)
 				return
 			}
-			db.Exec(`INSERT INTO groups(name, desc, header_msg, is_sticky) VALUES(?, ?, ?, ?);`, name, desc, headerMsg, isSticky)
+			db.Exec(`INSERT INTO groups(name, desc, header_msg, is_sticky, created_date, updated_date) VALUES(?, ?, ?, ?, ?, ?);`, name, desc, headerMsg, isSticky, time.Now().Unix(), time.Now().Unix())
 			groupID := models.ReadGroupIDByName(name)
 			for _, mod := range mods {
 				if mod != "" {
@@ -220,7 +220,7 @@ var GroupEditHandler = A(func(w http.ResponseWriter, r *http.Request, sess model
 			if !isUserSuperAdmin {
 				db.QueryRow(`SELECT is_sticky FROM groups WHERE id=?;`, groupID).Scan(&isSticky)
 			}
-			db.Exec(`UPDATE groups SET name=?, desc=?, header_msg=?, is_sticky=? WHERE id=?;`, name, desc, headerMsg, isSticky, groupID)
+			db.Exec(`UPDATE groups SET name=?, desc=?, header_msg=?, is_sticky=? updated_date=? WHERE id=?;`, name, desc, headerMsg, isSticky, time.Now().Unix(), groupID)
 			models.DeleteAdmins(groupID)
 			models.DeleteMods(groupID)
 			for _, mod := range mods {
@@ -253,7 +253,7 @@ var GroupEditHandler = A(func(w http.ResponseWriter, r *http.Request, sess model
 		admins = models.ReadAdmins(groupID)
 	}
 
-	templates.Render(w, "groupnew.html", map[string]interface{}{
+	templates.Render(w, "groupedit.html", map[string]interface{}{
 		"Common": models.ReadCommonData(r, sess),
 		"ID": groupID,
 		"Name": name,
@@ -1046,34 +1046,6 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
-var CreateGroupHandler = A(func(w http.ResponseWriter, r *http.Request, sess models.Session) {
-	if r.Method == "POST" {
-		groupName := r.PostFormValue("name")
-		if groupName == "" {
-			sess.SetFlashMsg("Group name is empty.")
-			http.Redirect(w, r, "/creategroup", http.StatusSeeOther)
-			return
-		}
-		hasSpecial := false
-		for _, ch := range groupName {
-			if (ch < 'A' || ch > 'Z') && (ch < 'a' || ch > 'z') && ch != '-' && (ch < '0' || ch > '9') {
-				hasSpecial = true
-			}
-		}
-		if hasSpecial {
-			sess.SetFlashMsg("Username can contain only english alphabets, numbers, and hyphen.")
-			http.Redirect(w, r, "/creategroup", http.StatusSeeOther)
-			return
-		}
-		http.Redirect(w, r, "/g/"+groupName, http.StatusSeeOther)
-		return
-	}
-
-	templates.Render(w, "creategroup.html", map[string]interface{}{
-		"Common": models.ReadCommonData(r, sess),
-	})
-})
-
 var AdminIndexHandler = A(func (w http.ResponseWriter, r *http.Request, sess models.Session) {
 	if !sess.IsUserSuperAdmin() {
 		ErrForbiddenHandler(w, r)
@@ -1323,7 +1295,7 @@ var UserGroupsHandler = A(func(w http.ResponseWriter, r *http.Request, sess mode
 	type Group struct {
 		ID string
 		Name string
-		IsClosed string
+		IsClosed bool
 		CreatedDate string
 	}
 	var adminInGroups []Group

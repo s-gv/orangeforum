@@ -114,8 +114,8 @@ func createUser(userName string, passwd string, email string, isSuperAdmin bool)
 		r := db.QueryRow(`SELECT username FROM users WHERE username=?;`, userName)
 		var tmp string
 		if err := r.Scan(&tmp); err == sql.ErrNoRows {
-			db.Exec(`INSERT INTO users(username, passwdhash, email, is_superadmin) VALUES(?, ?, ?, ?);`,
-				userName, hex.EncodeToString(passwdHash), email, isSuperAdmin)
+			db.Exec(`INSERT INTO users(username, passwdhash, email, is_superadmin, created_date, updated_date) VALUES(?, ?, ?, ?, ?, ?);`,
+				userName, hex.EncodeToString(passwdHash), email, isSuperAdmin, time.Now().Unix(), time.Now().Unix())
 		} else {
 			return ErrUserAlreadyExists
 		}
@@ -203,11 +203,6 @@ func ProbeUser(userName string) bool {
 	return true
 }
 
-func CreateGroup(name string, desc string, headerMsg string) {
-	now := time.Now().Unix()
-	db.Exec(`INSERT INTO groups(name, desc, header_msg, created_date, updated_date) VALUES(?, ?, ?, ?, ?);`, name, desc, headerMsg, now, now)
-}
-
 func ReadGroupIDByName(name string) string {
 	r := db.QueryRow(`SELECT id FROM groups WHERE name=?;`, name)
 	var id string
@@ -215,46 +210,6 @@ func ReadGroupIDByName(name string) string {
 		return id
 	}
 	return ""
-}
-
-func ReadGroupDesc(groupID string) string {
-	r := db.QueryRow(`SELECT desc FROM groups WHERE id=?;`, groupID)
-	var desc string
-	if err := r.Scan(&desc); err == nil {
-		return desc
-	}
-	return ""
-}
-
-func ReadGroupHeaderMsg(groupID string) string {
-	r := db.QueryRow(`SELECT header_msg FROM groups WHERE id=?;`, groupID)
-	var headerMsg string
-	if err := r.Scan(&headerMsg); err == nil {
-		return headerMsg
-	}
-	return ""
-}
-
-func ReadGroupName(groupID string) string {
-	r := db.QueryRow(`SELECT name FROM groups WHERE id=?;`, groupID)
-	var name string
-	if err := r.Scan(&name); err == nil {
-		return name
-	}
-	return ""
-}
-
-func ReadGroupIsDeleted(groupID string) bool {
-	r := db.QueryRow(`SELECT is_closed FROM groups WHERE id=?;`, groupID)
-	var isDeleted string
-	if err := r.Scan(&isDeleted); err == nil {
-		return isDeleted == "1"
-	}
-	return false
-}
-
-func UpdateGroup(groupID string, name string, desc string, headerMsg string) {
-	db.Exec(`UPDATE groups SET name=?, desc=?, header_msg=?, updated_date=? WHERE id=?`, name, desc, headerMsg, int(time.Now().Unix()), groupID)
 }
 
 func DeleteGroup(groupID string) {
@@ -267,7 +222,7 @@ func UndeleteGroup(groupID string) {
 
 func CreateMod(userName string, groupID string) {
 	if uid, err := ReadUserIDByName(userName); err == nil {
-		db.Exec(`INSERT INTO mods(userid, groupid, created_date) VALUES(?, ?, ?);`, uid, groupID, int64(time.Now().Unix()))
+		db.Exec(`INSERT INTO mods(userid, groupid, created_date) VALUES(?, ?, ?);`, uid, groupID, time.Now().Unix())
 	}
 }
 
@@ -289,7 +244,7 @@ func DeleteMods(groupID string) {
 
 func CreateAdmin(userName string, groupID string) {
 	if uid, err := ReadUserIDByName(userName); err == nil {
-		db.Exec(`INSERT INTO admins(userid, groupid, created_date) VALUES(?, ?, ?);`, uid, groupID, int64(time.Now().Unix()))
+		db.Exec(`INSERT INTO admins(userid, groupid, created_date) VALUES(?, ?, ?);`, uid, groupID, time.Now().Unix())
 	}
 }
 
@@ -320,8 +275,7 @@ func DeleteAdmins(groupID string) {
 
 
 func CreateExtraNote(name string, URL string, content string) {
-	now := time.Now()
-	db.Exec(`INSERT INTO extranotes(name, URL, content, created_date, updated_date) VALUES(?, ?, ?, ?, ?);`, name, URL, content, int64(now.Unix()), int64(now.Unix()))
+	db.Exec(`INSERT INTO extranotes(name, URL, content, created_date, updated_date) VALUES(?, ?, ?, ?, ?);`, name, URL, content, time.Now().Unix(), time.Now().Unix())
 }
 
 func ReadExtraNotes() []ExtraNote {
