@@ -76,9 +76,18 @@ const baseSrc = `<!DOCTYPE html>
 		background: #07C;
 		padding: 10px 20px;
 		text-align: center;
+		width: 150px;
+		float: right;
 	}
 	.link-btn:hover {
 		background: #3af;
+	}
+	.btn {
+		padding: 10px 20px;
+		background: #07C;
+		font-size: 14px;
+		color: white;
+		float: right;
 	}
 	#navleft {
 		float: left;

@@ -3,25 +3,28 @@ package templates
 const groupindexSrc = `
 {{ define "content" }}
 
-<h1><a href="/groups?name={{ .GroupName }}">{{ .GroupName }}</a></h1>
-{{ if or .IsAdmin .IsMod .IsSuperAdmin }}
-<a href="/groups/edit?id={{ .GroupID }}">edit</a>
-{{ end }}
-{{ if .Common.IsGroupSubAllowed }}
-{{ if .SubToken }}
-<form action="/groups/unsubscribe?token={{ .SubToken }}" method="POST">
-	<input type="hidden" name="csrf" value="{{ .Common.CSRF }}">
-	<input type="submit" value="Unsubscribe">
-</form>
-{{ else }}
-<form action="/groups/subscribe?id={{ .GroupID }}" method="POST">
-	<input type="hidden" name="csrf" value="{{ .Common.CSRF }}">
-	<input type="submit" value="Subscribe">
-</form>
-{{ end }}
-{{ end }}
+<div class="clearfix">
+	{{ if or .IsAdmin .IsMod .IsSuperAdmin }}
+	<a class="link-btn" href="/groups/edit?id={{ .GroupID }}">Edit group</a>
+	{{ end }}
+	{{ if .Common.IsGroupSubAllowed }}
+	{{ if .SubToken }}
+	<form action="/groups/unsubscribe?token={{ .SubToken }}" method="POST">
+		<input type="hidden" name="csrf" value="{{ .Common.CSRF }}">
+		<input class="btn" type="submit" value="Unsubscribe">
+	</form>
+	{{ else }}
+	<form action="/groups/subscribe?id={{ .GroupID }}" method="POST">
+		<input type="hidden" name="csrf" value="{{ .Common.CSRF }}">
+		<input class="btn" type="submit" value="Subscribe">
+	</form>
+	{{ end }}
+	{{ end }}
+	<a class="link-btn" href="/topics/new?gid={{ .GroupID }}">New topic</a>
+</div>
 
-<a href="/topics/new?gid={{ .GroupID }}">New topic</a>
+<h1>{{ .GroupName }}</h1>
+
 
 {{ if .Topics }}
 {{ range .Topics }}
