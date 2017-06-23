@@ -21,7 +21,7 @@ const topiceditSrc = `
 	</tr>
 	<tr>
 		<th>Content:</th>
-		<td><textarea name="content" rows="4">{{ .Content }}</textarea></td>
+		<td><textarea name="content" rows="12">{{ .Content }}</textarea></td>
 	</tr>
 {{ if or .IsMod .IsAdmin .IsSuperAdmin }}
 	<tr>

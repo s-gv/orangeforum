@@ -129,6 +129,9 @@ const baseSrc = `<!DOCTYPE html>
 		float: right;
 	}
 	.muted {
+		color: darkgrey;
+	}
+	.muted a, .muted a:link, .muted a:hover, .muted a:visited, .muted a:active {
 		color: grey;
 	}
 	.row {
@@ -174,6 +177,17 @@ const baseSrc = `<!DOCTYPE html>
 	}
 	textarea {
 		width: 100%;
+	}
+	.sep {
+		border: none;
+		height: 1px;
+		background-color: #ccc;
+	}
+	#title {
+		margin-bottom: 0px;
+	}
+	#subtitle {
+		margin-top: 0px;
 	}
 	</style>
 	<title>{{ .Common.ForumName }}</title>

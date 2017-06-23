@@ -25,29 +25,25 @@ const topicindexSrc = `
 	{{ end }}
 </div>
 
-<h1><a href="/groups?name={{ .GroupName }}">{{ .GroupName }}</a></h1>
-<h2>{{ .TopicName }}</h2>
+<h2 id="title">{{ .TopicName }}</h2>
+<p id="subtitle" class="muted">posted by <a href="/users?u={{ .OwnerName }}">{{ .OwnerName }}</a> in <a href="/groups?name={{ .GroupName }}">{{ .GroupName }}</a> {{ .CreatedDate }}</p>
 
 <div>
 {{ .Content }}
 </div>
-
-
-
-
-
-
+<hr class="sep">
 
 {{ if .Comments }}
 {{ range .Comments }}
 <div class="row">
-	<div>by {{ .UserName }} <a href="/comments?id={{ .ID }}">{{ .CreatedDate }}</a>{{ if or .IsOwner $.IsAdmin $.IsMod $.IsSuperAdmin }} | <a href="/comments/edit?id={{ .ID }}">edit</a> {{end}}</div>
+	<div class="muted">by <a href="/users?u={{ .UserName }}">{{ .UserName }}</a> <a href="/comments?id={{ .ID }}">{{ .CreatedDate }}</a>{{ if or .IsOwner $.IsAdmin $.IsMod $.IsSuperAdmin }} | <a href="/comments/edit?id={{ .ID }}">edit</a> {{end}}</div>
 	{{ if .IsDeleted }}
 		<div>[DELETED]</div>
 	{{ else }}
 		<div>{{ .Content }}</div>
 		{{ if .ImgSrc }}<div><img src="/img?name={{ .ImgSrc }}"></div>{{ end }}
 	{{ end }}
+	<hr class="sep">
 </div>
 {{ end }}
 {{ else }}

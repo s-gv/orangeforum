@@ -54,7 +54,7 @@ func Query(query string, args ...interface{}) *Rows {
 	stmt := makeStmt(query)
 	rows, err := stmt.Query(args...)
 	if err != nil {
-		log.Panicf("[ERROR] Error scanning rows: %s\n", err)
+		log.Panicf("[ERROR] Error with SQL query '%s': %s\n", query, err)
 	}
 	return &Rows{rows}
 }
@@ -76,7 +76,7 @@ func (rs *Rows) Scan(args ...interface{}) error {
 	case err == sql.ErrNoRows:
 		return err
 	case err != nil:
-		log.Panicf("[ERROR] Error scanning row: %s\n", err)
+		log.Panicf("[ERROR] Error scanning rows: %s\n", err)
 	}
 	return nil
 }

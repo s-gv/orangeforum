@@ -488,9 +488,9 @@ var TopicHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.S
 	}
 	var title, content, groupID, groupName string
 	var isDeleted, isClosed bool
-	var ownerID int64
-	if db.QueryRow(`SELECT title, content, userid, groupid, is_deleted, is_closed FROM topics WHERE id=?;`, topicID).Scan(
-			&title, &content, &ownerID, &groupID, &isDeleted, &isClosed) != nil {
+	var ownerID, createdDate int64
+	if db.QueryRow(`SELECT title, content, userid, groupid, is_deleted, is_closed, created_date FROM topics WHERE id=?;`, topicID).Scan(
+			&title, &content, &ownerID, &groupID, &isDeleted, &isClosed, &createdDate) != nil {
 		ErrNotFoundHandler(w, r)
 		return
 	}
@@ -498,6 +498,8 @@ var TopicHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.S
 		ErrNotFoundHandler(w, r)
 		return
 	}
+	var ownerName string
+	db.QueryRow(`SELECT username FROM users WHERE id=?;`, ownerID).Scan(&ownerName)
 
 	subToken := ""
 	if sess.UserID.Valid {
@@ -551,6 +553,8 @@ var TopicHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.S
 		"TopicID": topicID,
 		"GroupName": groupName,
 		"TopicName": title,
+		"OwnerName": ownerName,
+		"CreatedDate": timeAgoFromNow(time.Unix(createdDate, 0)),
 		"SubToken": subToken,
 		"Title": title,
 		"Content": content,
@@ -569,10 +573,11 @@ var CommentCreateHandler = A(func(w http.ResponseWriter, r *http.Request, sess m
 	content := r.PostFormValue("content")
 	isSticky := r.PostFormValue("is_sticky") != ""
 	isImageUploadEnabled := models.Config(models.ImageUploadEnabled) != "0"
-	var groupID, groupName, topicName, parentComment string
+	var groupID, groupName, topicName, parentComment, topicOwnerID, topicOwnerName string
+	var topicCreatedDate int64
 
-	if db.QueryRow(`SELECT groupid, title, content FROM topics WHERE id=?;`, topicID).Scan(
-			&groupID, &topicName, &parentComment) != nil {
+	if db.QueryRow(`SELECT userid, groupid, title, content, created_date FROM topics WHERE id=?;`, topicID).Scan(
+			&topicOwnerID, &groupID, &topicName, &parentComment, &topicCreatedDate) != nil {
 		ErrNotFoundHandler(w, r)
 		return
 	}
@@ -583,6 +588,7 @@ var CommentCreateHandler = A(func(w http.ResponseWriter, r *http.Request, sess m
 		ErrForbiddenHandler(w, r)
 		return
 	}
+	db.QueryRow(`SELECT username FROM users WHERE id=?;`, topicOwnerID).Scan(&topicOwnerName)
 
 	var tmp string
 	db.QueryRow(`SELECT name FROM groups WHERE id=?;`, groupID).Scan(&groupName)
@@ -627,6 +633,8 @@ var CommentCreateHandler = A(func(w http.ResponseWriter, r *http.Request, sess m
 	templates.Render(w, "commentedit.html", map[string]interface{}{
 		"Common": models.ReadCommonData(r, sess),
 		"TopicID": topicID,
+		"TopicOwnerName": topicOwnerName,
+		"TopicCreatedDate": timeAgoFromNow(time.Unix(topicCreatedDate, 0)),
 		"CommentID": "",
 		"TopicName": topicName,
 		"GroupName": groupName,
@@ -645,13 +653,14 @@ var CommentUpdateHandler = A(func(w http.ResponseWriter, r *http.Request, sess m
 	content := r.PostFormValue("content")
 	isSticky := r.PostFormValue("is_sticky") != ""
 
-	var groupID, topicID, groupName, topicName, parentComment string
+	var groupID, topicID, groupName, topicName, parentComment, topicOwnerName, topicOwnerID string
+	var topicCreatedDate int64
 	if db.QueryRow(`SELECT topicid FROM comments WHERE id=?;`, commentID).Scan(&topicID) != nil {
 		ErrNotFoundHandler(w, r)
 		return
 	}
-	if db.QueryRow(`SELECT groupid, title, content FROM topics WHERE id=?;`, topicID).Scan(
-		&groupID, &topicName, &parentComment) != nil {
+	if db.QueryRow(`SELECT userid, groupid, title, content, created_date FROM topics WHERE id=?;`, topicID).Scan(
+		&topicOwnerID, &groupID, &topicName, &parentComment, &topicCreatedDate) != nil {
 		ErrNotFoundHandler(w, r)
 		return
 	}
@@ -665,6 +674,8 @@ var CommentUpdateHandler = A(func(w http.ResponseWriter, r *http.Request, sess m
 		ErrForbiddenHandler(w, r)
 		return
 	}
+
+	db.QueryRow(`SELECT username FROM users WHERE id=?;`, topicOwnerID).Scan(&topicOwnerName)
 
 	var tmp string
 	db.QueryRow(`SELECT name FROM groups WHERE id=?;`, groupID).Scan(&groupName)
@@ -708,6 +719,8 @@ var CommentUpdateHandler = A(func(w http.ResponseWriter, r *http.Request, sess m
 	templates.Render(w, "commentedit.html", map[string]interface{}{
 		"Common": models.ReadCommonData(r, sess),
 		"TopicID": topicID,
+		"TopicOwnerName": topicOwnerName,
+		"TopicCreatedDate": timeAgoFromNow(time.Unix(topicCreatedDate, 0)),
 		"CommentID": commentID,
 		"TopicName": topicName,
 		"GroupName": groupName,
@@ -751,6 +764,7 @@ var CommentHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models
 		"TopicID": topicID,
 		"TopicName": topicName,
 		"GroupName": groupName,
+		"OwnerName": ownerName,
 		"Content": content,
 		"ImgSrc": imgSrc,
 		"IsMod": isMod,
