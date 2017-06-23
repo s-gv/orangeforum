@@ -11,9 +11,9 @@ const profilegroupsSrc = `
 {{ range .AdminInGroups }}
 <div class="row">
 	<div>
-		<a href="/groups?id={{ .ID }}">{{ .Name }}</a>{{ if .IsClosed }} [closed]{{ end }}
+		<a href="{{ if .IsClosed }}/groups/edit?id={{ .ID }}{{ else }}/groups?name={{ .Name }}{{ end }}">{{ .Name }}</a>{{ if .IsClosed }} [closed]{{ end }}
 	</div>
-	<div class="muted">{{ .CreatedDate }}</div>
+	<div class="muted">created {{ .CreatedDate }}</div>
 </div>
 {{ end }}
 {{ else }}
@@ -27,9 +27,9 @@ const profilegroupsSrc = `
 {{ range .ModInGroups }}
 <div class="row">
 	<div>
-		<a href="/groups?id={{ .ID }}">{{ .Name }}</a>{{ if .IsClosed }} [closed]{{ end }}
+		<a href="{{ if .IsClosed }}/groups/edit?id={{ .ID }}{{ else }}/groups?name={{ .Name }}{{ end }}">{{ .Name }}</a>{{ if .IsClosed }} [closed]{{ end }}
 	</div>
-	<div class="muted">{{ .CreatedDate }}</div>
+	<div class="muted">created {{ .CreatedDate }}</div>
 </div>
 {{ end }}
 {{ else }}

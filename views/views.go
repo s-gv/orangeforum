@@ -94,6 +94,7 @@ var IndexHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.S
 	templates.Render(w, "index.html", map[string]interface{}{
 		"Common": models.ReadCommonData(r, sess),
 		"GroupCreationDisabled": models.Config(models.GroupCreationDisabled) == "1",
+		"HeaderMsg": models.Config(models.HeaderMsg),
 		"Groups": groups,
 	})
 })
@@ -220,7 +221,7 @@ var GroupEditHandler = A(func(w http.ResponseWriter, r *http.Request, sess model
 			if !isUserSuperAdmin {
 				db.QueryRow(`SELECT is_sticky FROM groups WHERE id=?;`, groupID).Scan(&isSticky)
 			}
-			db.Exec(`UPDATE groups SET name=?, desc=?, header_msg=?, is_sticky=? updated_date=? WHERE id=?;`, name, desc, headerMsg, isSticky, time.Now().Unix(), groupID)
+			db.Exec(`UPDATE groups SET name=?, desc=?, header_msg=?, is_sticky=?, updated_date=? WHERE id=?;`, name, desc, headerMsg, isSticky, time.Now().Unix(), groupID)
 			models.DeleteAdmins(groupID)
 			models.DeleteMods(groupID)
 			for _, mod := range mods {
@@ -268,8 +269,8 @@ var GroupEditHandler = A(func(w http.ResponseWriter, r *http.Request, sess model
 
 var GroupHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.Session) {
 	name := r.FormValue("name")
-	var groupID string
-	if db.QueryRow(`SELECT id FROM groups WHERE name=?;`, name).Scan(&groupID) != nil {
+	var groupID, headerMsg string
+	if db.QueryRow(`SELECT id, header_msg FROM groups WHERE name=?;`, name).Scan(&groupID, &headerMsg) != nil {
 		ErrNotFoundHandler(w, r)
 		return
 	}
@@ -335,6 +336,7 @@ var GroupHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.S
 		"Common": models.ReadCommonData(r, sess),
 		"GroupName": name,
 		"GroupID": groupID,
+		"HeaderMsg": headerMsg,
 		"SubToken": subToken,
 		"Topics": topics,
 		"IsMod": isMod,
@@ -611,6 +613,7 @@ var CommentCreateHandler = A(func(w http.ResponseWriter, r *http.Request, sess m
 		}
 		db.Exec(`INSERT INTO comments(content, image, topicid, userid, parentid, is_sticky, created_date, updated_date) VALUES(?, ?, ?, ?, ?, ?, ?, ?);`,
 			content, imageName, topicID, sess.UserID, sql.NullInt64{Valid:false}, isSticky, int64(time.Now().Unix()), int64(time.Now().Unix()))
+		db.Exec(`UPDATE topics SET num_comments = num_comments + 1 WHERE id=?;`, topicID)
 		if models.Config(models.AllowTopicSubscription) != "0" {
 			var userName string
 			db.QueryRow(`SELECT username FROM users WHERE id=?;`, sess.UserID).Scan(&userName)

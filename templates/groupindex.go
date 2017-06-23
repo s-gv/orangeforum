@@ -24,7 +24,7 @@ const groupindexSrc = `
 </div>
 
 <h1>{{ .GroupName }}</h1>
-
+<h2>{{ .HeaderMsg }}</h2>
 
 {{ if .Topics }}
 {{ range .Topics }}

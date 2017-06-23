@@ -10,6 +10,7 @@ const indexSrc = `
 </div>
 
 <h1>Groups</h1>
+<h2>{{ .HeaderMsg }}</h2>
 {{ range .Groups }}
 <div class="row">
 	<div><a href="/groups?name={{ .Name }}">{{ .Name }}</a></div>
