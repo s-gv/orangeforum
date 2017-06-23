@@ -6,6 +6,7 @@ const profileSrc = `
 
 <form action="/users" method="POST">
 <input type="hidden" name="csrf" value="{{ .Common.CSRF }}">
+<input type="hidden" name="u" value="{{ .UserName }}">
 <table class="form">
 	<tr>
 		<th>Username:</th>
@@ -23,7 +24,7 @@ const profileSrc = `
 	</tr>
 	<tr>
 		<th></th>
-		<td><input type="submit" value="Update"></td>
+		<td><input type="submit" name="action" value="Update"></td>
 	</tr>
 {{ end }}
 	<tr>
@@ -49,6 +50,20 @@ const profileSrc = `
 	</tr>
 {{ end }}
 {{ if .Common.IsSuperAdmin }}
+{{ if not .IsSelf }}
+	<tr>
+		<th></th>
+		<td>
+			{{ if not .IsBanned }}
+			<input type="submit" name="action" value="Ban">
+			{{ else }}
+			<input type="submit" name="action" value="Unban">
+			{{ end }}
+		</td>
+	</tr>
+{{ end }}
+{{ end }}
+{{ if and .IsSelf .Common.IsSuperAdmin }}
 	<tr>
 		<th><a href="/admin">admin</a> (private)</th>
 		<td></td>

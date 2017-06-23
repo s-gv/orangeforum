@@ -78,10 +78,14 @@ func (sess *Session) FlashMsg() string {
 }
 
 func (sess *Session) Authenticate(userName string, passwd string) bool {
-	r := db.QueryRow(`SELECT id, passwdhash FROM users WHERE username=?;`, userName)
+	r := db.QueryRow(`SELECT id, passwdhash, is_banned FROM users WHERE username=?;`, userName)
 	var passwdHashStr string
 	var userID int
-	if err := r.Scan(&userID, &passwdHashStr); err != nil {
+	var isBanned bool
+	if err := r.Scan(&userID, &passwdHashStr, &isBanned); err != nil {
+		return false
+	}
+	if isBanned {
 		return false
 	}
 	passwdHash, err := hex.DecodeString(passwdHashStr)

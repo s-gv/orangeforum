@@ -1168,36 +1168,59 @@ var AdminIndexHandler = A(func (w http.ResponseWriter, r *http.Request, sess mod
 })
 
 var UserProfileHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.Session) {
+	userName := r.FormValue("u")
+	var about, email string
+	var isBanned bool
+	var userID int64
+	if db.QueryRow(`SELECT id, about, email, is_banned FROM users WHERE username=?;`, userName).Scan(&userID, &about, &email, &isBanned) != nil {
+		ErrNotFoundHandler(w, r)
+		return
+	}
+
 	if r.Method == "POST" {
-		userName, err := sess.UserName()
-		if err == nil {
-			email := r.FormValue("email")
-			about := r.FormValue("about")
-			models.UpdateUserProfile(userName, email, about)
+		if !sess.UserID.Valid {
+			ErrForbiddenHandler(w, r)
+			return
+		}
+		action := r.PostFormValue("action")
+		var isSuperAdmin bool
+		db.QueryRow(`SELECT is_superadmin FROM users WHERE id=?;`, sess.UserID).Scan(&isSuperAdmin)
+		if action == "Update" {
+			if isSuperAdmin || userID == sess.UserID.Int64 {
+				email := r.FormValue("email")
+				about := r.FormValue("about")
+				db.Exec(`UPDATE users SET email=?, about=? WHERE id=?;`, email, about, userID)
+			} else {
+				ErrForbiddenHandler(w, r)
+				return
+			}
+		} else if action == "Ban" {
+			if isSuperAdmin {
+				db.Exec(`UPDATE users SET is_banned=1 WHERE id=?;`, userID)
+				db.Exec(`DELETE FROM sessions WHERE userid=?;`, userID)
+			} else {
+				ErrForbiddenHandler(w, r)
+				return
+			}
+		} else if action == "Unban" {
+			if isSuperAdmin {
+				db.Exec(`UPDATE users SET is_banned=0 WHERE id=?;`, userID)
+			} else {
+				ErrForbiddenHandler(w, r)
+				return
+			}
 		}
 		http.Redirect(w, r, "/users?u="+userName, http.StatusSeeOther)
 		return
 	}
 
-	userName := r.FormValue("u")
-
-	if !models.ProbeUser(userName) {
-		ErrNotFoundHandler(w, r)
-		return
-	}
-
-	isSelf := false
-	if u, err := sess.UserName(); err == nil {
-		if u == userName {
-			isSelf = true
-		}
-	}
 	templates.Render(w, "profile.html", map[string]interface{}{
 		"Common": models.ReadCommonData(r, sess),
 		"UserName": userName,
-		"About": models.ReadUserAbout(userName),
-		"Email": models.ReadUserEmail(userName),
-		"IsSelf": isSelf,
+		"About": about,
+		"Email": email,
+		"IsSelf": sess.UserID.Valid && (userID == sess.UserID.Int64),
+		"IsBanned": isBanned,
 	})
 })
 
