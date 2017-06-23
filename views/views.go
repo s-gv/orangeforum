@@ -91,11 +91,30 @@ var IndexHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.S
 	}
 	sort.Slice(groups, func(i, j int) bool {return groups[i].Name < groups[j].Name})
 	sort.Slice(groups, func(i, j int) bool {return groups[i].IsSticky > groups[j].IsSticky})
+
+	type Topic struct {
+		ID string
+		Title string
+		GroupName string
+		OwnerName string
+		CreatedDate string
+		NumComments int
+	}
+	topics := []Topic{}
+	trows := db.Query(`SELECT topics.id, topics.title, topics.num_comments, topics.created_date, groups.name, users.username FROM topics INNER JOIN groups ON topics.groupid=groups.id INNER JOIN users ON topics.userid=users.id ORDER BY topics.created_date DESC LIMIT 20;`)
+	for trows.Next() {
+		topics = append(topics, Topic{})
+		t := &topics[len(topics)-1]
+		var cDate int64
+		trows.Scan(&t.ID, &t.Title, &t.NumComments, &cDate, &t.GroupName, &t.OwnerName)
+		t.CreatedDate = timeAgoFromNow(time.Unix(cDate, 0))
+	}
 	templates.Render(w, "index.html", map[string]interface{}{
 		"Common": models.ReadCommonData(r, sess),
 		"GroupCreationDisabled": models.Config(models.GroupCreationDisabled) == "1",
 		"HeaderMsg": models.Config(models.HeaderMsg),
 		"Groups": groups,
+		"Topics": topics,
 	})
 })
 

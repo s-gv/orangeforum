@@ -11,10 +11,30 @@ const indexSrc = `
 
 <h1>Groups</h1>
 <h2>{{ .HeaderMsg }}</h2>
+{{ if .Groups }}
 {{ range .Groups }}
 <div class="row">
 	<div><a href="/groups?name={{ .Name }}">{{ .Name }}</a></div>
 	<div class="muted">{{ .Desc }}</div>
+</div>
+{{ end }}
+{{ else }}
+<div class="row">
+	<div class="muted">No groups to show.</div>
+</div>
+{{ end }}
+
+<h1>Recent Topics</h1>
+{{ if .Topics }}
+{{ range .Topics }}
+<div class="row">
+	<div><a href="/topics?id={{ .ID }}">{{ .Title }}</a></div>
+	<div class="muted">by <a href="/users?u={{ .OwnerName }}">{{ .OwnerName }}</a> in <a href="/groups?name={{ .GroupName }}">{{ .GroupName }}</a> {{ .CreatedDate }} | {{ .NumComments }} comments</div>
+</div>
+{{ end }}
+{{ else }}
+<div class="row">
+	<div class="muted">No topics to show.</div>
 </div>
 {{ end }}
 
