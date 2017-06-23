@@ -3,7 +3,7 @@ package templates
 const profiletopicsSrc = `
 {{ define "content" }}
 
-<h2>{{ .OwnerName }}</h2>
+<h2>Topics by {{ .OwnerName }}</h2>
 
 {{ if .Topics }}
 {{ range .Topics }}

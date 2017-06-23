@@ -755,11 +755,13 @@ var CommentHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models
 
 	var tmp string
 	db.QueryRow(`SELECT name FROM groups WHERE id=?;`, groupID).Scan(&groupName)
-	isMod := db.QueryRow(`SELECT id FROM mods WHERE groupid=? AND userid=?;`, groupID, sess.UserID).Scan(&tmp) == nil
-	isAdmin := db.QueryRow(`SELECT id FROM admins WHERE groupid=? AND userid=?;`, groupID, sess.UserID).Scan(&tmp) == nil
+	isMod := sess.UserID.Valid && db.QueryRow(`SELECT id FROM mods WHERE groupid=? AND userid=?;`, groupID, sess.UserID).Scan(&tmp) == nil
+	isAdmin := sess.UserID.Valid && db.QueryRow(`SELECT id FROM admins WHERE groupid=? AND userid=?;`, groupID, sess.UserID).Scan(&tmp) == nil
 	isSuperAdmin := false
-	db.QueryRow(`SELECT is_superadmin FROM users WHERE id=?`, sess.UserID).Scan(&isSuperAdmin)
-	isOwner := db.QueryRow(`SELECT userid FROM comments WHERE id=?;`, commentID).Scan(&tmp) == nil
+	if sess.UserID.Valid {
+		db.QueryRow(`SELECT is_superadmin FROM users WHERE id=?`, sess.UserID).Scan(&isSuperAdmin)
+	}
+	isOwner := sess.UserID.Valid && db.QueryRow(`SELECT userid FROM comments WHERE id=?;`, commentID).Scan(&tmp) == nil
 
 	templates.Render(w, "commentindex.html", map[string]interface{}{
 		"Common": models.ReadCommonData(r, sess),
@@ -1244,6 +1246,7 @@ var UserCommentsHandler = UA(func(w http.ResponseWriter, r *http.Request, sess m
 		TopicID string
 		TopicName string
 		CreatedDate string
+		ImgSrc string
 		IsDeleted bool
 	}
 
@@ -1252,9 +1255,9 @@ var UserCommentsHandler = UA(func(w http.ResponseWriter, r *http.Request, sess m
 	var comments []Comment
 	var rows *db.Rows
 	if lastCommentDate == 0 {
-		rows = db.Query(`SELECT topics.title, comments.topicid, comments.id, comments.content, comments.created_date, comments.is_deleted FROM comments INNER JOIN topics ON topics.id = comments.topicid AND comments.userid=? ORDER BY comments.created_date DESC LIMIT ?;`, ownerID, commentsPerPage)
+		rows = db.Query(`SELECT topics.title, comments.topicid, comments.id, comments.content, comments.image, comments.created_date, comments.is_deleted FROM comments INNER JOIN topics ON topics.id = comments.topicid AND comments.userid=? ORDER BY comments.created_date DESC LIMIT ?;`, ownerID, commentsPerPage)
 	} else {
-		rows = db.Query(`SELECT topics.title, comments.topicid, comments.id, comments.content, comments.created_date, comments.is_deleted FROM comments INNER JOIN topics ON topics.id = comments.topicid AND comments.userid=? AND comments.created_date < ? ORDER BY comments.created_date DESC LIMIT ?;`, ownerID, lastCommentDate, commentsPerPage)
+		rows = db.Query(`SELECT topics.title, comments.topicid, comments.id, comments.content, comments.image, comments.created_date, comments.is_deleted FROM comments INNER JOIN topics ON topics.id = comments.topicid AND comments.userid=? AND comments.created_date < ? ORDER BY comments.created_date DESC LIMIT ?;`, ownerID, lastCommentDate, commentsPerPage)
 	}
 
 	var cDate int64
@@ -1262,7 +1265,7 @@ var UserCommentsHandler = UA(func(w http.ResponseWriter, r *http.Request, sess m
 		comments = append(comments, Comment{})
 		c := &comments[len(comments)-1]
 
-		rows.Scan(&c.TopicName, &c.TopicID, &c.ID, &c.Content, &cDate, &c.IsDeleted)
+		rows.Scan(&c.TopicName, &c.TopicID, &c.ID, &c.Content, &c.ImgSrc, &cDate, &c.IsDeleted)
 		c.CreatedDate = timeAgoFromNow(time.Unix(cDate, 0))
 	}
 
@@ -1292,7 +1295,7 @@ var UserTopicsHandler = UA(func(w http.ResponseWriter, r *http.Request, sess mod
 		lastTopicDate = 0
 	}
 
-	numTopicsPerPage := 1
+	numTopicsPerPage := 50
 	type Topic struct {
 		ID string
 		Title string

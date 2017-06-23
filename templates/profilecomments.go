@@ -3,15 +3,19 @@ package templates
 const profilecommentsSrc = `
 {{ define "content" }}
 
-<h2>{{ .OwnerName }}</h2>
+<h2>Comments by {{ .OwnerName }}</h2>
 
 {{ if .Comments }}
 {{ range .Comments }}
 <div class="row">
-	<div>
-		by {{ $.OwnerName }} <a href="/comments?id={{ .ID }}">{{ .CreatedDate }}</a> on <a href="/topics?id={{ .TopicID }}">{{ .TopicName }}</a>
-	</div>
-	<div>{{ if .IsDeleted }}[DELETED]{{ else }}{{ .Content }}{{ end }}</div>
+	<div class="muted">by {{ $.OwnerName }}</a> <a href="/comments?id={{ .ID }}">{{ .CreatedDate }}</a> on <a href="/topics?id={{ .TopicID }}">{{ .TopicName }}</a></div>
+	{{ if .IsDeleted }}
+		<div>[DELETED]</div>
+	{{ else }}
+		<div>{{ .Content }}</div>
+		{{ if .ImgSrc }}<div><img src="/img?name={{ .ImgSrc }}"></div>{{ end }}
+	{{ end }}
+	<hr class="sep">
 </div>
 {{ end }}
 {{ else }}
