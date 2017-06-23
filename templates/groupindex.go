@@ -3,11 +3,12 @@ package templates
 const groupindexSrc = `
 {{ define "content" }}
 
-<div class="clearfix">
+<div class="btn-row">
+	<a class="link-btn" href="/topics/new?gid={{ .GroupID }}">New topic</a>
 	{{ if or .IsAdmin .IsMod .IsSuperAdmin }}
 	<a class="link-btn" href="/groups/edit?id={{ .GroupID }}">Edit group</a>
 	{{ end }}
-	{{ if .Common.IsGroupSubAllowed }}
+	{{ if and .Common.UserName .Common.IsGroupSubAllowed }}
 	{{ if .SubToken }}
 	<form action="/groups/unsubscribe?token={{ .SubToken }}" method="POST">
 		<input type="hidden" name="csrf" value="{{ .Common.CSRF }}">
@@ -20,7 +21,6 @@ const groupindexSrc = `
 	</form>
 	{{ end }}
 	{{ end }}
-	<a class="link-btn" href="/topics/new?gid={{ .GroupID }}">New topic</a>
 </div>
 
 <h1>{{ .GroupName }}</h1>

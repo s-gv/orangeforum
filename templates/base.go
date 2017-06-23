@@ -77,7 +77,8 @@ const baseSrc = `<!DOCTYPE html>
 		padding: 10px 20px;
 		text-align: center;
 		width: 150px;
-		float: right;
+		margin-left: 20px;
+		font-size: 16px;
 	}
 	.link-btn:hover {
 		background: #3af;
@@ -85,9 +86,40 @@ const baseSrc = `<!DOCTYPE html>
 	.btn {
 		padding: 10px 20px;
 		background: #07C;
-		font-size: 14px;
+		font-size: 16px;
 		color: white;
-		float: right;
+		border: none;
+		margin-left: 20px;
+		width: 150px;
+		line-height: inherit;
+	}
+	.btn:hover {
+		background: #3af;
+		cursor: pointer;
+		cursor: hand;
+	}
+	.btn-row form, .btn-row a {
+		display: inline-block;
+	}
+	.btn-row {
+		text-align: right;
+	}
+	@media (max-width: 599px) {
+		.btn {
+			font-size: 12px;
+			padding: 5px 10px;
+			margin: 10px;
+			width: 100px;
+		}
+		.link-btn, .link-btn:link, .link-btn:visited {
+			font-size: 12px;
+			padding: 5px 10px;
+			margin: 10px;
+			width: 100px;
+		}
+		.btn-row {
+			text-align: center;
+		}
 	}
 	#navleft {
 		float: left;
