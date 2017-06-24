@@ -168,7 +168,7 @@ func ReadUserIDByName(userName string) (int, error) {
 
 func UpdateUserPasswd(userName string, passwd string) error {
 	if passwdHash, err := bcrypt.GenerateFromPassword([]byte(passwd), bcrypt.DefaultCost); err == nil {
-		db.Exec(`UPDATE users SET passwdhash=?, reset_token="", reset_token_date=0 WHERE username=?`, hex.EncodeToString(passwdHash), userName)
+		db.Exec(`UPDATE users SET passwdhash=?, reset_token='', reset_token_date=0 WHERE username=?`, hex.EncodeToString(passwdHash), userName)
 	} else {
 		return err
 	}
@@ -347,12 +347,19 @@ func RandSeq(n int) string {
 }
 
 func WriteConfig(key string, val string) {
-	db.Exec(`INSERT OR REPLACE INTO configs(key, val) values(?, ?);`, key, val)
+	var oldVal string
+	if db.QueryRow(`SELECT val FROM configs WHERE name=?;`, key).Scan(&oldVal) == nil {
+		if oldVal != val {
+			db.Exec(`UPDATE configs SET val=? WHERE name=?;`, val, key)
+		}
+	} else {
+		db.Exec(`INSERT INTO configs(name, val) values(?, ?);`, key, val)
+	}
 }
 
 
 func Config(key string) string {
-	row := db.QueryRow(`SELECT val FROM configs WHERE key=?;`, key)
+	row := db.QueryRow(`SELECT val FROM configs WHERE name=?;`, key)
 	var val string
 	if err := row.Scan(&val); err == nil {
 		return val
@@ -417,16 +424,16 @@ func NumComments() int64 {
 }
 
 func CreateTables() {
-	db.Exec(`CREATE TABLE configs(key VARCHAR(250), val TEXT);`)
-	db.Exec(`CREATE UNIQUE INDEX configs_key_index on configs(key);`)
+	db.Exec(`CREATE TABLE configs(name VARCHAR(250), val TEXT);`)
+	db.Exec(`CREATE UNIQUE INDEX configs_key_index on configs(name);`)
 
 	db.Exec(`CREATE TABLE users(
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
 		       		username VARCHAR(32) NOT NULL,
 		       		passwdhash VARCHAR(250) NOT NULL,
-		       		email VARCHAR(250) DEFAULT "",
-		       		about TEXT DEFAULT "",
-		       		reset_token VARCHAR(250) DEFAULT "",
+		       		email VARCHAR(250) DEFAULT '',
+		       		about TEXT DEFAULT '',
+		       		reset_token VARCHAR(250) DEFAULT '',
 		       		is_banned INTEGER DEFAULT 0,
 				is_superadmin INTEGER DEFAULT 0,
 		       		created_date INTEGER,
@@ -440,8 +447,8 @@ func CreateTables() {
 	db.Exec(`CREATE TABLE groups(
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
 		       		name VARCHAR(200),
-		       		desc TEXT DEFAULT "",
-		       		header_msg TEXT DEFAULT "",
+		       		description TEXT DEFAULT '',
+		       		header_msg TEXT DEFAULT '',
 		       		is_sticky INTEGER DEFAULT 0,
 		       		is_closed INTEGER DEFAULT 0,
 		       		created_date INTEGER,
@@ -452,9 +459,9 @@ func CreateTables() {
 
 	db.Exec(`CREATE TABLE topics(
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
-				title VARCHAR(200) DEFAULT "",
-				content TEXT DEFAULT "",
-				image TEXT DEFAULT "",
+				title VARCHAR(200) DEFAULT '',
+				content TEXT DEFAULT '',
+				image TEXT DEFAULT '',
 				userid INTEGER REFERENCES users(id) ON DELETE CASCADE,
 				groupid INTEGER REFERENCES groups(id) ON DELETE CASCADE,
 				is_deleted INTEGER DEFAULT 0,
@@ -469,8 +476,8 @@ func CreateTables() {
 
 	db.Exec(`CREATE TABLE comments(
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
-				content TEXT DEFAULT "",
-				image TEXT DEFAULT "",
+				content TEXT DEFAULT '',
+				image TEXT DEFAULT '',
 				userid INTEGER REFERENCES users(id) ON DELETE CASCADE,
 				topicid INTEGER REFERENCES topics(id) ON DELETE CASCADE,
 				parentid INTEGER REFERENCES comments(id) ON DELETE CASCADE,
@@ -502,7 +509,7 @@ func CreateTables() {
 	db.Exec(`CREATE INDEX admins_groupid_index on admins(groupid);`)
 
 	db.Exec(`CREATE TABLE topicsubscriptions(
-				id INTEGER PRIMARY KEY,
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
 				userid INTEGER REFERENCES users(id) ON DELETE CASCADE,
 				topicid INTEGER REFERENCES topics(id) ON DELETE CASCADE,
 				token VARCHAR(128),
@@ -513,7 +520,7 @@ func CreateTables() {
 	db.Exec(`CREATE INDEX topicsubscriptions_token_index on topicsubscriptions(token);`)
 
 	db.Exec(`CREATE TABLE groupsubscriptions(
-				id INTEGER PRIMARY KEY,
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
 				userid INTEGER REFERENCES users(id) ON DELETE CASCADE,
 				groupid INTEGER REFERENCES groups(id) ON DELETE CASCADE,
 				token VARCHAR(128),
@@ -526,14 +533,14 @@ func CreateTables() {
 	db.Exec(`CREATE TABLE extranotes(
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
 				name VARCHAR(250) NOT NULL,
-				content TEXT DEFAULT "",
-				URL VARCHAR(250) DEFAULT "",
+				content TEXT DEFAULT '',
+				URL VARCHAR(250) DEFAULT '',
 				created_date INTEGER,
 				updated_date INTEGER
 	);`)
 
 	db.Exec(`CREATE TABLE sessions(
-				id INTEGER PRIMARY KEY,
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
 				sessionid VARCHAR(250) NOT NULL,
 				userid INTEGER REFERENCES users(id) ON DELETE CASCADE,
 				csrf VARCHAR(250) NOT NULL,

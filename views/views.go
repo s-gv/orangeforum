@@ -83,7 +83,7 @@ var IndexHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.S
 		IsSticky int
 	}
 	groups := []Group{}
-	rows := db.Query(`SELECT name, desc, is_sticky FROM groups WHERE is_closed=0 ORDER BY is_sticky DESC, RANDOM() LIMIT 25;`)
+	rows := db.Query(`SELECT name, description, is_sticky FROM groups WHERE is_closed=0 ORDER BY is_sticky DESC, RANDOM() LIMIT 25;`)
 	for rows.Next() {
 		groups = append(groups, Group{})
 		g := &groups[len(groups)-1]
@@ -216,7 +216,7 @@ var GroupEditHandler = A(func(w http.ResponseWriter, r *http.Request, sess model
 				http.Redirect(w, r, "/groups/edit", http.StatusSeeOther)
 				return
 			}
-			db.Exec(`INSERT INTO groups(name, desc, header_msg, is_sticky, created_date, updated_date) VALUES(?, ?, ?, ?, ?, ?);`, name, desc, headerMsg, isSticky, time.Now().Unix(), time.Now().Unix())
+			db.Exec(`INSERT INTO groups(name, description, header_msg, is_sticky, created_date, updated_date) VALUES(?, ?, ?, ?, ?, ?);`, name, desc, headerMsg, isSticky, time.Now().Unix(), time.Now().Unix())
 			groupID := models.ReadGroupIDByName(name)
 			for _, mod := range mods {
 				if mod != "" {
@@ -240,7 +240,7 @@ var GroupEditHandler = A(func(w http.ResponseWriter, r *http.Request, sess model
 			if !isUserSuperAdmin {
 				db.QueryRow(`SELECT is_sticky FROM groups WHERE id=?;`, groupID).Scan(&isSticky)
 			}
-			db.Exec(`UPDATE groups SET name=?, desc=?, header_msg=?, is_sticky=?, updated_date=? WHERE id=?;`, name, desc, headerMsg, isSticky, time.Now().Unix(), groupID)
+			db.Exec(`UPDATE groups SET name=?, description=?, header_msg=?, is_sticky=?, updated_date=? WHERE id=?;`, name, desc, headerMsg, isSticky, time.Now().Unix(), groupID)
 			models.DeleteAdmins(groupID)
 			models.DeleteMods(groupID)
 			for _, mod := range mods {
@@ -266,7 +266,7 @@ var GroupEditHandler = A(func(w http.ResponseWriter, r *http.Request, sess model
 
 	if groupID != "" {
 		// Open to edit
-		db.QueryRow(`SELECT name, desc, header_msg, is_sticky, is_closed FROM groups WHERE id=?;`, groupID).Scan(
+		db.QueryRow(`SELECT name, description, header_msg, is_sticky, is_closed FROM groups WHERE id=?;`, groupID).Scan(
 			&name, &desc, &headerMsg, &isSticky, &isDeleted,
 		)
 		mods = models.ReadMods(groupID)
@@ -812,8 +812,11 @@ var TopicSubscribeHandler = A(func(w http.ResponseWriter, r *http.Request, sess 
 		return
 	}
 	if r.Method == "POST" {
-		db.Exec(`INSERT OR REPLACE INTO topicsubscriptions(userid, topicid, token, created_date) VALUES(?, ?, ?, ?);`,
+		var tmp string
+		if db.QueryRow(`SELECT id FROM topicsubscriptions WHERE userid=? AND topicid=?;`, sess.UserID, topicID).Scan(&tmp) != nil {
+			db.Exec(`INSERT INTO topicsubscriptions(userid, topicid, token, created_date) VALUES(?, ?, ?, ?);`,
 				sess.UserID, topicID, models.RandSeq(64), time.Now().Unix())
+		}
 	}
 	http.Redirect(w, r, "/topics?id="+topicID, http.StatusSeeOther)
 })
@@ -859,8 +862,11 @@ var GroupSubscribeHandler = A(func(w http.ResponseWriter, r *http.Request, sess 
 		return
 	}
 	if r.Method == "POST" {
-		db.Exec(`INSERT OR REPLACE INTO groupsubscriptions(userid, groupid, token, created_date) VALUES(?, ?, ?, ?);`,
-			sess.UserID, groupID, models.RandSeq(64), time.Now().Unix())
+		var tmp string
+		if db.QueryRow(`SELECT id FROM groupsubscriptions WHERE userid=? AND groupid=?;`, sess.UserID, groupID).Scan(&tmp) != nil {
+			db.Exec(`INSERT INTO groupsubscriptions(userid, groupid, token, created_date) VALUES(?, ?, ?, ?);`,
+				sess.UserID, groupID, models.RandSeq(64), time.Now().Unix())
+		}
 	}
 	http.Redirect(w, r, "/groups?name="+groupName, http.StatusSeeOther)
 })

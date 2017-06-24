@@ -52,7 +52,8 @@ func main() {
 	rand.Seed(time.Now().UnixNano())
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
-	dbFileName := flag.String("dbname", "orangeforum.db", "Database file path (default: orangeforum.db)")
+	dsn := flag.String("dsn", "orangeforum.db", "Data source name (default: orangeforum.db)")
+	dbDriver := flag.String("dbdriver", "sqlite3", "DB driver name (default: sqlite3)")
 	addr := flag.String("addr", ":9123", "Port to listen on (default: :9123)")
 	shouldMigrate := flag.Bool("migrate", false, "Migrate DB (default: false)")
 	createSuperUser := flag.Bool("createsuperuser", false, "Create superuser")
@@ -60,7 +61,7 @@ func main() {
 
 	flag.Parse()
 
-	db.Init("sqlite3", *dbFileName)
+	db.Init(*dbDriver, *dsn)
 
 	if models.IsMigrationNeeded() {
 		if *shouldMigrate {

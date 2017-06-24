@@ -3,12 +3,15 @@ package db
 import (
 	"database/sql"
 	_ "github.com/mattn/go-sqlite3"
+	_ "github.com/lib/pq"
 	"log"
 	"strconv"
+	"strings"
 )
 
 
 var db *sql.DB
+var dbDriverName string
 
 var stmts = make(map[string]*sql.Stmt)
 
@@ -26,15 +29,48 @@ func Init(driverName string, dataSourceName string) {
 		log.Panicf("[ERROR] Error opening DB: %s\n", err)
 	}
 	db = mydb
-	db.Exec("PRAGMA journal_mode = WAL;")
-	db.Exec("PRAGMA synchronous = FULL;")
-	db.Exec("PRAGMA foreign_keys = ON;")
+	dbDriverName = driverName
+	if driverName == "sqlite3" {
+		db.Exec("PRAGMA journal_mode = WAL;")
+		db.Exec("PRAGMA synchronous = FULL;")
+		db.Exec("PRAGMA foreign_keys = ON;")
+	}
+}
+
+func translate(query string) string {
+	if dbDriverName == "postgres" {
+		query = strings.Replace(query, "INTEGER PRIMARY KEY AUTOINCREMENT", "SERIAL PRIMARY KEY", -1)
+		query = strings.Replace(query, "MAX(_ROWID_)", "COUNT(*)", -1)
+		p := 0
+		for i := strings.Index(query, "?"); i != -1; i = strings.Index(query, "?") {
+			p++
+			query = query[:i] + "$" + strconv.Itoa(p) + query[i+1:]
+		}
+	}
+	return query
+}
+
+func patch(args []interface{}) []interface{} {
+	var pArgs []interface{}
+	for _, arg := range args {
+		switch v := arg.(type) {
+		case bool:
+			if v {
+				pArgs = append(pArgs, 1)
+			} else {
+				pArgs = append(pArgs, 0)
+			}
+		default:
+			pArgs = append(pArgs, v)
+		}
+	}
+	return pArgs
 }
 
 func makeStmt(query string) *sql.Stmt {
 	stmt, ok := stmts[query]
 	if !ok {
-		stmt, err := db.Prepare(query)
+		stmt, err := db.Prepare(translate(query))
 		if err != nil {
 			log.Panicf("[ERROR] Error making stmt: %s. Err msg: %s\n", query, err)
 		}
@@ -47,12 +83,14 @@ func makeStmt(query string) *sql.Stmt {
 
 func QueryRow(query string, args ...interface{}) *Row {
 	stmt := makeStmt(query)
-	return &Row{stmt.QueryRow(args...)}
+	pArgs := patch(args)
+	return &Row{stmt.QueryRow(pArgs...)}
 }
 
 func Query(query string, args ...interface{}) *Rows {
 	stmt := makeStmt(query)
-	rows, err := stmt.Query(args...)
+	pArgs := patch(args)
+	rows, err := stmt.Query(pArgs...)
 	if err != nil {
 		log.Panicf("[ERROR] Error with SQL query '%s': %s\n", query, err)
 	}
@@ -82,14 +120,15 @@ func (rs *Rows) Scan(args ...interface{}) error {
 }
 
 func Exec(query string, args ...interface{}) {
+	pArgs := patch(args)
 	stmt := makeStmt(query)
-	if _, err := stmt.Exec(args...); err != nil {
+	if _, err := stmt.Exec(pArgs...); err != nil {
 		log.Panicf("[ERROR] Error executing %s. Err msg: %s\n", query, err)
 	}
 }
 
 func Version() int {
-	row := db.QueryRow(`SELECT val FROM configs WHERE key="version";`)
+	row := db.QueryRow(translate(`SELECT val FROM configs WHERE name=?;`), "version")
 	sval := "0"
 	if err := row.Scan(&sval); err == nil {
 		if ival, err := strconv.Atoi(sval); err == nil {
