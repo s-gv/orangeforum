@@ -35,12 +35,12 @@ const topicindexSrc = `
 
 {{ if .Comments }}
 {{ range .Comments }}
-<div class="row">
+<div class="row" id="comment-{{ .ID }}">
 	<div class="muted">by <a href="/users?u={{ .UserName }}">{{ .UserName }}</a> <a href="/comments?id={{ .ID }}">{{ .CreatedDate }}</a>{{ if or .IsOwner $.IsAdmin $.IsMod $.IsSuperAdmin }} | <a href="/comments/edit?id={{ .ID }}">edit</a> {{end}}</div>
 	{{ if .IsDeleted }}
 		<div>[DELETED]</div>
 	{{ else }}
-		<div>{{ .Content }}</div>
+		<div class="comment">{{ .Content }}</div>
 		{{ if .ImgSrc }}<div><img src="/img?name={{ .ImgSrc }}"></div>{{ end }}
 	{{ end }}
 	<hr class="sep">

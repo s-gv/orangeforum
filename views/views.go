@@ -1,8 +1,6 @@
 package views
 
 import (
-)
-import (
 	"net/http"
 	"github.com/s-gv/orangeforum/templates"
 	"log"
@@ -20,11 +18,15 @@ import (
 	"os"
 	"io"
 	"path/filepath"
+	"regexp"
+	"runtime/debug"
 )
+
+var linkRe *regexp.Regexp
 
 func ErrServerHandler(w http.ResponseWriter, r *http.Request) {
 	if r := recover(); r != nil {
-		log.Printf("[INFO] Recovered from panic: %s", r)
+		log.Printf("[INFO] Recovered from panic: %s\n[INFO] Debug stack: %s\n", r, debug.Stack())
 		http.Error(w, "Internal server error. This event has been logged.", http.StatusInternalServerError)
 	}
 }
@@ -118,6 +120,10 @@ var IndexHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.S
 	})
 })
 
+func init() {
+	linkRe = regexp.MustCompile("https?://[A-Za-z0-9/\\.\\?#,_-]+[A-Za-z0-9/\\?#,_-]")
+}
+
 func timeAgoFromNow(t time.Time) string {
 	diff := time.Now().Sub(t)
 	if diff.Hours() > 24 {
@@ -144,6 +150,38 @@ func validateName(name string) error {
 		return errors.New("Name can contain only english alphabets, numbers, hyphens, and underscore.")
 	}
 	return nil
+}
+
+func formatComment(comment string) template.HTML {
+	comment = strings.Replace(comment, "\r", "", -1)
+	formatted := "<p>"
+	preClosed := true
+	for _, para := range strings.Split(comment, "\n") {
+		if para == "" {
+			if !preClosed {
+				formatted = formatted + "</pre>"
+			}
+			formatted = formatted + "</p><p>"
+		} else {
+			if len(para) > 4 && para[:4] == "    " {
+				if preClosed {
+					formatted = formatted + "<pre>"
+					preClosed = false
+				}
+				formatted = formatted + template.HTMLEscapeString(para[4:]) + "\n"
+			} else {
+				escapedPara := template.HTMLEscapeString(para)
+				linkedPara := linkRe.ReplaceAllString(escapedPara, "<a href=\"$0\">$0</a>")
+				formatted = formatted + linkedPara + " "
+			}
+		}
+	}
+	if !preClosed {
+		formatted = formatted + "</pre>"
+	}
+	formatted = formatted + "</p>"
+
+	return template.HTML(formatted)
 }
 
 func saveImage(r *http.Request) string {
@@ -529,7 +567,7 @@ var TopicHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.S
 
 	type Comment struct {
 		ID string
-		Content string
+		Content template.HTML
 		ImgSrc string
 		CreatedDate string
 		UserName string
@@ -550,9 +588,11 @@ var TopicHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.S
 		comments = append(comments, Comment{})
 		c := &comments[len(comments)-1]
 		var ownerID int64
-		rows.Scan(&ownerID, &c.UserName, &c.ID, &c.Content, &c.ImgSrc, &c.IsDeleted, &cDate)
+		var content string
+		rows.Scan(&ownerID, &c.UserName, &c.ID, &content, &c.ImgSrc, &c.IsDeleted, &cDate)
 		c.CreatedDate = timeAgoFromNow(time.Unix(cDate, 0))
 		c.IsOwner = sess.UserID.Valid && (ownerID == sess.UserID.Int64)
+		c.Content = formatComment(content)
 	}
 	if len(comments) >= numCommentsPerPage {
 		lastCommentDate = cDate
@@ -723,7 +763,7 @@ var CommentUpdateHandler = A(func(w http.ResponseWriter, r *http.Request, sess m
 				db.QueryRow(`SELECT is_sticky FROM comments WHERE id=?;`, commentID).Scan(&isSticky)
 			}
 			db.Exec(`UPDATE comments SET content=?, is_sticky=?, updated_date=? WHERE id=?;`, content, isSticky, int64(time.Now().Unix()), commentID)
-			http.Redirect(w, r, "/topics?id="+topicID, http.StatusSeeOther)
+			http.Redirect(w, r, "/topics?id="+topicID+"#comment-"+commentID, http.StatusSeeOther)
 		}
 		if action == "Delete" {
 			db.Exec(`UPDATE comments SET is_deleted=1 WHERE id=?;`, commentID)
@@ -789,7 +829,7 @@ var CommentHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models
 		"TopicName": topicName,
 		"GroupName": groupName,
 		"OwnerName": ownerName,
-		"Content": content,
+		"Content": formatComment(content),
 		"ImgSrc": imgSrc,
 		"IsMod": isMod,
 		"IsAdmin": isAdmin,

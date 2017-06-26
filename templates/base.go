@@ -189,6 +189,9 @@ const baseSrc = `<!DOCTYPE html>
 	#subtitle {
 		margin-top: 0px;
 	}
+	.comment p:first-child {
+		margin-top: 0px;
+	}
 	</style>
 	<title>{{ .Common.ForumName }}</title>
 	{{ block "head" . }}{{ end }}

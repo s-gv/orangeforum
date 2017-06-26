@@ -18,15 +18,18 @@ const changepassSrc = `
 		<th><label for="confirm">New password (again):</label></th>
 		<td><input type="password" name="confirm" id="confirm" required></td>
 	</tr>
+{{ if .Common.Msg }}
+	<tr>
+		<th></th>
+		<td>{{ .Common.Msg }}</td>
+	</tr>
+{{ end }}
 	<tr>
 		<th></th>
 		<td><input type="submit" value="Change Password"></td>
 	</tr>
 </table>
 </form>
-
-
-{{ .Common.Msg }}
 
 {{ end }}`
 

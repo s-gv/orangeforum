@@ -12,7 +12,7 @@ const commentindexSrc = `
 	{{ if .IsDeleted }}
 		<div>[DELETED]</div>
 	{{ else }}
-		<div>{{ .Content }}</div>
+		<div class="comment">{{ .Content }}</div>
 		{{ if .ImgSrc }}<div><img src="/img?name={{ .ImgSrc }}"></div>{{ end }}
 	{{ end }}
 </div>
