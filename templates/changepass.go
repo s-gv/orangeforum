@@ -26,7 +26,7 @@ const changepassSrc = `
 </form>
 
 
-{{ .Msg }}
+{{ .Common.Msg }}
 
 {{ end }}`
 
