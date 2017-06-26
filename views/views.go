@@ -688,7 +688,7 @@ var CommentCreateHandler = A(func(w http.ResponseWriter, r *http.Request, sess m
 				}
 			}
 		}
-		http.Redirect(w, r, "/topics?id="+topicID, http.StatusSeeOther)
+		http.Redirect(w, r, "/topics?id="+topicID+"#comment-last", http.StatusSeeOther)
 		return
 	}
 

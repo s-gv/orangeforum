@@ -51,6 +51,7 @@ const topicindexSrc = `
 	<div class="muted">No comments to show.</div>
 </div>
 {{ end }}
+<div id="comment-last"></div>
 
 {{ if .LastCommentDate }}
 <div class="row">
