@@ -121,7 +121,7 @@ var IndexHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.S
 })
 
 func init() {
-	linkRe = regexp.MustCompile("https?://[A-Za-z0-9/\\.\\?#,_-]+[A-Za-z0-9/\\?#,_-]")
+	linkRe = regexp.MustCompile("https?://[^\\s]+[A-Za-z0-9/\\&\\+\\?#,_-]")
 }
 
 func timeAgoFromNow(t time.Time) string {
