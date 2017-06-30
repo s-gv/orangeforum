@@ -443,6 +443,7 @@ func CreateTables() {
 	db.Exec(`CREATE UNIQUE INDEX users_username_index on users(username);`)
 	db.Exec(`CREATE INDEX users_email_index on users(email);`)
 	db.Exec(`CREATE INDEX users_reset_token_index on users(reset_token);`)
+	db.Exec(`CREATE INDEX users_created_index on users(created_date);`)
 
 	db.Exec(`CREATE TABLE groups(
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -455,7 +456,9 @@ func CreateTables() {
 		       		updated_date INTEGER
 	);`)
 	db.Exec(`CREATE INDEX groups_sticky_index on groups(is_sticky);`)
-	db.Exec(`CREATE INDEX groups_name_index on groups(name);`)
+	db.Exec(`CREATE INDEX groups_closed_sticky_index on groups(is_closed, is_sticky DESC);`)
+	db.Exec(`CREATE UNIQUE INDEX groups_name_index on groups(name);`)
+	db.Exec(`CREATE INDEX groups_created_index on groups(created_date);`)
 
 	db.Exec(`CREATE TABLE topics(
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -471,8 +474,9 @@ func CreateTables() {
 				created_date INTEGER,
 				updated_date INTEGER
 	);`)
-	db.Exec(`CREATE INDEX topics_userid_index on topics(userid);`)
-	db.Exec(`CREATE INDEX topics_groupid_index on topics(groupid);`)
+	db.Exec(`CREATE INDEX topics_userid_created_index on topics(userid, created_date);`)
+	db.Exec(`CREATE INDEX topics_groupid_sticky_created_index on topics(groupid, is_sticky DESC, created_date DESC);`)
+	db.Exec(`CREATE INDEX topics_created_index on topics(created_date);`)
 
 	db.Exec(`CREATE TABLE comments(
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -486,9 +490,10 @@ func CreateTables() {
 				created_date INTEGER,
 				updated_date INTEGER
 	);`)
-	db.Exec(`CREATE INDEX comments_userid_index on comments(userid);`)
-	db.Exec(`CREATE INDEX comments_topicid_index on comments(topicid);`)
+	db.Exec(`CREATE INDEX comments_userid_created_index on comments(userid, created_date);`)
 	db.Exec(`CREATE INDEX comments_parentid_index on comments(parentid);`)
+	db.Exec(`CREATE INDEX comments_topicid_sticky_created_index on comments(topicid, is_sticky DESC, created_date);`)
+	db.Exec(`CREATE INDEX comments_created_index on comments(created_date);`)
 
 	db.Exec(`CREATE TABLE mods(
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -497,7 +502,7 @@ func CreateTables() {
 		       		created_date INTEGER
 	);`)
 	db.Exec(`CREATE INDEX mods_userid_index on mods(userid);`)
-	db.Exec(`CREATE INDEX mods_groupid_index on mods(groupid);`)
+	db.Exec(`CREATE INDEX mods_groupid_userid_index on mods(groupid, userid);`)
 
 	db.Exec(`CREATE TABLE admins(
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -506,7 +511,7 @@ func CreateTables() {
 		       		created_date INTEGER
 	);`)
 	db.Exec(`CREATE INDEX admins_userid_index on admins(userid);`)
-	db.Exec(`CREATE INDEX admins_groupid_index on admins(groupid);`)
+	db.Exec(`CREATE INDEX admins_groupid_userid_index on admins(groupid, userid);`)
 
 	db.Exec(`CREATE TABLE topicsubscriptions(
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -516,7 +521,7 @@ func CreateTables() {
 				created_date INTEGER
 	);`)
 	db.Exec(`CREATE INDEX topicsubscriptions_userid_index on topicsubscriptions(userid);`)
-	db.Exec(`CREATE INDEX topicsubscriptions_topicid_index on topicsubscriptions(topicid);`)
+	db.Exec(`CREATE INDEX topicsubscriptions_topicid_userid_index on topicsubscriptions(topicid, userid);`)
 	db.Exec(`CREATE INDEX topicsubscriptions_token_index on topicsubscriptions(token);`)
 
 	db.Exec(`CREATE TABLE groupsubscriptions(
@@ -527,7 +532,7 @@ func CreateTables() {
 				created_date INTEGER
 	);`)
 	db.Exec(`CREATE INDEX groupsubscriptions_userid_index on groupsubscriptions(userid);`)
-	db.Exec(`CREATE INDEX groupsubscriptions_groupid_index on groupsubscriptions(groupid);`)
+	db.Exec(`CREATE INDEX groupsubscriptions_groupid_userid_index on groupsubscriptions(groupid, userid);`)
 	db.Exec(`CREATE INDEX groupsubscriptions_token_index on groupsubscriptions(token);`)
 
 	db.Exec(`CREATE TABLE extranotes(
