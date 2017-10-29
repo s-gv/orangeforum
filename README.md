@@ -1,9 +1,13 @@
 Orange Forum
 ============
 
-Orange Forum is an easy to deploy forum that has few dependencies. It is written is golang and a [compiled binary](https://github.com/s-gv/orangeforum/releases) is available for Linux. Try the latest version hosted [here](https://groups.goodoldweb.com/).
+Orange Forum is an easy to deploy forum that has minimal dependencies and uses very little Javascript. It is written is golang and a [compiled binary](https://github.com/s-gv/orangeforum/releases) is available for Linux. Try the latest version hosted [here](https://groups.goodoldweb.com/).
 
-By default, sqlite is used, so it's easy to get started. Download the binary and create an admin user with:
+
+How to use
+----------
+
+By default, sqlite is used, so it's easy to get started. [Download](https://github.com/s-gv/orangeforum/releases) the binary and create an admin user with:
 
 ```
 ./orangeforum --migrate && ./orangeforum --createsuperuser
