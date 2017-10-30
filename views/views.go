@@ -131,7 +131,7 @@ func init() {
 func timeAgoFromNow(t time.Time) string {
 	diff := time.Now().Sub(t)
 	if diff.Hours() > 24 {
-		return strconv.Itoa(int(diff.Hours()/24)) + " ago"
+		return strconv.Itoa(int(diff.Hours()/24)) + " days ago"
 	} else if diff.Hours() >= 2 {
 		return strconv.Itoa(int(diff.Hours())) + " hours ago"
 	} else {
