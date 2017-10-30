@@ -9,8 +9,7 @@ const commentindexSrc = `
 
 <div class="row">
 	<div class="muted">
-		comment by <a href="/users?u={{ .OwnerName }}">{{ .OwnerName }}</a> in <a href="/topics?id={{ .TopicID }}">{{ .TopicName }}</a>
-		<a href="/comments?id={{ .ID }}">{{ .CreatedDate }}</a>
+		comment by <a href="/users?u={{ .OwnerName }}">{{ .OwnerName }}</a> in <a href="/topics?id={{ .TopicID }}">{{ .TopicName }}</a> {{ .CreatedDate }}
 		{{ if or .IsOwner $.IsAdmin $.IsMod $.IsSuperAdmin }} | <a href="/comments/edit?id={{ .ID }}">edit</a> {{end}}
 	</div>
 	{{ if .IsDeleted }}

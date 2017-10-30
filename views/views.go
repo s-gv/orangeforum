@@ -330,8 +330,8 @@ var GroupEditHandler = A(func(w http.ResponseWriter, r *http.Request, sess model
 
 var GroupHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.Session) {
 	name := r.FormValue("name")
-	var groupID, headerMsg string
-	if db.QueryRow(`SELECT id, header_msg FROM groups WHERE name=?;`, name).Scan(&groupID, &headerMsg) != nil {
+	var groupID, groupDesc, headerMsg string
+	if db.QueryRow(`SELECT id, description, header_msg FROM groups WHERE name=?;`, name).Scan(&groupID, &groupDesc, &headerMsg) != nil {
 		ErrNotFoundHandler(w, r)
 		return
 	}
@@ -367,14 +367,7 @@ var GroupHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.S
 		topics = append(topics, Topic{})
 		t := &topics[len(topics)-1]
 		rows.Scan(&t.ID, &t.Title, &t.NumComments, &t.cDateUnix, &t.Owner)
-		diff := time.Now().Sub(time.Unix(t.cDateUnix, 0))
-		if diff.Hours() > 24 {
-			t.CreatedDate = strconv.Itoa(int(diff.Hours()/24)) + " ago"
-		} else if diff.Hours() >= 2 {
-			t.CreatedDate = strconv.Itoa(int(diff.Hours())) + " hours ago"
-		} else {
-			t.CreatedDate = strconv.Itoa(int(diff.Minutes())) + " minutes ago"
-		}
+		t.CreatedDate = timeAgoFromNow(time.Unix(t.cDateUnix, 0))
 	}
 
 	isSuperAdmin := false
@@ -396,6 +389,7 @@ var GroupHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.S
 	templates.Render(w, "groupindex.html", map[string]interface{}{
 		"Common": models.ReadCommonData(r, sess),
 		"GroupName": name,
+		"GroupDesc": groupDesc,
 		"GroupID": groupID,
 		"HeaderMsg": headerMsg,
 		"SubToken": subToken,
