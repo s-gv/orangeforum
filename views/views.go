@@ -359,9 +359,9 @@ var GroupHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.S
 	var topics []Topic
 	var rows *db.Rows
 	if lastTopicDate == 0 {
-		rows = db.Query(`SELECT topics.id, topics.title, topics.num_comments, topics.created_date, users.username FROM topics INNER JOIN users ON topics.userid = users.id AND topics.groupid=? ORDER BY topics.is_sticky DESC, topics.created_date DESC LIMIT ?;`, groupID, numTopicsPerPage)
+		rows = db.Query(`SELECT topics.id, topics.title, topics.num_comments, topics.created_date, users.username FROM topics INNER JOIN users ON topics.userid = users.id AND topics.groupid=? ORDER BY topics.is_sticky DESC, topics.activity_date DESC LIMIT ?;`, groupID, numTopicsPerPage)
 	} else {
-		rows = db.Query(`SELECT topics.id, topics.title, topics.num_comments, topics.created_date, users.username FROM topics INNER JOIN users ON topics.userid = users.id AND topics.groupid=? AND topics.is_sticky=0 AND topics.created_date < ? ORDER BY topics.created_date DESC LIMIT ?;`, groupID, lastTopicDate, numTopicsPerPage)
+		rows = db.Query(`SELECT topics.id, topics.title, topics.num_comments, topics.created_date, users.username FROM topics INNER JOIN users ON topics.userid = users.id AND topics.groupid=? AND topics.is_sticky=0 AND topics.created_date < ? ORDER BY topics.activity_date DESC LIMIT ?;`, groupID, lastTopicDate, numTopicsPerPage)
 	}
 	for rows.Next() {
 		topics = append(topics, Topic{})
@@ -425,8 +425,8 @@ var TopicCreateHandler = A(func(w http.ResponseWriter, r *http.Request, sess mod
 			http.Redirect(w, r, "/topics/new?gid="+groupID, http.StatusSeeOther)
 			return
 		}
-		db.Exec(`INSERT INTO topics(title, content, userid, groupid, is_sticky, created_date, updated_date) VALUES(?, ?, ?, ?, ?, ?, ?);`,
-			title, content, sess.UserID, groupID, isSticky, int(time.Now().Unix()), int(time.Now().Unix()))
+		db.Exec(`INSERT INTO topics(title, content, userid, groupid, is_sticky, created_date, updated_date, activity_date) VALUES(?, ?, ?, ?, ?, ?, ?, ?);`,
+			title, content, sess.UserID, groupID, isSticky, int(time.Now().Unix()), int(time.Now().Unix()), int(time.Now().Unix()))
 
 		var groupName string
 		db.QueryRow(`SELECT name FROM groups WHERE id=?`, groupID).Scan(&groupName)
@@ -670,7 +670,7 @@ var CommentCreateHandler = A(func(w http.ResponseWriter, r *http.Request, sess m
 		}
 		db.Exec(`INSERT INTO comments(content, image, topicid, userid, parentid, is_sticky, created_date, updated_date) VALUES(?, ?, ?, ?, ?, ?, ?, ?);`,
 			content, imageName, topicID, sess.UserID, sql.NullInt64{Valid:false}, isSticky, int64(time.Now().Unix()), int64(time.Now().Unix()))
-		db.Exec(`UPDATE topics SET num_comments = num_comments + 1 WHERE id=?;`, topicID)
+		db.Exec(`UPDATE topics SET num_comments=num_comments+1, activity_date=? WHERE id=?;`, int(time.Now().Unix()), topicID)
 		if models.Config(models.AllowTopicSubscription) != "0" {
 			var userName string
 			db.QueryRow(`SELECT username FROM users WHERE id=?;`, sess.UserID).Scan(&userName)

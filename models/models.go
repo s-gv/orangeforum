@@ -15,6 +15,7 @@ import (
 	"net/http"
 	"html/template"
 	"net/url"
+	"log"
 )
 
 const (
@@ -23,7 +24,7 @@ const (
 	VoteFlag = 3
 )
 
-const ModelVersion = 1
+const ModelVersion = 2
 
 const (
 	ForumName string = "forum_name"
@@ -478,9 +479,12 @@ func CreateTables() {
 				created_date INTEGER,
 				updated_date INTEGER
 	);`)
+	//db.Exec(`ALTER TABLE topics ADD COLUMN activity_date INTEGER;`)
 	db.Exec(`CREATE INDEX topics_userid_created_index on topics(userid, created_date);`)
 	db.Exec(`CREATE INDEX topics_groupid_sticky_created_index on topics(groupid, is_sticky DESC, created_date DESC);`)
 	db.Exec(`CREATE INDEX topics_created_index on topics(created_date);`)
+	//db.Exec(`CREATE INDEX topics_groupid_sticky_activity_index on topics(groupid, is_sticky DESC, activity_date DESC);`)
+	//db.Exec(`CREATE INDEX topics_activity_index on topics(activity_date);`)
 
 	db.Exec(`CREATE TABLE comments(
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -561,24 +565,46 @@ func CreateTables() {
 	db.Exec(`CREATE INDEX sessions_userid_index on sessions(userid);`)
 }
 
-func Migrate() {
-	CreateTables()
+func MigrationOne() {
+	db.Exec(`ALTER TABLE topics ADD COLUMN activity_date INTEGER;`)
+	db.Exec(`UPDATE topics SET activity_date = created_date;`)
+	db.Exec(`CREATE INDEX topics_groupid_sticky_activity_index on topics(groupid, is_sticky DESC, activity_date DESC);`)
+	db.Exec(`CREATE INDEX topics_activity_index on topics(activity_date);`)
+}
 
-	WriteConfig("version", "1");
-	WriteConfig(HeaderMsg, "")
-	WriteConfig(ForumName, "Orange Forum")
-	WriteConfig(SignupDisabled, "0")
-	WriteConfig(GroupCreationDisabled, "0")
-	WriteConfig(ImageUploadEnabled, "0")
-	WriteConfig(AllowGroupSubscription, "0")
-	WriteConfig(AllowTopicSubscription, "0")
-	WriteConfig(DataDir, "")
-	WriteConfig(BodyAppendage, "")
-	WriteConfig(DefaultFromMail, "admin@example.com")
-	WriteConfig(SMTPHost, "")
-	WriteConfig(SMTPPort, "25")
-	WriteConfig(SMTPUser, "")
-	WriteConfig(SMTPPass, "")
+func Migrate() {
+	dbver := db.Version()
+	if dbver == ModelVersion {
+		log.Panicf("[ERROR] DB migration not needed. DB up-to-date.\n")
+	} else if dbver > ModelVersion {
+		log.Panicf("[ERROR] DB version (%d) is greater than binary version (%d). Use newer binary.\n", dbver, ModelVersion)
+	}
+	for dbver < ModelVersion {
+		if dbver == 0 {
+			CreateTables()
+
+			WriteConfig("version", "1");
+			WriteConfig(HeaderMsg, "")
+			WriteConfig(ForumName, "Orange Forum")
+			WriteConfig(SignupDisabled, "0")
+			WriteConfig(GroupCreationDisabled, "0")
+			WriteConfig(ImageUploadEnabled, "0")
+			WriteConfig(AllowGroupSubscription, "0")
+			WriteConfig(AllowTopicSubscription, "0")
+			WriteConfig(DataDir, "")
+			WriteConfig(BodyAppendage, "")
+			WriteConfig(DefaultFromMail, "admin@example.com")
+			WriteConfig(SMTPHost, "")
+			WriteConfig(SMTPPort, "25")
+			WriteConfig(SMTPUser, "")
+			WriteConfig(SMTPPass, "")
+		} else if dbver == 1 {
+			MigrationOne()
+
+			WriteConfig("version", "2");
+		}
+		dbver = db.Version()
+	}
 }
 
 func IsMigrationNeeded() bool {

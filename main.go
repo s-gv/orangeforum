@@ -67,18 +67,13 @@ func main() {
 
 	db.Init(*dbDriver, *dsn)
 
+	if *shouldMigrate {
+		models.Migrate()
+		return
+	}
+
 	if models.IsMigrationNeeded() {
-		if *shouldMigrate {
-			models.Migrate()
-			return
-		} else {
-			log.Panicf("[ERROR] DB migration needed.\n")
-		}
-	} else {
-		if *shouldMigrate {
-			log.Panicf("[ERROR] DB migration not needed. DB up-to-date.\n")
-			return
-		}
+		log.Panicf("[ERROR] DB migration needed.\n")
 	}
 
 	if *createSuperUser {
