@@ -72,6 +72,9 @@ const baseSrc = `<!DOCTYPE html>
 	#header a, #header a:link, #header a:hover, #header a:active, #header a:visited {
 		color: #000;
 	}
+	#title a, #title a:link, #title a:hover, #title a:active, #title a:visited {
+		color: #000;
+	}
 	#footer a, #footer a:link, #footer a:hover, #footer a:active, #footer a:visited {
 		color: grey;
 	}
@@ -205,7 +208,7 @@ const baseSrc = `<!DOCTYPE html>
 	<div id="container">
 		<div id="header" class="clearfix">
 			<div id="navleft">
-				<a href="/">{{ .Common.ForumName }}</a>
+				<a href="/">{{ .Common.ForumName }}</a>{{ if .GroupName }} &gt; <a href="/groups?name={{ .GroupName }}">{{ .GroupName }}</a>{{ end }}
 			</div>
 			<div id="navright">
 				{{ if .Common.UserName }}

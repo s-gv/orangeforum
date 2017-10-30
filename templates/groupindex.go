@@ -34,7 +34,7 @@ const groupindexSrc = `
 {{ range .Topics }}
 <div class="row">
 	<div><a href="/topics?id={{ .ID }}">{{ .Title }}</a></div>
-	<div class="muted">by {{ .Owner }} {{ .CreatedDate }} | {{ .NumComments }} comments</div>
+	<div class="muted">{{ .Owner }} {{ .CreatedDate }} | {{ .NumComments }} comments</div>
 </div>
 {{ end }}
 {{ else }}

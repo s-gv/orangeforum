@@ -33,7 +33,7 @@ const indexSrc = `
 {{ range .Topics }}
 <div class="row">
 	<div><a href="/topics?id={{ .ID }}">{{ .Title }}</a></div>
-	<div class="muted">by <a href="/users?u={{ .OwnerName }}">{{ .OwnerName }}</a> in <a href="/groups?name={{ .GroupName }}">{{ .GroupName }}</a> {{ .CreatedDate }} | {{ .NumComments }} comments</div>
+	<div class="muted"><a href="/users?u={{ .OwnerName }}">{{ .OwnerName }}</a> in <a href="/groups?name={{ .GroupName }}">{{ .GroupName }}</a> {{ .CreatedDate }} | {{ .NumComments }} comments</div>
 </div>
 {{ end }}
 {{ else }}

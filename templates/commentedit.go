@@ -8,8 +8,8 @@ package templates
 const commenteditSrc = `
 {{ define "content" }}
 
-<h2 id="title">{{ .TopicName }}</h2>
-<p id="subtitle" class="muted">posted by <a href="/users?u={{ .TopicOwnerName }}">{{ .TopicOwnerName }}</a> in <a href="/groups?name={{ .GroupName }}">{{ .GroupName }}</a> {{ .TopicCreatedDate }}</p>
+<h2 id="title"><a href="/topics?id={{ .TopicID }}">{{ .TopicName }}</a></h2>
+<p id="subtitle" class="muted"><a href="/users?u={{ .TopicOwnerName }}">{{ .TopicOwnerName }}</a> in <a href="/groups?name={{ .GroupName }}">{{ .GroupName }}</a> {{ .TopicCreatedDate }}</p>
 
 <div>{{ .ParentComment }}</div>
 

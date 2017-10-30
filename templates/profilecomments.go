@@ -12,7 +12,7 @@ const profilecommentsSrc = `
 {{ if .Comments }}
 {{ range .Comments }}
 <div class="row">
-	<div class="muted">by {{ $.OwnerName }}</a> <a href="/comments?id={{ .ID }}">{{ .CreatedDate }}</a> on <a href="/topics?id={{ .TopicID }}">{{ .TopicName }}</a></div>
+	<div class="muted">{{ $.OwnerName }}</a> <a href="/comments?id={{ .ID }}">{{ .CreatedDate }}</a> on <a href="/topics?id={{ .TopicID }}">{{ .TopicName }}</a></div>
 	{{ if .IsDeleted }}
 		<div>[DELETED]</div>
 	{{ else }}
