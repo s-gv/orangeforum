@@ -7,10 +7,16 @@ Orange Forum is an easy to deploy forum that has minimal dependencies and uses v
 How to use
 ----------
 
-By default, sqlite is used, so it's easy to get started. [Download](https://github.com/s-gv/orangeforum/releases) the binary and create an admin user with:
+By default, sqlite is used, so it's easy to get started. [Download](https://github.com/s-gv/orangeforum/releases) the binary, and run the migrate command to setup the database tables:
 
 ```
-./orangeforum --migrate && ./orangeforum --createsuperuser
+./orangeforum --migrate
+```
+
+Create an admin user with:
+
+```
+./orangeforum --createsuperuser
 ```
 
 Now, start the server:
