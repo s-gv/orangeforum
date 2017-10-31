@@ -455,7 +455,7 @@ var TopicCreateHandler = A(func(w http.ResponseWriter, r *http.Request, sess mod
 		"Title":     "",
 		"Content":   "",
 		"IsSticky": false,
-		"IsDeleted": false,
+		"IsClosed": false,
 		"IsMod": isMod,
 		"IsAdmin": isAdmin,
 		"IsSuperAdmin": isSuperAdmin,
@@ -469,7 +469,7 @@ var TopicUpdateHandler = A(func(w http.ResponseWriter, r *http.Request, sess mod
 	content := r.PostFormValue("content")
 	action := r.PostFormValue("action")
 	isSticky := r.PostFormValue("is_sticky") != ""
-	isDeleted := true
+	isClosed := true
 
 	if db.QueryRow(`SELECT groupid FROM topics WHERE id=?;`, topicID).Scan(&groupID) != nil {
 		ErrNotFoundHandler(w, r)
@@ -511,16 +511,16 @@ var TopicUpdateHandler = A(func(w http.ResponseWriter, r *http.Request, sess mod
 
 		if action == "Update" {
 			db.Exec(`UPDATE topics SET title=?, content=?, is_sticky=?, updated_date=? WHERE id=?;`, title, content, isSticky, int(time.Now().Unix()), topicID)
-		} else if action == "Delete" {
+		} else if action == "Close" {
 			db.Exec(`UPDATE topics SET is_closed=1 WHERE id=?;`, topicID)
-		} else if action == "Undelete" {
+		} else if action == "Reopen" {
 			db.Exec(`UPDATE topics SET is_closed=0 WHERE id=?;`, topicID)
 		}
 		http.Redirect(w, r, "/topics/edit?id="+topicID, http.StatusSeeOther)
 		return
 	}
 
-	if db.QueryRow(`SELECT title, content, is_sticky, is_closed FROM topics WHERE id=?;`, topicID).Scan(&title, &content, &isSticky, &isDeleted) != nil {
+	if db.QueryRow(`SELECT title, content, is_sticky, is_closed FROM topics WHERE id=?;`, topicID).Scan(&title, &content, &isSticky, &isClosed) != nil {
 		ErrNotFoundHandler(w, r)
 		return
 	}
@@ -531,11 +531,11 @@ var TopicUpdateHandler = A(func(w http.ResponseWriter, r *http.Request, sess mod
 		"GroupName": groupName,
 		"TopicID": topicID,
 		"Title": title,
-		"Content": content,
-		"IsSticky": isSticky,
-		"IsDeleted": isDeleted,
-		"IsMod": isMod,
-		"IsAdmin": isAdmin,
+		"Content":      content,
+		"IsSticky":     isSticky,
+		"IsClosed":    isClosed,
+		"IsMod":        isMod,
+		"IsAdmin":      isAdmin,
 		"IsSuperAdmin": isSuperAdmin,
 	})
 })

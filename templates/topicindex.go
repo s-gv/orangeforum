@@ -29,7 +29,7 @@ const topicindexSrc = `
 	{{ end }}
 </div>
 
-<h2 id="title"><a href="/topics?id={{ .TopicID }}">{{ .TopicName }}</a></h2>
+<h2 id="title"><a href="/topics?id={{ .TopicID }}">{{ .TopicName }}</a>{{ if .IsClosed }} [closed]{{ end }}</h2>
 <div class="muted"><a href="/users?u={{ .OwnerName }}">{{ .OwnerName }}</a> in <a href="/groups?name={{ .GroupName }}">{{ .GroupName }}</a> {{ .CreatedDate }}</div>
 <div class="row">
 	<div class="comment">
