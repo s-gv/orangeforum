@@ -46,13 +46,17 @@ const topiceditSrc = `
 			{{ if not .IsClosed }}
 				{{ if not .IsDeleted }}
 					<input type="submit" name="action" value="Update">
+					{{ if or .IsMod .IsAdmin .IsSuperAdmin }}
 					<input type="submit" name="action" value="Close">
+					{{ end }}
 					<input type="submit" name="action" value="Delete">
 				{{ else }}
 					<input type="submit" name="action" value="Undelete">
 				{{ end }}
 			{{ else }}
+				{{ if or .IsMod .IsAdmin .IsSuperAdmin }}
 				<input type="submit" name="action" value="Reopen">
+				{{ end }}
 			{{ end }}
 		{{ else }}
 			<input type="submit" name="action" value="Create">

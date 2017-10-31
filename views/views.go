@@ -514,9 +514,9 @@ var TopicUpdateHandler = A(func(w http.ResponseWriter, r *http.Request, sess mod
 
 		if action == "Update" {
 			db.Exec(`UPDATE topics SET title=?, content=?, is_sticky=?, updated_date=? WHERE id=?;`, title, content, isSticky, int(time.Now().Unix()), topicID)
-		} else if action == "Close" {
+		} else if action == "Close" && (isMod || isAdmin || isSuperAdmin) {
 			db.Exec(`UPDATE topics SET is_closed=1 WHERE id=?;`, topicID)
-		} else if action == "Reopen" {
+		} else if action == "Reopen" && (isMod || isAdmin || isSuperAdmin) {
 			db.Exec(`UPDATE topics SET is_closed=0 WHERE id=?;`, topicID)
 		} else if action == "Delete" {
 			db.Exec(`UPDATE topics SET is_deleted=1 WHERE id=?;`, topicID)

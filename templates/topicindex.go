@@ -11,7 +11,7 @@ const topicindexSrc = `
 	{{ if not .IsClosed }}
 	<a class="link-btn" href="/comments/new?tid={{ .TopicID }}">Reply</a>
 	{{ end }}
-	{{ if or .IsAdmin .IsMod .IsSuperAdmin .IsOwner }}
+	{{ if or .IsAdmin .IsMod .IsSuperAdmin (and .IsOwner (not .IsClosed)) }}
 	<a class="link-btn" href="/topics/edit?id={{ .TopicID }}">Edit topic</a>
 	{{ end }}
 	{{ if and .Common.UserName .Common.IsTopicSubAllowed }}
