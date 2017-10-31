@@ -35,10 +35,12 @@ const groupindexSrc = `
 
 {{ if .Topics }}
 {{ range .Topics }}
-<div class="row">
-	<div><a href="/topics?id={{ .ID }}">{{ .Title }}</a>{{ if .IsClosed }} [closed] {{ end }}</div>
-	<div class="muted"><a href="/users?u={{ .Owner }}">{{ .Owner }}</a> {{ .CreatedDate }} | <a href="/topics?id={{ .ID }}">{{ .NumComments }} comments</a></div>
-</div>
+	{{ if not .IsDeleted }}
+	<div class="row">
+		<div><a href="/topics?id={{ .ID }}">{{ .Title }}{{ if .IsClosed }} [closed] {{ end }}</a></div>
+		<div class="muted"><a href="/users?u={{ .Owner }}">{{ .Owner }}</a> {{ .CreatedDate }} | <a href="/topics?id={{ .ID }}">{{ .NumComments }} comments</a></div>
+	</div>
+	{{ end }}
 {{ end }}
 {{ else }}
 <div class="row">

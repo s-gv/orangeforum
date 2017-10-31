@@ -351,6 +351,7 @@ var GroupHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.S
 	type Topic struct {
 		ID int
 		Title string
+		IsDeleted bool
 		IsClosed bool
 		Owner string
 		NumComments int
@@ -360,15 +361,15 @@ var GroupHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.S
 	var topics []Topic
 	var rows *db.Rows
 	if lastTopicDate == 0 {
-		rows = db.Query(`SELECT topics.id, topics.title, topics.is_closed, topics.num_comments, topics.created_date, users.username FROM topics INNER JOIN users ON topics.userid = users.id AND topics.groupid=? ORDER BY topics.is_sticky DESC, topics.activity_date DESC LIMIT ?;`, groupID, numTopicsPerPage)
+		rows = db.Query(`SELECT topics.id, topics.title, topics.is_deleted, topics.is_closed, topics.num_comments, topics.created_date, users.username FROM topics INNER JOIN users ON topics.userid = users.id AND topics.groupid=? ORDER BY topics.is_sticky DESC, topics.activity_date DESC LIMIT ?;`, groupID, numTopicsPerPage)
 	} else {
-		rows = db.Query(`SELECT topics.id, topics.title, topics.is_closed, topics.num_comments, topics.created_date, users.username FROM topics INNER JOIN users ON topics.userid = users.id AND topics.groupid=? AND topics.is_sticky=0 AND topics.created_date < ? ORDER BY topics.activity_date DESC LIMIT ?;`, groupID, lastTopicDate, numTopicsPerPage)
+		rows = db.Query(`SELECT topics.id, topics.title, topics.is_deleted, topics.is_closed, topics.num_comments, topics.created_date, users.username FROM topics INNER JOIN users ON topics.userid = users.id AND topics.groupid=? AND topics.is_sticky=0 AND topics.created_date < ? ORDER BY topics.activity_date DESC LIMIT ?;`, groupID, lastTopicDate, numTopicsPerPage)
 	}
 	for rows.Next() {
-		topics = append(topics, Topic{})
-		t := &topics[len(topics)-1]
-		rows.Scan(&t.ID, &t.Title, &t.IsClosed, &t.NumComments, &t.cDateUnix, &t.Owner)
+		t := Topic{}
+		rows.Scan(&t.ID, &t.Title, &t.IsDeleted, &t.IsClosed, &t.NumComments, &t.cDateUnix, &t.Owner)
 		t.CreatedDate = timeAgoFromNow(time.Unix(t.cDateUnix, 0))
+		topics = append(topics, t)
 	}
 
 	isSuperAdmin := false
@@ -456,6 +457,7 @@ var TopicCreateHandler = A(func(w http.ResponseWriter, r *http.Request, sess mod
 		"Content":   "",
 		"IsSticky": false,
 		"IsClosed": false,
+		"IsDeleted": false,
 		"IsMod": isMod,
 		"IsAdmin": isAdmin,
 		"IsSuperAdmin": isSuperAdmin,
@@ -470,6 +472,7 @@ var TopicUpdateHandler = A(func(w http.ResponseWriter, r *http.Request, sess mod
 	action := r.PostFormValue("action")
 	isSticky := r.PostFormValue("is_sticky") != ""
 	isClosed := true
+	isDeleted := true
 
 	if db.QueryRow(`SELECT groupid FROM topics WHERE id=?;`, topicID).Scan(&groupID) != nil {
 		ErrNotFoundHandler(w, r)
@@ -515,12 +518,16 @@ var TopicUpdateHandler = A(func(w http.ResponseWriter, r *http.Request, sess mod
 			db.Exec(`UPDATE topics SET is_closed=1 WHERE id=?;`, topicID)
 		} else if action == "Reopen" {
 			db.Exec(`UPDATE topics SET is_closed=0 WHERE id=?;`, topicID)
+		} else if action == "Delete" {
+			db.Exec(`UPDATE topics SET is_deleted=1 WHERE id=?;`, topicID)
+		} else if action == "Undelete" {
+			db.Exec(`UPDATE topics SET is_deleted=0 WHERE id=?;`, topicID)
 		}
 		http.Redirect(w, r, "/topics/edit?id="+topicID, http.StatusSeeOther)
 		return
 	}
 
-	if db.QueryRow(`SELECT title, content, is_sticky, is_closed FROM topics WHERE id=?;`, topicID).Scan(&title, &content, &isSticky, &isClosed) != nil {
+	if db.QueryRow(`SELECT title, content, is_sticky, is_deleted, is_closed FROM topics WHERE id=?;`, topicID).Scan(&title, &content, &isSticky, &isDeleted, &isClosed) != nil {
 		ErrNotFoundHandler(w, r)
 		return
 	}
@@ -534,6 +541,7 @@ var TopicUpdateHandler = A(func(w http.ResponseWriter, r *http.Request, sess mod
 		"Content":      content,
 		"IsSticky":     isSticky,
 		"IsClosed":    isClosed,
+		"IsDeleted": isDeleted,
 		"IsMod":        isMod,
 		"IsAdmin":      isAdmin,
 		"IsSuperAdmin": isSuperAdmin,
@@ -1366,20 +1374,21 @@ var UserTopicsHandler = UA(func(w http.ResponseWriter, r *http.Request, sess mod
 		ID string
 		Title string
 		IsClosed bool
+		IsDeleted bool
 		CreatedDate string
 	}
 	var topics []Topic
 	var rows *db.Rows
 	var cDate int64
 	if lastTopicDate == 0 {
-		rows = db.Query(`SELECT id, title, is_closed, created_date FROM topics WHERE userid=? ORDER BY created_date DESC LIMIT ?;`, ownerID, numTopicsPerPage)
+		rows = db.Query(`SELECT id, title, is_deleted, is_closed, created_date FROM topics WHERE userid=? ORDER BY created_date DESC LIMIT ?;`, ownerID, numTopicsPerPage)
 	} else {
-		rows = db.Query(`SELECT id, title, is_closed, created_date FROM topics WHERE userid=? AND created_date < ? ORDER BY created_date DESC LIMIT ?;`, ownerID, lastTopicDate, numTopicsPerPage)
+		rows = db.Query(`SELECT id, title, is_deleted, is_closed, created_date FROM topics WHERE userid=? AND created_date < ? ORDER BY created_date DESC LIMIT ?;`, ownerID, lastTopicDate, numTopicsPerPage)
 	}
 	for rows.Next() {
 		topics = append(topics, Topic{})
 		t := &topics[len(topics)-1]
-		rows.Scan(&t.ID, &t.Title, &t.IsClosed, &cDate)
+		rows.Scan(&t.ID, &t.Title, &t.IsDeleted, &t.IsClosed, &cDate)
 		t.CreatedDate = timeAgoFromNow(time.Unix(cDate, 0))
 	}
 

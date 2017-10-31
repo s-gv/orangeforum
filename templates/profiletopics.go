@@ -13,7 +13,7 @@ const profiletopicsSrc = `
 {{ range .Topics }}
 <div class="row">
 	<div>
-		<a href="/topics?id={{ .ID }}">{{ .Title }}</a>{{ if .IsClosed }} [closed]{{ end }}
+		<a href="{{ if not .IsDeleted }}/topics?id={{ .ID }}{{ else }}/topics/edit?id={{ .ID }}{{ end }}">{{ .Title }}{{ if .IsClosed }} [closed]{{ end }}{{ if .IsDeleted }} [deleted]{{ end }}</a>
 	</div>
 	<div class="muted">{{ .CreatedDate }}</div>
 </div>

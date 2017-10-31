@@ -10,7 +10,7 @@ const topiceditSrc = `
 {{ if not .TopicID }}
 <h1>New topic</h1>
 {{ else }}
-<h1 id="title"><a href="/topics?id={{ .TopicID }}">{{ .Title }}</a>{{ if .IsClosed }} [closed]{{ end }}</h1>
+<h1 id="title"><a href="/topics?id={{ .TopicID }}">{{ .Title }}{{ if .IsClosed }} [closed]{{ end }}{{ if .IsDeleted }} [deleted]{{ end }}</a></h1>
 {{ end }}
 
 
@@ -44,10 +44,15 @@ const topiceditSrc = `
 		<td>
 		{{ if .TopicID }}
 			{{ if not .IsClosed }}
-			<input type="submit" name="action" value="Update">
-			<input type="submit" name="action" value="Close">
+				{{ if not .IsDeleted }}
+					<input type="submit" name="action" value="Update">
+					<input type="submit" name="action" value="Close">
+					<input type="submit" name="action" value="Delete">
+				{{ else }}
+					<input type="submit" name="action" value="Undelete">
+				{{ end }}
 			{{ else }}
-			<input type="submit" name="action" value="Reopen">
+				<input type="submit" name="action" value="Reopen">
 			{{ end }}
 		{{ else }}
 			<input type="submit" name="action" value="Create">
