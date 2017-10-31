@@ -318,7 +318,7 @@ var GroupEditHandler = A(func(w http.ResponseWriter, r *http.Request, sess model
 	templates.Render(w, "groupedit.html", map[string]interface{}{
 		"Common": models.ReadCommonData(r, sess),
 		"ID": groupID,
-		"Name": name,
+		"GroupName": name,
 		"Desc": desc,
 		"HeaderMsg": headerMsg,
 		"IsSticky": isSticky,
@@ -403,8 +403,9 @@ var GroupHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.S
 
 var TopicCreateHandler = A(func(w http.ResponseWriter, r *http.Request, sess models.Session) {
 	groupID := r.FormValue("gid")
+	var groupName string
 	isGroupClosed := 1
-	db.QueryRow(`SELECT is_closed FROM groups WHERE id=?;`, groupID).Scan(&isGroupClosed)
+	db.QueryRow(`SELECT name, is_closed FROM groups WHERE id=?;`, groupID).Scan(&groupName, &isGroupClosed)
 	if isGroupClosed == 1 {
 		ErrForbiddenHandler(w, r)
 		return
@@ -428,8 +429,6 @@ var TopicCreateHandler = A(func(w http.ResponseWriter, r *http.Request, sess mod
 		db.Exec(`INSERT INTO topics(title, content, userid, groupid, is_sticky, created_date, updated_date, activity_date) VALUES(?, ?, ?, ?, ?, ?, ?, ?);`,
 			title, content, sess.UserID, groupID, isSticky, int(time.Now().Unix()), int(time.Now().Unix()), int(time.Now().Unix()))
 
-		var groupName string
-		db.QueryRow(`SELECT name FROM groups WHERE id=?`, groupID).Scan(&groupName)
 		if models.Config(models.AllowGroupSubscription) != "0" {
 			groupURL := "http://" + r.Host + "/groups?name=" + groupName
 			rows := db.Query(`SELECT users.email, groupsubscriptions.token FROM users INNER JOIN groupsubscriptions ON users.id=groupsubscriptions.userid AND groupsubscriptions.groupid=?;`, groupID)
@@ -450,6 +449,7 @@ var TopicCreateHandler = A(func(w http.ResponseWriter, r *http.Request, sess mod
 	templates.Render(w, "topicedit.html", map[string]interface{}{
 		"Common":    models.ReadCommonData(r, sess),
 		"GroupID":   groupID,
+		"GroupName": groupName,
 		"TopicID":   "",
 		"Title":     "",
 		"Content":   "",
@@ -476,7 +476,8 @@ var TopicUpdateHandler = A(func(w http.ResponseWriter, r *http.Request, sess mod
 	}
 
 	isGroupClosed := 1
-	db.QueryRow(`SELECT is_closed FROM groups WHERE id=?;`, groupID).Scan(&isGroupClosed)
+	var groupName string
+	db.QueryRow(`SELECT name, is_closed FROM groups WHERE id=?;`, groupID).Scan(&groupName, &isGroupClosed)
 	if isGroupClosed == 1 {
 		ErrForbiddenHandler(w, r)
 		return
@@ -526,6 +527,7 @@ var TopicUpdateHandler = A(func(w http.ResponseWriter, r *http.Request, sess mod
 	templates.Render(w, "topicedit.html", map[string]interface{}{
 		"Common": models.ReadCommonData(r, sess),
 		"GroupID": groupID,
+		"GroupName": groupName,
 		"TopicID": topicID,
 		"Title": title,
 		"Content": content,

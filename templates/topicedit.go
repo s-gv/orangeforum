@@ -10,7 +10,7 @@ const topiceditSrc = `
 {{ if not .TopicID }}
 <h1>New topic</h1>
 {{ else }}
-<h1>Edit topic</h1>
+<h1 id="title"><a href="/topics?id={{ .TopicID }}">{{ .Title }}</a></h1>
 {{ end }}
 
 

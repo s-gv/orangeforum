@@ -10,7 +10,7 @@ const groupeditSrc = `
 {{ if not .ID }}
 <h1>New group</h1>
 {{ else }}
-<h1>Edit group</h1>
+<h1 id="title"><a href="/groups?name={{ .GroupName }}">{{ .GroupName }}</a></h1>
 {{ end }}
 
 
@@ -20,7 +20,7 @@ const groupeditSrc = `
 <table class="form">
 	<tr>
 		<th><label for="name">Group Name:</label></th>
-		<td><input type="text" name="name" id="name" placeholder="Off-topic" value="{{ .Name }}"></td>
+		<td><input type="text" name="name" id="name" placeholder="Off-topic" value="{{ .GroupName }}"></td>
 	</tr>
 	<tr>
 		<th><label for="desc">Description:</label></th>
