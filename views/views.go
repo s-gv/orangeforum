@@ -351,6 +351,7 @@ var GroupHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.S
 	type Topic struct {
 		ID int
 		Title string
+		IsClosed bool
 		Owner string
 		NumComments int
 		CreatedDate string
@@ -359,14 +360,14 @@ var GroupHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.S
 	var topics []Topic
 	var rows *db.Rows
 	if lastTopicDate == 0 {
-		rows = db.Query(`SELECT topics.id, topics.title, topics.num_comments, topics.created_date, users.username FROM topics INNER JOIN users ON topics.userid = users.id AND topics.groupid=? ORDER BY topics.is_sticky DESC, topics.activity_date DESC LIMIT ?;`, groupID, numTopicsPerPage)
+		rows = db.Query(`SELECT topics.id, topics.title, topics.is_closed, topics.num_comments, topics.created_date, users.username FROM topics INNER JOIN users ON topics.userid = users.id AND topics.groupid=? ORDER BY topics.is_sticky DESC, topics.activity_date DESC LIMIT ?;`, groupID, numTopicsPerPage)
 	} else {
-		rows = db.Query(`SELECT topics.id, topics.title, topics.num_comments, topics.created_date, users.username FROM topics INNER JOIN users ON topics.userid = users.id AND topics.groupid=? AND topics.is_sticky=0 AND topics.created_date < ? ORDER BY topics.activity_date DESC LIMIT ?;`, groupID, lastTopicDate, numTopicsPerPage)
+		rows = db.Query(`SELECT topics.id, topics.title, topics.is_closed, topics.num_comments, topics.created_date, users.username FROM topics INNER JOIN users ON topics.userid = users.id AND topics.groupid=? AND topics.is_sticky=0 AND topics.created_date < ? ORDER BY topics.activity_date DESC LIMIT ?;`, groupID, lastTopicDate, numTopicsPerPage)
 	}
 	for rows.Next() {
 		topics = append(topics, Topic{})
 		t := &topics[len(topics)-1]
-		rows.Scan(&t.ID, &t.Title, &t.NumComments, &t.cDateUnix, &t.Owner)
+		rows.Scan(&t.ID, &t.Title, &t.IsClosed, &t.NumComments, &t.cDateUnix, &t.Owner)
 		t.CreatedDate = timeAgoFromNow(time.Unix(t.cDateUnix, 0))
 	}
 
