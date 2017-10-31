@@ -64,6 +64,8 @@ func init() {
 	tmpls["signup.html"] = template.Must(template.New("base").Parse(baseSrc))
 	template.Must(tmpls["signup.html"].New("signup").Parse(signupSrc))
 
+	tmpls["style.css"] = template.Must(template.New("style").Parse(styleSrc))
+
 	tmpls["topicedit.html"] = template.Must(template.New("base").Parse(baseSrc))
 	template.Must(tmpls["topicedit.html"].New("topicedit").Parse(topiceditSrc))
 
@@ -72,7 +74,6 @@ func init() {
 }
 
 func Render(wr io.Writer, template string, data interface{}) {
-
 	err := tmpls[template].Execute(wr, data)
 	if err != nil {
 		log.Panicf("[ERROR] Error rendering %s: %s\n", template, err)

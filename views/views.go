@@ -1461,6 +1461,13 @@ func FaviconHandler(w http.ResponseWriter, r *http.Request) {
 	ErrNotFoundHandler(w, r)
 }
 
+func StyleHandler(w http.ResponseWriter, r *http.Request) {
+	defer ErrServerHandler(w, r)
+	w.Header().Set("Content-Type", "text/css")
+	w.Header().Set("Cache-Control", "public, max-age=14400")
+	templates.Render(w, "style.css", map[string]interface{}{})
+}
+
 func ImageHandler(w http.ResponseWriter, r *http.Request) {
 	defer ErrServerHandler(w, r)
 	dataDir := models.Config(models.DataDir)
