@@ -1464,7 +1464,7 @@ func FaviconHandler(w http.ResponseWriter, r *http.Request) {
 func StyleHandler(w http.ResponseWriter, r *http.Request) {
 	defer ErrServerHandler(w, r)
 	w.Header().Set("Content-Type", "text/css")
-	w.Header().Set("Cache-Control", "public, max-age=14400")
+	w.Header().Set("Cache-Control", "max-age=31536000, public")
 	templates.Render(w, "style.css", map[string]interface{}{})
 }
 
