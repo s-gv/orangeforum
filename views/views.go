@@ -24,6 +24,8 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime/debug"
+	"fmt"
+	"github.com/s-gv/orangeforum/static"
 )
 
 var linkRe *regexp.Regexp
@@ -1477,7 +1479,14 @@ func StyleHandler(w http.ResponseWriter, r *http.Request) {
 	defer ErrServerHandler(w, r)
 	w.Header().Set("Content-Type", "text/css")
 	w.Header().Set("Cache-Control", "max-age=31536000, public")
-	templates.Render(w, "style.css", map[string]interface{}{})
+	fmt.Fprint(w, static.StyleSrc)
+}
+
+func ScriptHandler(w http.ResponseWriter, r *http.Request) {
+	defer ErrServerHandler(w, r)
+	w.Header().Set("Content-Type", "text/javascript")
+	w.Header().Set("Cache-Control", "max-age=31536000, public")
+	fmt.Fprint(w, static.ScriptSrc)
 }
 
 func ImageHandler(w http.ResponseWriter, r *http.Request) {

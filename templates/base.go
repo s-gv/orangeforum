@@ -40,6 +40,7 @@ const baseSrc = `<!DOCTYPE html>
 		{{ end }}
 		</div>
 	</div>
+	<script src="/static/js/orangeforum.js?v=110"></script>
 	{{ .Common.BodyAppendage }}
 </body>
 </html>`

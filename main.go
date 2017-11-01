@@ -104,6 +104,8 @@ func main() {
 
 	mux.HandleFunc("/static/css/orangeforum.css", views.StyleHandler)
 
+	mux.HandleFunc("/static/js/orangeforum.js", views.ScriptHandler)
+
 	mux.HandleFunc("/favicon.ico", views.FaviconHandler)
 
 	mux.HandleFunc("/img", views.ImageHandler)

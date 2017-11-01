@@ -64,8 +64,6 @@ func init() {
 	tmpls["signup.html"] = template.Must(template.New("base").Parse(baseSrc))
 	template.Must(tmpls["signup.html"].New("signup").Parse(signupSrc))
 
-	tmpls["style.css"] = template.Must(template.New("style").Parse(styleSrc))
-
 	tmpls["topicedit.html"] = template.Must(template.New("base").Parse(baseSrc))
 	template.Must(tmpls["topicedit.html"].New("topicedit").Parse(topiceditSrc))
 
