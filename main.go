@@ -56,12 +56,14 @@ func main() {
 	rand.Seed(time.Now().UnixNano())
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
-	dsn := flag.String("dsn", "orangeforum.db", "Data source name (default: orangeforum.db)")
-	dbDriver := flag.String("dbdriver", "sqlite3", "DB driver name (default: sqlite3)")
-	addr := flag.String("addr", ":9123", "Port to listen on (default: :9123)")
-	shouldMigrate := flag.Bool("migrate", false, "Migrate DB (default: false)")
+	dsn := flag.String("dsn", "orangeforum.db", "Data source name")
+	dbDriver := flag.String("dbdriver", "sqlite3", "DB driver name")
+	addr := flag.String("addr", ":9123", "Port to listen on")
+	shouldMigrate := flag.Bool("migrate", false, "Migrate DB")
 	createSuperUser := flag.Bool("createsuperuser", false, "Create superuser")
 	createUser := flag.Bool("createuser", false, "Create user")
+	changePasswd := flag.Bool("changepasswd", false, "Change password")
+	deleteSessions := flag.Bool("deletesessions", false, "Delete all sessions (logout all users)")
 
 	flag.Parse()
 
@@ -92,9 +94,24 @@ func main() {
 		userName, pass := getCreds()
 		if userName != "" && pass != "" {
 			if err := models.CreateUser(userName, pass, ""); err != nil {
-				fmt.Printf("Error creating superuser: %s\n", err)
+				fmt.Printf("Error creating user: %s\n", err)
 			}
 		}
+		return
+	}
+
+	if *changePasswd {
+		userName, pass := getCreds()
+		if userName != "" && pass != "" {
+			if err := models.UpdateUserPasswd(userName, pass); err != nil {
+				fmt.Printf("Error changing password: %s\n", err)
+			}
+		}
+		return
+	}
+
+	if *deleteSessions {
+		db.Exec(`DELETE FROM sessions;`)
 		return
 	}
 
