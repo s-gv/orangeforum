@@ -428,7 +428,7 @@ func NumComments() int64 {
 	return 0
 }
 
-func CreateTables() {
+func Migration0() {
 	db.Exec(`CREATE TABLE configs(name VARCHAR(250), val TEXT);`)
 	db.Exec(`CREATE UNIQUE INDEX configs_key_index on configs(name);`)
 
@@ -479,12 +479,12 @@ func CreateTables() {
 				created_date INTEGER,
 				updated_date INTEGER
 	);`)
-	//db.Exec(`ALTER TABLE topics ADD COLUMN activity_date INTEGER;`)
+	// db.Exec(`ALTER TABLE topics ADD COLUMN activity_date INTEGER;`) // Migration 1. Default value set to created_date
 	db.Exec(`CREATE INDEX topics_userid_created_index on topics(userid, created_date);`)
 	db.Exec(`CREATE INDEX topics_groupid_sticky_created_index on topics(groupid, is_sticky DESC, created_date DESC);`)
 	db.Exec(`CREATE INDEX topics_created_index on topics(created_date);`)
-	//db.Exec(`CREATE INDEX topics_groupid_sticky_activity_index on topics(groupid, is_sticky DESC, activity_date DESC);`)
-	//db.Exec(`CREATE INDEX topics_activity_index on topics(activity_date);`)
+	// db.Exec(`CREATE INDEX topics_groupid_sticky_activity_index on topics(groupid, is_sticky DESC, activity_date DESC);`) // Migration 1
+	// db.Exec(`CREATE INDEX topics_activity_index on topics(activity_date);`) // Migration 1
 
 	db.Exec(`CREATE TABLE comments(
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -565,7 +565,7 @@ func CreateTables() {
 	db.Exec(`CREATE INDEX sessions_userid_index on sessions(userid);`)
 }
 
-func MigrationOne() {
+func Migration1() {
 	db.Exec(`ALTER TABLE topics ADD COLUMN activity_date INTEGER;`)
 	db.Exec(`UPDATE topics SET activity_date = created_date;`)
 	db.Exec(`CREATE INDEX topics_groupid_sticky_activity_index on topics(groupid, is_sticky DESC, activity_date DESC);`)
@@ -581,7 +581,7 @@ func Migrate() {
 	}
 	for dbver < ModelVersion {
 		if dbver == 0 {
-			CreateTables()
+			Migration0()
 
 			WriteConfig("version", "1");
 			WriteConfig(HeaderMsg, "")
@@ -599,7 +599,7 @@ func Migrate() {
 			WriteConfig(SMTPUser, "")
 			WriteConfig(SMTPPass, "")
 		} else if dbver == 1 {
-			MigrationOne()
+			Migration1()
 
 			WriteConfig("version", "2");
 		}

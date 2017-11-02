@@ -134,17 +134,17 @@ func main() {
 	mux.HandleFunc("/groups/edit", views.GroupEditHandler)
 	mux.HandleFunc("/groups/subscribe", views.GroupSubscribeHandler)
 	mux.HandleFunc("/groups/unsubscribe", views.GroupUnsubscribeHandler)
-	mux.HandleFunc("/groups", views.GroupHandler)
+	mux.HandleFunc("/groups", views.GroupIndexHandler)
 
 	mux.HandleFunc("/topics/new", views.TopicCreateHandler)
 	mux.HandleFunc("/topics/edit", views.TopicUpdateHandler)
 	mux.HandleFunc("/topics/subscribe", views.TopicSubscribeHandler)
 	mux.HandleFunc("/topics/unsubscribe", views.TopicUnsubscribeHandler)
-	mux.HandleFunc("/topics", views.TopicHandler)
+	mux.HandleFunc("/topics", views.TopicIndexHandler)
 
 	mux.HandleFunc("/comments/new", views.CommentCreateHandler)
 	mux.HandleFunc("/comments/edit", views.CommentUpdateHandler)
-	mux.HandleFunc("/comments", views.CommentHandler)
+	mux.HandleFunc("/comments", views.CommentIndexHandler)
 
 	mux.HandleFunc("/signup", views.SignupHandler)
 	mux.HandleFunc("/login", views.LoginHandler)
