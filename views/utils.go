@@ -1,3 +1,7 @@
+// Copyright (c) 2017 Sagar Gubbi. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 package views
 
 import (
@@ -15,7 +19,31 @@ import (
 	"time"
 	"strconv"
 	"errors"
+	"math/rand"
+	"github.com/s-gv/orangeforum/models/db"
 )
+
+type CommonData struct {
+	CSRF string
+	Msg string
+	UserName string
+	IsSuperAdmin bool
+	ForumName string
+	CurrentURL template.URL
+	BodyAppendage string
+	IsGroupSubAllowed bool
+	IsTopicSubAllowed bool
+	ExtraNotesShort []ExtraNote
+}
+
+type ExtraNote struct {
+	ID int
+	Name string
+	Content string
+	URL string
+	CreatedDate time.Time
+	UpdatedDate time.Time
+}
 
 var linkRe *regexp.Regexp
 
@@ -38,10 +66,10 @@ func ErrForbiddenHandler(w http.ResponseWriter, r *http.Request) {
 	http.Error(w, "403 Forbidden", http.StatusForbidden)
 }
 
-func UA(handler func(w http.ResponseWriter, r *http.Request, sess models.Session)) func(w http.ResponseWriter, r *http.Request) {
+func UA(handler func(w http.ResponseWriter, r *http.Request, sess Session)) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		defer ErrServerHandler(w, r)
-		sess := models.OpenSession(w, r)
+		sess := OpenSession(w, r)
 		if r.Method == "POST" && r.PostFormValue("csrf") != sess.CSRFToken {
 			ErrForbiddenHandler(w, r)
 			return
@@ -51,10 +79,10 @@ func UA(handler func(w http.ResponseWriter, r *http.Request, sess models.Session
 	}
 }
 
-func A(handler func(w http.ResponseWriter, r *http.Request, sess models.Session)) func(w http.ResponseWriter, r *http.Request) {
+func A(handler func(w http.ResponseWriter, r *http.Request, sess Session)) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		defer ErrServerHandler(w, r)
-		sess := models.OpenSession(w, r)
+		sess := OpenSession(w, r)
 		if r.Method == "POST" && r.PostFormValue("csrf") != sess.CSRFToken {
 			ErrForbiddenHandler(w, r)
 			return
@@ -142,7 +170,7 @@ func saveImage(r *http.Request) string {
 			if handler.Filename != "" {
 				ext := strings.ToLower(filepath.Ext(handler.Filename))
 				if ext == ".jpg" || ext == ".png" || ext == ".jpeg" {
-					fileName := models.RandSeq(64) + ext
+					fileName := randSeq(64) + ext
 					f, err := os.OpenFile(dataDir+fileName, os.O_WRONLY|os.O_CREATE, 0666)
 					if err == nil {
 						defer f.Close()
@@ -168,4 +196,50 @@ func validatePasswd(passwd string, passwdConfirm string) error {
 		return errors.New("Passwords don't match.")
 	}
 	return nil
+}
+
+func randSeq(n int) string {
+	var letters = []rune("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+	b := make([]rune, n)
+	for i := range b {
+		b[i] = letters[rand.Intn(len(letters))]
+	}
+	return string(b)
+}
+
+func readCommonData(r *http.Request, sess Session) CommonData {
+	userName := ""
+	isSuperAdmin := false
+	if sess.UserID.Valid {
+		r := db.QueryRow(`SELECT username, is_superadmin FROM users WHERE id=?;`, sess.UserID)
+		r.Scan(&userName, &isSuperAdmin)
+	}
+	currentURL := "/"
+	if r.URL.Path != "" {
+		currentURL = r.URL.Path
+		if r.URL.RawQuery != "" {
+			currentURL = currentURL + "?" + r.URL.RawQuery
+		}
+	}
+
+	rows := db.Query(`SELECT id, name FROM extranotes;`)
+	var extraNotes []ExtraNote
+	for rows.Next() {
+		var extraNote ExtraNote
+		rows.Scan(&extraNote.ID, &extraNote.Name)
+		extraNotes = append(extraNotes, extraNote)
+	}
+
+	return CommonData{
+		CSRF:sess.CSRFToken,
+		Msg:sess.FlashMsg(),
+		UserName:userName,
+		IsSuperAdmin:isSuperAdmin,
+		ForumName:models.Config(models.ForumName),
+		CurrentURL:template.URL(url.QueryEscape(currentURL)),
+		IsGroupSubAllowed:models.Config(models.AllowGroupSubscription) != "0",
+		IsTopicSubAllowed:models.Config(models.AllowTopicSubscription) != "0",
+		BodyAppendage:models.Config(models.BodyAppendage),
+		ExtraNotesShort:extraNotes,
+	}
 }

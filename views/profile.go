@@ -1,15 +1,18 @@
+// Copyright (c) 2017 Sagar Gubbi. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 package views
 
 import (
 	"net/http"
-	"github.com/s-gv/orangeforum/models"
 	"github.com/s-gv/orangeforum/models/db"
 	"strconv"
 	"time"
 	"github.com/s-gv/orangeforum/templates"
 )
 
-var UserProfileHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.Session) {
+var UserProfileHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Session) {
 	userName := r.FormValue("u")
 	var about, email string
 	var isBanned bool
@@ -57,7 +60,7 @@ var UserProfileHandler = UA(func(w http.ResponseWriter, r *http.Request, sess mo
 	}
 
 	templates.Render(w, "profile.html", map[string]interface{}{
-		"Common": models.ReadCommonData(r, sess),
+		"Common": readCommonData(r, sess),
 		"UserName": userName,
 		"About": about,
 		"Email": email,
@@ -66,7 +69,7 @@ var UserProfileHandler = UA(func(w http.ResponseWriter, r *http.Request, sess mo
 	})
 })
 
-var UserCommentsHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.Session) {
+var UserCommentsHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Session) {
 	ownerName := r.FormValue("u")
 	lastCommentDate, err := strconv.ParseInt(r.FormValue("lcd"), 10, 64)
 
@@ -116,14 +119,14 @@ var UserCommentsHandler = UA(func(w http.ResponseWriter, r *http.Request, sess m
 	}
 
 	templates.Render(w, "profilecomments.html", map[string]interface{}{
-		"Common": models.ReadCommonData(r, sess),
+		"Common": readCommonData(r, sess),
 		"OwnerName": ownerName,
 		"Comments": comments,
 		"LastCommentDate": lastCommentDate,
 	})
 })
 
-var UserTopicsHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.Session) {
+var UserTopicsHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Session) {
 	ownerName := r.FormValue("u")
 	var ownerID string
 	if db.QueryRow(`SELECT id FROM users WHERE username=?;`, ownerName).Scan(&ownerID) != nil {
@@ -165,14 +168,14 @@ var UserTopicsHandler = UA(func(w http.ResponseWriter, r *http.Request, sess mod
 	}
 
 	templates.Render(w, "profiletopics.html", map[string]interface{}{
-		"Common": models.ReadCommonData(r, sess),
+		"Common": readCommonData(r, sess),
 		"OwnerName": ownerName,
 		"Topics": topics,
 		"LastTopicDate": lastTopicDate,
 	})
 })
 
-var UserGroupsHandler = A(func(w http.ResponseWriter, r *http.Request, sess models.Session) {
+var UserGroupsHandler = A(func(w http.ResponseWriter, r *http.Request, sess Session) {
 	ownerID := sess.UserID.Int64
 	var ownerName string
 
@@ -203,7 +206,7 @@ var UserGroupsHandler = A(func(w http.ResponseWriter, r *http.Request, sess mode
 	}
 
 	templates.Render(w, "profilegroups.html", map[string]interface{}{
-		"Common": models.ReadCommonData(r, sess),
+		"Common": readCommonData(r, sess),
 		"OwnerName": ownerName,
 		"AdminInGroups": adminInGroups,
 		"ModInGroups": modInGroups,

@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-package models
+package views
 
 import (
 	"errors"
@@ -59,7 +59,7 @@ func OpenSession(w http.ResponseWriter, r *http.Request) Session {
 		}
 	}
 
-	sess := Session{RandSeq(32), sql.NullInt64{}, RandSeq(32), "", time.Now(), time.Now()}
+	sess := Session{randSeq(32), sql.NullInt64{}, randSeq(32), "", time.Now(), time.Now()}
 	db.Exec(`INSERT INTO sessions(sessionid, userid, csrf, msg, created_date, updated_date) values(?, ?, ?, ?, ?, ?);`,
 		sess.SessionID, sess.UserID, sess.CSRFToken, sess.Msg, int64(sess.CreatedDate.Unix()), int64(sess.UpdatedDate.Unix()))
 	db.Exec(`DELETE FROM sessions WHERE updated_date < ?;`, int64(time.Now().Add(-maxSessionLife).Unix()))

@@ -1,3 +1,7 @@
+// Copyright (c) 2017 Sagar Gubbi. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 package views
 
 import (
@@ -11,7 +15,7 @@ import (
 	"html/template"
 )
 
-var TopicIndexHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.Session) {
+var TopicIndexHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Session) {
 	topicID := r.FormValue("id")
 	lastCommentDate, err := strconv.ParseInt(r.FormValue("lcd"), 10, 64)
 	if err != nil {
@@ -81,7 +85,7 @@ var TopicIndexHandler = UA(func(w http.ResponseWriter, r *http.Request, sess mod
 	isOwner := sess.UserID.Valid && ownerID == sess.UserID.Int64
 
 	templates.Render(w, "topicindex.html", map[string]interface{}{
-		"Common": models.ReadCommonData(r, sess),
+		"Common": readCommonData(r, sess),
 		"GroupID": groupID,
 		"TopicID": topicID,
 		"GroupName": groupName,
@@ -101,7 +105,7 @@ var TopicIndexHandler = UA(func(w http.ResponseWriter, r *http.Request, sess mod
 	})
 })
 
-var TopicCreateHandler = A(func(w http.ResponseWriter, r *http.Request, sess models.Session) {
+var TopicCreateHandler = A(func(w http.ResponseWriter, r *http.Request, sess Session) {
 	groupID := r.FormValue("gid")
 	var groupName string
 	isGroupClosed := 1
@@ -147,7 +151,7 @@ var TopicCreateHandler = A(func(w http.ResponseWriter, r *http.Request, sess mod
 	}
 
 	templates.Render(w, "topicedit.html", map[string]interface{}{
-		"Common":    models.ReadCommonData(r, sess),
+		"Common":    readCommonData(r, sess),
 		"GroupID":   groupID,
 		"GroupName": groupName,
 		"TopicID":   "",
@@ -162,7 +166,7 @@ var TopicCreateHandler = A(func(w http.ResponseWriter, r *http.Request, sess mod
 	})
 })
 
-var TopicUpdateHandler = A(func(w http.ResponseWriter, r *http.Request, sess models.Session) {
+var TopicUpdateHandler = A(func(w http.ResponseWriter, r *http.Request, sess Session) {
 	topicID := r.FormValue("id")
 	groupID := ""
 	title := r.PostFormValue("title")
@@ -231,7 +235,7 @@ var TopicUpdateHandler = A(func(w http.ResponseWriter, r *http.Request, sess mod
 	}
 
 	templates.Render(w, "topicedit.html", map[string]interface{}{
-		"Common": models.ReadCommonData(r, sess),
+		"Common": readCommonData(r, sess),
 		"GroupID": groupID,
 		"GroupName": groupName,
 		"TopicID": topicID,
@@ -246,7 +250,7 @@ var TopicUpdateHandler = A(func(w http.ResponseWriter, r *http.Request, sess mod
 	})
 })
 
-var TopicSubscribeHandler = A(func(w http.ResponseWriter, r *http.Request, sess models.Session) {
+var TopicSubscribeHandler = A(func(w http.ResponseWriter, r *http.Request, sess Session) {
 	topicID := r.FormValue("id")
 	if models.Config(models.AllowTopicSubscription) == "0" {
 		ErrForbiddenHandler(w, r)
@@ -261,13 +265,13 @@ var TopicSubscribeHandler = A(func(w http.ResponseWriter, r *http.Request, sess 
 		var tmp string
 		if db.QueryRow(`SELECT id FROM topicsubscriptions WHERE userid=? AND topicid=?;`, sess.UserID, topicID).Scan(&tmp) != nil {
 			db.Exec(`INSERT INTO topicsubscriptions(userid, topicid, token, created_date) VALUES(?, ?, ?, ?);`,
-				sess.UserID, topicID, models.RandSeq(64), time.Now().Unix())
+				sess.UserID, topicID, randSeq(64), time.Now().Unix())
 		}
 	}
 	http.Redirect(w, r, "/topics?id="+topicID, http.StatusSeeOther)
 })
 
-var TopicUnsubscribeHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.Session) {
+var TopicUnsubscribeHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Session) {
 	token := r.FormValue("token")
 	var topicID, topicName string
 	if db.QueryRow(`SELECT topicid FROM topicsubscriptions WHERE token=?;`, token).Scan(&topicID) != nil {

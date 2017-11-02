@@ -1,3 +1,7 @@
+// Copyright (c) 2017 Sagar Gubbi. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 package views
 
 import (
@@ -9,9 +13,11 @@ import (
 	"log"
 	"net/url"
 	"html/template"
+	"github.com/s-gv/orangeforum/models/db"
+	"time"
 )
 
-var LoginHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.Session) {
+var LoginHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Session) {
 	redirectURL, err := url.QueryUnescape(r.FormValue("next"))
 	if redirectURL == "" || err != nil {
 		redirectURL = "/"
@@ -34,18 +40,18 @@ var LoginHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.S
 		}
 	}
 	templates.Render(w, "login.html", map[string]interface{}{
-		"Common": models.ReadCommonData(r, sess),
+		"Common": readCommonData(r, sess),
 		"next": template.URL(url.QueryEscape(redirectURL)),
 	})
 })
 
 func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	defer ErrServerHandler(w, r)
-	models.ClearSession(w, r)
+	ClearSession(w, r)
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
-var SignupHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.Session) {
+var SignupHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Session) {
 	redirectURL, err := url.QueryUnescape(r.FormValue("next"))
 	if redirectURL == "" || err != nil {
 		redirectURL = "/"
@@ -91,13 +97,13 @@ var SignupHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.
 		http.Redirect(w, r, redirectURL, http.StatusSeeOther)
 	}
 	templates.Render(w, "signup.html", map[string]interface{}{
-		"Common": models.ReadCommonData(r, sess),
+		"Common": readCommonData(r, sess),
 		"next": template.URL(url.QueryEscape(redirectURL)),
 	})
 })
 
 
-var ChangePasswdHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.Session) {
+var ChangePasswdHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Session) {
 	userName, err := sess.UserName()
 	if err != nil {
 		http.Redirect(w, r, "/", http.StatusSeeOther)
@@ -125,11 +131,11 @@ var ChangePasswdHandler = UA(func(w http.ResponseWriter, r *http.Request, sess m
 		return
 	}
 	templates.Render(w, "changepass.html", map[string]interface{}{
-		"Common": models.ReadCommonData(r, sess),
+		"Common": readCommonData(r, sess),
 	})
 })
 
-var ForgotPasswdHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.Session) {
+var ForgotPasswdHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Session) {
 	if r.Method == "POST" {
 		userName := r.PostFormValue("username")
 		if userName == "" || !models.ProbeUser(userName) {
@@ -144,7 +150,11 @@ var ForgotPasswdHandler = UA(func(w http.ResponseWriter, r *http.Request, sess m
 			return
 		}
 		forumName := models.Config(models.ForumName)
-		resetLink := "https://" + r.Host + "/resetpass?r=" + models.CreateResetToken(userName)
+
+		resetToken := randSeq(64)
+		db.Exec(`UPDATE users SET reset_token=?, reset_token_date=? WHERE username=?;`, resetToken, int64(time.Now().Unix()), userName)
+
+		resetLink := "https://" + r.Host + "/resetpass?r=" + resetToken
 		sub := forumName + " Password Recovery"
 		msg := "Someone (hopefully you) requested we reset your password at " + forumName + ".\r\n" +
 			"If you want to change it, visit "+resetLink+"\r\n\r\nIf not, just ignore this message."
@@ -155,11 +165,11 @@ var ForgotPasswdHandler = UA(func(w http.ResponseWriter, r *http.Request, sess m
 
 	}
 	templates.Render(w, "forgotpass.html", map[string]interface{}{
-		"Common": models.ReadCommonData(r, sess),
+		"Common": readCommonData(r, sess),
 	})
 })
 
-var ResetPasswdHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.Session) {
+var ResetPasswdHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Session) {
 	resetToken := r.FormValue("r")
 	userName, err := models.ReadUserNameByToken(resetToken)
 	if err != nil {
@@ -181,6 +191,6 @@ var ResetPasswdHandler = UA(func(w http.ResponseWriter, r *http.Request, sess mo
 	}
 	templates.Render(w, "resetpass.html", map[string]interface{}{
 		"ResetToken": resetToken,
-		"Common": models.ReadCommonData(r, sess),
+		"Common": readCommonData(r, sess),
 	})
 })

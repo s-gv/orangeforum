@@ -1,3 +1,7 @@
+// Copyright (c) 2017 Sagar Gubbi. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 package views
 
 import (
@@ -10,7 +14,7 @@ import (
 	"strings"
 )
 
-var GroupIndexHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.Session) {
+var GroupIndexHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Session) {
 	name := r.FormValue("name")
 	var groupID, groupDesc, headerMsg string
 	if db.QueryRow(`SELECT id, description, header_msg FROM groups WHERE name=?;`, name).Scan(&groupID, &groupDesc, &headerMsg) != nil {
@@ -71,7 +75,7 @@ var GroupIndexHandler = UA(func(w http.ResponseWriter, r *http.Request, sess mod
 	}
 
 	templates.Render(w, "groupindex.html", map[string]interface{}{
-		"Common": models.ReadCommonData(r, sess),
+		"Common": readCommonData(r, sess),
 		"GroupName": name,
 		"GroupDesc": groupDesc,
 		"GroupID": groupID,
@@ -85,12 +89,12 @@ var GroupIndexHandler = UA(func(w http.ResponseWriter, r *http.Request, sess mod
 	})
 })
 
-var GroupEditHandler = A(func(w http.ResponseWriter, r *http.Request, sess models.Session) {
+var GroupEditHandler = A(func(w http.ResponseWriter, r *http.Request, sess Session) {
 	if models.Config(models.GroupCreationDisabled) == "1" {
 		ErrForbiddenHandler(w, r)
 		return
 	}
-	commonData := models.ReadCommonData(r, sess)
+	commonData := readCommonData(r, sess)
 
 	userName := commonData.UserName
 
@@ -185,7 +189,7 @@ var GroupEditHandler = A(func(w http.ResponseWriter, r *http.Request, sess model
 	}
 
 	templates.Render(w, "groupedit.html", map[string]interface{}{
-		"Common": models.ReadCommonData(r, sess),
+		"Common": readCommonData(r, sess),
 		"ID": groupID,
 		"GroupName": name,
 		"Desc": desc,
@@ -198,7 +202,7 @@ var GroupEditHandler = A(func(w http.ResponseWriter, r *http.Request, sess model
 })
 
 
-var GroupSubscribeHandler = A(func(w http.ResponseWriter, r *http.Request, sess models.Session) {
+var GroupSubscribeHandler = A(func(w http.ResponseWriter, r *http.Request, sess Session) {
 	groupID := r.FormValue("id")
 	if models.Config(models.AllowGroupSubscription) == "0" {
 		ErrForbiddenHandler(w, r)
@@ -213,13 +217,13 @@ var GroupSubscribeHandler = A(func(w http.ResponseWriter, r *http.Request, sess 
 		var tmp string
 		if db.QueryRow(`SELECT id FROM groupsubscriptions WHERE userid=? AND groupid=?;`, sess.UserID, groupID).Scan(&tmp) != nil {
 			db.Exec(`INSERT INTO groupsubscriptions(userid, groupid, token, created_date) VALUES(?, ?, ?, ?);`,
-				sess.UserID, groupID, models.RandSeq(64), time.Now().Unix())
+				sess.UserID, groupID, randSeq(64), time.Now().Unix())
 		}
 	}
 	http.Redirect(w, r, "/groups?name="+groupName, http.StatusSeeOther)
 })
 
-var GroupUnsubscribeHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.Session) {
+var GroupUnsubscribeHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Session) {
 	token := r.FormValue("token")
 	var groupID, groupName string
 	if db.QueryRow(`SELECT groupid FROM groupsubscriptions WHERE token=?;`, token).Scan(&groupID) != nil {

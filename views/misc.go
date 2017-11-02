@@ -16,7 +16,7 @@ import (
 	"github.com/s-gv/orangeforum/static"
 )
 
-var IndexHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.Session) {
+var IndexHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Session) {
 	if r.URL.Path != "/" {
 		ErrNotFoundHandler(w, r)
 		return
@@ -55,7 +55,7 @@ var IndexHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.S
 		t.CreatedDate = timeAgoFromNow(time.Unix(cDate, 0))
 	}
 	templates.Render(w, "index.html", map[string]interface{}{
-		"Common": models.ReadCommonData(r, sess),
+		"Common": readCommonData(r, sess),
 		"GroupCreationDisabled": models.Config(models.GroupCreationDisabled) == "1",
 		"HeaderMsg": models.Config(models.HeaderMsg),
 		"Groups": groups,
@@ -63,7 +63,7 @@ var IndexHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.S
 	})
 })
 
-var AdminIndexHandler = A(func (w http.ResponseWriter, r *http.Request, sess models.Session) {
+var AdminIndexHandler = A(func (w http.ResponseWriter, r *http.Request, sess Session) {
 	if !sess.IsUserSuperAdmin() {
 		ErrForbiddenHandler(w, r)
 		return
@@ -156,10 +156,18 @@ var AdminIndexHandler = A(func (w http.ResponseWriter, r *http.Request, sess mod
 		return
 	}
 
+	rows := db.Query(`SELECT id, name, URL, content FROM extranotes;`)
+	var extraNotes []ExtraNote
+	for rows.Next() {
+		var extraNote ExtraNote
+		rows.Scan(&extraNote.ID, &extraNote.Name, &extraNote.URL, &extraNote.Content)
+		extraNotes = append(extraNotes, extraNote)
+	}
+
 	templates.Render(w, "adminindex.html", map[string]interface{}{
-		"Common": models.ReadCommonData(r, sess),
+		"Common": readCommonData(r, sess),
 		"Config": models.ConfigAllVals(),
-		"ExtraNotes": models.ReadExtraNotes(),
+		"ExtraNotes": extraNotes,
 		"NumUsers": models.NumUsers(),
 		"NumGroups": models.NumGroups(),
 		"NumTopics": models.NumTopics(),
@@ -167,12 +175,19 @@ var AdminIndexHandler = A(func (w http.ResponseWriter, r *http.Request, sess mod
 	})
 })
 
-var NoteHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.Session) {
+var NoteHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Session) {
 	id := r.FormValue("id")
-	if e, err := models.ReadExtraNote(id); err == nil {
+
+	row := db.QueryRow(`SELECT name, URL, content, created_date, updated_date FROM extranotes WHERE id=?;`, id)
+	var e ExtraNote
+	var cDate int64
+	var uDate int64
+	if err := row.Scan(&e.Name, &e.URL, &e.Content, &cDate, &uDate); err == nil {
+		e.CreatedDate = time.Unix(cDate, 0)
+		e.UpdatedDate = time.Unix(uDate, 0)
 		if e.URL == "" {
 			templates.Render(w, "extranote.html", map[string]interface{}{
-				"Common": models.ReadCommonData(r, sess),
+				"Common": readCommonData(r, sess),
 				"Name": e.Name,
 				"UpdatedDate": e.UpdatedDate,
 				"Content": template.HTML(e.Content),
@@ -222,7 +237,7 @@ func ImageHandler(w http.ResponseWriter, r *http.Request) {
 
 func TestHandler(w http.ResponseWriter, r *http.Request) {
 	defer ErrServerHandler(w, r)
-	sess := models.OpenSession(w, r)
+	sess := OpenSession(w, r)
 	sess.SetFlashMsg("hi there")
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }

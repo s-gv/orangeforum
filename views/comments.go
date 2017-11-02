@@ -1,3 +1,7 @@
+// Copyright (c) 2017 Sagar Gubbi. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 package views
 
 import (
@@ -10,7 +14,7 @@ import (
 	"github.com/s-gv/orangeforum/utils"
 )
 
-var CommentIndexHandler = UA(func(w http.ResponseWriter, r *http.Request, sess models.Session) {
+var CommentIndexHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Session) {
 	commentID := r.FormValue("id")
 	var groupID, topicID, topicName, groupName, ownerID, ownerName, content, imgSrc string
 	var cDate int64
@@ -36,7 +40,7 @@ var CommentIndexHandler = UA(func(w http.ResponseWriter, r *http.Request, sess m
 	isOwner := sess.UserID.Valid && db.QueryRow(`SELECT userid FROM comments WHERE id=?;`, commentID).Scan(&tmp) == nil
 
 	templates.Render(w, "commentindex.html", map[string]interface{}{
-		"Common": models.ReadCommonData(r, sess),
+		"Common": readCommonData(r, sess),
 		"ID": commentID,
 		"TopicID": topicID,
 		"TopicName": topicName,
@@ -53,7 +57,7 @@ var CommentIndexHandler = UA(func(w http.ResponseWriter, r *http.Request, sess m
 	})
 })
 
-var CommentCreateHandler = A(func(w http.ResponseWriter, r *http.Request, sess models.Session) {
+var CommentCreateHandler = A(func(w http.ResponseWriter, r *http.Request, sess Session) {
 	topicID := r.FormValue("tid")
 	content := r.PostFormValue("content")
 	isSticky := r.PostFormValue("is_sticky") != ""
@@ -117,7 +121,7 @@ var CommentCreateHandler = A(func(w http.ResponseWriter, r *http.Request, sess m
 	}
 
 	templates.Render(w, "commentedit.html", map[string]interface{}{
-		"Common": models.ReadCommonData(r, sess),
+		"Common": readCommonData(r, sess),
 		"TopicID": topicID,
 		"TopicOwnerName": topicOwnerName,
 		"TopicCreatedDate": timeAgoFromNow(time.Unix(topicCreatedDate, 0)),
@@ -134,7 +138,7 @@ var CommentCreateHandler = A(func(w http.ResponseWriter, r *http.Request, sess m
 	})
 })
 
-var CommentUpdateHandler = A(func(w http.ResponseWriter, r *http.Request, sess models.Session) {
+var CommentUpdateHandler = A(func(w http.ResponseWriter, r *http.Request, sess Session) {
 	commentID := r.FormValue("id")
 	content := r.PostFormValue("content")
 	isSticky := r.PostFormValue("is_sticky") != ""
@@ -203,7 +207,7 @@ var CommentUpdateHandler = A(func(w http.ResponseWriter, r *http.Request, sess m
 	db.QueryRow(`SELECT content, is_sticky, is_deleted FROM comments WHERE id=?;`, commentID).Scan(&content, &isSticky, &isDeleted)
 
 	templates.Render(w, "commentedit.html", map[string]interface{}{
-		"Common": models.ReadCommonData(r, sess),
+		"Common": readCommonData(r, sess),
 		"TopicID": topicID,
 		"TopicOwnerName": topicOwnerName,
 		"TopicCreatedDate": timeAgoFromNow(time.Unix(topicCreatedDate, 0)),
