@@ -33,7 +33,7 @@ Notes
 
 There are three types of privileged users in orangeforum: `superadmin`, `admin`, and `mod`. A `superadmin` has rights to
 everything across all groups. This includes editing/deleting/closing posts across all groups and editing the list
-of mods/admins for all groups in the forum. `mods`s of a group can edit/delete/close posts in that group. `admin`s of
+of mods/admins for all groups in the forum. `mod`s of a group can edit/delete/close posts in that group. `admin`s of
 a group have all the privileges of mods for that group and can also edit the name/description of the group and assign
 mods for that group.
 
@@ -54,7 +54,7 @@ Options
 
 To use postgres, run `./orangeforum --dbdriver postgres --dsn postgres://pguser:pgpasswd@localhost/orangeforum`
 
-To save an sqlite db at a custom location, do `./orangeforum --dsn path/to/myforum.db`.
+To save an sqlite db at a different location, do `./orangeforum --dsn path/to/myforum.db`.
 
 Commands
 --------
