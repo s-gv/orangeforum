@@ -49,8 +49,8 @@ Dependencies
 Options
 -------
 
-- `-addr <port>`. For example, use `./orangeforum -addr :8086` to listen on port 8086.
-- `-dbdriver <db>` and `-dsn <data_source_name>`. PostgreSQL and SQLite are supported. SQLite is the default driver.
+- `-addr <port>`: Use `./orangeforum -addr :8086` to listen on port 8086.
+- `-dbdriver <db>` and `-dsn <data_source_name>`: PostgreSQL and SQLite are supported. SQLite is the default driver.
 
 To use postgres, run `./orangeforum -dbdriver postgres -dsn postgres://pguser:pgpasswd@localhost/orangeforum`
 
@@ -59,10 +59,10 @@ To save an sqlite db at a different location, run `./orangeforum -dsn path/to/my
 Commands
 --------
 
-- `-help`. Show a list of all commands and options.
-- `-migrate`. Migrate the database. Run this once after updating the orangeforum binary (or when starting afresh).
-- `-createsuperuser`. Create a super admin.
-- `-createuser`. Create a new user with no special privileges.
-- `-changepasswd`. Change password of a user.
-- `-deletesessions`. Drop all sessions and log out all users.
+- `-help`: Show a list of all commands and options.
+- `-migrate`: Migrate the database. Run this once after updating the orangeforum binary (or when starting afresh).
+- `-createsuperuser`: Create a super admin.
+- `-createuser`: Create a new user with no special privileges.
+- `-changepasswd`: Change password of a user.
+- `-deletesessions`: Drop all sessions and log out all users.
 
