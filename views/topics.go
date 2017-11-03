@@ -225,7 +225,7 @@ var TopicUpdateHandler = A(func(w http.ResponseWriter, r *http.Request, sess Ses
 		} else if action == "Undelete" {
 			db.Exec(`UPDATE topics SET is_deleted=0 WHERE id=?;`, topicID)
 		}
-		http.Redirect(w, r, "/topics/edit?id="+topicID, http.StatusSeeOther)
+		http.Redirect(w, r, "/topics?id="+topicID, http.StatusSeeOther)
 		return
 	}
 
