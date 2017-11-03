@@ -64,5 +64,5 @@ Commands
 - `-createsuperuser`. Create a super admin.
 - `-createuser`. Create a new user with no special privileges.
 - `-changepasswd`. Change password of a user.
-- `deletesessions`. Drop all sessions and logs out all users.
+- `-deletesessions`. Drop all sessions and logs out all users.
 
