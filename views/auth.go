@@ -30,11 +30,11 @@ var LoginHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Session)
 	if r.Method == "POST" {
 		userName := r.PostFormValue("username")
 		passwd := r.PostFormValue("passwd")
-		if sess.Authenticate(userName, passwd) {
+		if err = sess.Authenticate(userName, passwd); err == nil {
 			http.Redirect(w, r, redirectURL, http.StatusSeeOther)
 			return
 		} else {
-			sess.SetFlashMsg("Incorrect username/password")
+			sess.SetFlashMsg(err.Error())
 			http.Redirect(w, r, "/login?next="+redirectURL, http.StatusSeeOther)
 			return
 		}
@@ -113,7 +113,7 @@ var ChangePasswdHandler = UA(func(w http.ResponseWriter, r *http.Request, sess S
 		passwd := r.PostFormValue("passwd")
 		newPasswd := r.PostFormValue("newpass")
 		newPasswdConfirm := r.PostFormValue("confirm")
-		if !sess.Authenticate(userName, passwd) {
+		if sess.Authenticate(userName, passwd) != nil {
 			sess.SetFlashMsg("Current password incorrect.")
 			http.Redirect(w, r, "/changepass", http.StatusSeeOther)
 			return

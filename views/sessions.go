@@ -81,27 +81,27 @@ func (sess *Session) FlashMsg() string {
 	return msg
 }
 
-func (sess *Session) Authenticate(userName string, passwd string) bool {
+func (sess *Session) Authenticate(userName string, passwd string) error {
 	r := db.QueryRow(`SELECT id, passwdhash, is_banned FROM users WHERE username=?;`, userName)
 	var passwdHashStr string
 	var userID int
 	var isBanned bool
 	if err := r.Scan(&userID, &passwdHashStr, &isBanned); err != nil {
-		return false
+		return errors.New("Incorrect username or password")
 	}
 	if isBanned {
-		return false
+		return errors.New("User banned")
 	}
 	passwdHash, err := hex.DecodeString(passwdHashStr)
 	if err != nil {
 		log.Panicf("[ERROR] Error in converting password hash from hex to byte slice: %s\n", err)
 	}
 	if err := bcrypt.CompareHashAndPassword(passwdHash, []byte(passwd)); err != nil {
-		return false
+		return errors.New("Incorrect username or password")
 	}
 	sess.UserID = sql.NullInt64{int64(userID), true}
 	db.Exec(`UPDATE sessions SET userid=? WHERE sessionid=?;`, sess.UserID, sess.SessionID)
-	return true
+	return nil
 }
 
 func (sess *Session) IsUserValid() bool {
