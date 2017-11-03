@@ -52,9 +52,9 @@ Options
 - `-addr <port>`. For example, use `./orangeforum -addr :8086` to listen on port 8086.
 - `-dbdriver <db>` and `-dsn <data_source_name>`. PostgreSQL and SQLite are supported. SQLite is the default driver.
 
-To use postgres, run `./orangeforum --dbdriver postgres --dsn postgres://pguser:pgpasswd@localhost/orangeforum`
+To use postgres, run `./orangeforum -dbdriver postgres -dsn postgres://pguser:pgpasswd@localhost/orangeforum`
 
-To save an sqlite db at a different location, do `./orangeforum --dsn path/to/myforum.db`.
+To save an sqlite db at a different location, do `./orangeforum -dsn path/to/myforum.db`.
 
 Commands
 --------
