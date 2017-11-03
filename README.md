@@ -22,7 +22,7 @@ Create a superadmin:
 ./orangeforum -createsuperuser
 ```
 
-Now, start the server:
+Finally, start the server:
 
 ```
 ./orangeforum
