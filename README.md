@@ -54,7 +54,7 @@ Options
 
 To use postgres, run `./orangeforum -dbdriver postgres -dsn postgres://pguser:pgpasswd@localhost/orangeforum`
 
-To save an sqlite db at a different location, do `./orangeforum -dsn path/to/myforum.db`.
+To save an sqlite db at a different location, run `./orangeforum -dsn path/to/myforum.db`.
 
 Commands
 --------
