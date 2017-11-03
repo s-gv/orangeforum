@@ -10,13 +10,13 @@ How to use
 ----------
 
 By default, sqlite is used, so it's easy to get started.
-[Download](https://github.com/s-gv/orangeforum/releases) the binary, and run the migrate command to setup the database tables:
+[Download](https://github.com/s-gv/orangeforum/releases) the binary and migrate the database with:
 
 ```
 ./orangeforum -migrate
 ```
 
-Create a superadmin with:
+Create a superadmin:
 
 ```
 ./orangeforum -createsuperuser
