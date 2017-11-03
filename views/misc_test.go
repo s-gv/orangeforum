@@ -9,6 +9,9 @@ import (
 	"net/http/httptest"
 	"testing"
 	"github.com/s-gv/orangeforum/static"
+	"github.com/s-gv/orangeforum/models/db"
+	"github.com/s-gv/orangeforum/models"
+	"strings"
 )
 
 func TestStyleHandler(t *testing.T) {
@@ -35,5 +38,27 @@ func TestStyleHandler(t *testing.T) {
 
 	if ctHeader := rr.Header().Get("Content-Type"); ctHeader != "text/css" {
 		t.Errorf("Content-Type header incorrect. Got: %s\n", ctHeader)
+	}
+}
+
+func TestIndexHandler(t *testing.T) {
+	db.Init("sqlite3", "file::memory:?mode=memory&cache=shared")
+	models.Migrate()
+
+	req, err := http.NewRequest("GET", "/", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rr := httptest.NewRecorder()
+	handler := http.HandlerFunc(IndexHandler)
+	handler.ServeHTTP(rr, req)
+
+	if status := rr.Code; status != http.StatusOK {
+		t.Errorf("handler returned wrong status code: got %v", status)
+	}
+
+	if body := rr.Body.String(); !strings.Contains(body, "<a href=\"/login?next=%2F\">")  {
+		t.Errorf("Index page does not have link to the login page.")
 	}
 }
