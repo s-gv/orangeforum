@@ -135,12 +135,12 @@ var GroupEditHandler = A(func(w http.ResponseWriter, r *http.Request, sess Sessi
 			groupID := models.ReadGroupIDByName(name)
 			for _, mod := range mods {
 				if mod != "" {
-					models.CreateMod(mod, groupID)
+					models.CreateGroupMod(mod, groupID)
 				}
 			}
 			for _, admin := range admins {
 				if admin != "" {
-					models.CreateAdmin(admin, groupID)
+					models.CreateGroupAdmin(admin, groupID)
 				}
 			}
 			http.Redirect(w, r, "/groups?name="+name, http.StatusSeeOther)
@@ -156,24 +156,24 @@ var GroupEditHandler = A(func(w http.ResponseWriter, r *http.Request, sess Sessi
 				db.QueryRow(`SELECT is_sticky FROM groups WHERE id=?;`, groupID).Scan(&isSticky)
 			}
 			db.Exec(`UPDATE groups SET name=?, description=?, header_msg=?, is_sticky=?, updated_date=? WHERE id=?;`, name, desc, headerMsg, isSticky, time.Now().Unix(), groupID)
-			models.DeleteAdmins(groupID)
-			models.DeleteMods(groupID)
+			db.Exec(`DELETE FROM mods WHERE groupid=?;`, groupID)
+			db.Exec(`DELETE FROM admins WHERE groupid=?;`, groupID)
 			for _, mod := range mods {
 				if mod != "" {
-					models.CreateMod(mod, groupID)
+					models.CreateGroupMod(mod, groupID)
 				}
 			}
 			for _, admin := range admins {
 				if admin != "" {
-					models.CreateAdmin(admin, groupID)
+					models.CreateGroupAdmin(admin, groupID)
 				}
 			}
 			http.Redirect(w, r, "/groups?name="+name, http.StatusSeeOther)
 		} else if action == "Delete" {
-			models.DeleteGroup(groupID)
+			db.Exec(`UPDATE groups SET is_closed=1 WHERE id=?;`, groupID)
 			http.Redirect(w, r, "/groups/edit?id="+groupID, http.StatusSeeOther)
 		} else if action == "Undelete" {
-			models.UndeleteGroup(groupID)
+			db.Exec(`UPDATE groups SET is_closed=0 WHERE id=?;`, groupID)
 			http.Redirect(w, r, "/groups/edit?id="+groupID, http.StatusSeeOther)
 		}
 		return

@@ -136,6 +136,50 @@ func CreateSuperUser(userName string, passwd string) error {
 	return createUser(userName, passwd, "", true)
 }
 
+func CreateGroupMod(userName string, groupID string) {
+	if uid, err := ReadUserIDByName(userName); err == nil {
+		db.Exec(`INSERT INTO mods(userid, groupid, created_date) VALUES(?, ?, ?);`, uid, groupID, time.Now().Unix())
+	}
+}
+
+func CreateGroupAdmin(userName string, groupID string) {
+	if uid, err := ReadUserIDByName(userName); err == nil {
+		db.Exec(`INSERT INTO admins(userid, groupid, created_date) VALUES(?, ?, ?);`, uid, groupID, time.Now().Unix())
+	}
+}
+
+func ReadMods(groupID string) []string {
+	rows := db.Query(`SELECT users.username FROM users INNER JOIN mods ON users.id=mods.userid WHERE mods.groupid=?;`, groupID)
+	var mods []string
+	for rows.Next() {
+		var mod string
+		rows.Scan(&mod)
+		mods = append(mods, mod)
+	}
+	return mods
+}
+
+
+func ReadAdmins(groupID string) []string {
+	rows := db.Query(`SELECT users.username FROM users INNER JOIN admins ON users.id=admins.userid WHERE admins.groupid=?;`, groupID)
+	var admins []string
+	for rows.Next() {
+		var admin string
+		rows.Scan(&admin)
+		admins = append(admins, admin)
+	}
+	return admins
+}
+
+func IsUserGroupAdmin(userID string, groupID string) bool {
+	r := db.QueryRow(`SELECT id FROM admins WHERE userid=? AND groupid=?`, userID, groupID)
+	var tmp string
+	if err := r.Scan(&tmp); err == nil {
+		return true
+	}
+	return false
+}
+
 func ReadUserEmail(userName string) string {
 	r := db.QueryRow(`SELECT email FROM users WHERE username=?;`, userName)
 	var email string
@@ -196,75 +240,3 @@ func ReadGroupIDByName(name string) string {
 	return ""
 }
 
-func DeleteGroup(groupID string) {
-	db.Exec(`UPDATE groups SET is_closed=1 WHERE id=?;`, groupID)
-}
-
-func UndeleteGroup(groupID string) {
-	db.Exec(`UPDATE groups SET is_closed=0 WHERE id=?;`, groupID)
-}
-
-func CreateMod(userName string, groupID string) {
-	if uid, err := ReadUserIDByName(userName); err == nil {
-		db.Exec(`INSERT INTO mods(userid, groupid, created_date) VALUES(?, ?, ?);`, uid, groupID, time.Now().Unix())
-	}
-}
-
-func ReadMods(groupID string) []string {
-	rows := db.Query(`SELECT users.username FROM users INNER JOIN mods ON users.id=mods.userid WHERE mods.groupid=?;`, groupID)
-	var mods []string
-	for rows.Next() {
-		var mod string
-		rows.Scan(&mod)
-		mods = append(mods, mod)
-	}
-	return mods
-}
-
-func DeleteMods(groupID string) {
-	db.Exec(`DELETE FROM admins WHERE groupid=?;`, groupID)
-}
-
-
-func CreateAdmin(userName string, groupID string) {
-	if uid, err := ReadUserIDByName(userName); err == nil {
-		db.Exec(`INSERT INTO admins(userid, groupid, created_date) VALUES(?, ?, ?);`, uid, groupID, time.Now().Unix())
-	}
-}
-
-func ReadAdmins(groupID string) []string {
-	rows := db.Query(`SELECT users.username FROM users INNER JOIN admins ON users.id=admins.userid WHERE admins.groupid=?;`, groupID)
-	var admins []string
-	for rows.Next() {
-		var admin string
-		rows.Scan(&admin)
-		admins = append(admins, admin)
-	}
-	return admins
-}
-
-func IsUserGroupAdmin(userID string, groupID string) bool {
-	r := db.QueryRow(`SELECT id FROM admins WHERE userid=? AND groupid=?`, userID, groupID)
-	var tmp string
-	if err := r.Scan(&tmp); err == nil {
-		return true
-	}
-	return false
-}
-
-func DeleteAdmins(groupID string) {
-	db.Exec(`DELETE FROM mods WHERE groupid=?;`, groupID)
-}
-
-func CreateExtraNote(name string, URL string, content string) {
-	db.Exec(`INSERT INTO extranotes(name, URL, content, created_date, updated_date) VALUES(?, ?, ?, ?, ?);`, name, URL, content, time.Now().Unix(), time.Now().Unix())
-}
-
-func UpdateExtraNote(id string, name string, URL string, content string) {
-	now := time.Now()
-	db.Exec(`UPDATE extranotes SET name=?, URL=?, content=?, updated_date=? WHERE id=?;`, name, URL, content, int64(now.Unix()), id)
-}
-
-func DeleteExtraNote(id string) {
-	db.Exec(`DELETE FROM extranotes WHERE id=?;`, id)
-}

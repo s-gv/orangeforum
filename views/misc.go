@@ -140,15 +140,15 @@ var AdminIndexHandler = A(func (w http.ResponseWriter, r *http.Request, sess Ses
 		content := r.PostFormValue("content")
 		if linkID == "new" {
 			if name != "" && (URL != "" || content != "") {
-				models.CreateExtraNote(name, URL, content)
+				db.Exec(`INSERT INTO extranotes(name, URL, content, created_date, updated_date) VALUES(?, ?, ?, ?, ?);`, name, URL, content, time.Now().Unix(), time.Now().Unix())
 			} else {
 				sess.SetFlashMsg("Enter an external URL or type some content for the footer link.")
 			}
 		} else {
 			if r.PostFormValue("submit") == "Delete" {
-				models.DeleteExtraNote(linkID)
+				db.Exec(`DELETE FROM extranotes WHERE id=?;`, linkID)
 			} else {
-				models.UpdateExtraNote(linkID, name, URL, content)
+				db.Exec(`UPDATE extranotes SET name=?, URL=?, content=?, updated_date=? WHERE id=?;`, name, URL, content, int64(time.Now().Unix()), linkID)
 			}
 
 		}
