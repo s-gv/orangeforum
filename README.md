@@ -16,7 +16,7 @@ By default, sqlite is used, so it's easy to get started.
 ./orangeforum -migrate
 ```
 
-Create a superadmin user with:
+Create a superadmin with:
 
 ```
 ./orangeforum -createsuperuser
