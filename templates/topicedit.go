@@ -59,7 +59,7 @@ const topiceditSrc = `
 				{{ end }}
 			{{ end }}
 		{{ else }}
-			<input type="submit" name="action" value="Create">
+			<input type="submit" name="action" class="no-double-post" value="Create">
 		{{ end }}
 		</td>
 	</tr>

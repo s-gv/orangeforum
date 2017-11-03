@@ -5,7 +5,7 @@
 package static
 
 const ScriptSrc = `
-var inputs = document.getElementsByTagName('input');
+var inputs = document.getElementsByClassName("no-double-post"); //document.getElementsByTagName('input');
 for (var i = 0; i < inputs.length; i++) {
 	if (inputs[i].type == "submit") {
 		var btn = inputs[i];

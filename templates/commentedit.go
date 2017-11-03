@@ -39,7 +39,7 @@ const commenteditSrc = `
 		<input type="submit" name="action" value="Undelete">
 		{{ end }}
 	{{ else }}
-	<input type="submit" name="action" value="Submit reply">
+	<input type="submit" name="action" class="no-double-post" value="Submit reply">
 	{{ end }}
 	</div>
 
