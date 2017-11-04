@@ -94,7 +94,7 @@ var TopicIndexHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Ses
 		"CreatedDate": timeAgoFromNow(time.Unix(createdDate, 0)),
 		"SubToken": subToken,
 		"Title": title,
-		"Content": content,
+		"Content": formatComment(content),
 		"IsClosed": isClosed,
 		"IsOwner": isOwner,
 		"IsMod": isMod,
