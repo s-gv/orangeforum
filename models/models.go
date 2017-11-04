@@ -147,17 +147,6 @@ func Migration1() {
 	);`)
 	db.Exec(`CREATE INDEX sessions_sessionid_index on sessions(sessionid);`)
 	db.Exec(`CREATE INDEX sessions_userid_index on sessions(userid);`)
-
-	/*
-	db.Exec(`CREATE TABLE groupmembers(
-				id INTEGER PRIMARY KEY AUTOINCREMENT,
-				userid INTEGER REFERENCES users(id) ON DELETE CASCADE,
-				groupid INTEGER REFERENCES groups(id) ON DELETE CASCADE,
-				is_approved INTEGER DEFAULT 0
-	);`) Migration 2 */
-	// db.Exec(`CREATE INDEX groupmembers_userid_index on groupmembers(userid);`) // Migration 2
-	// db.Exec(`CREATE INDEX groupmembers_groupid_userid_index on groupmembers(groupid, userid);`) // Migration 2
-	// db.Exec(`CREATE INDEX groupmembers_groupid_private_index on groupmembers(groupid, is_approved);`) // Migration 2
 }
 
 func Migration2() {
@@ -167,16 +156,6 @@ func Migration2() {
 	db.Exec(`CREATE INDEX topics_activity_index on topics(activity_date);`)
 
 	db.Exec(`ALTER TABLE groups ADD COLUMN is_private INTEGER DEFAULT 0;`)
-
-	db.Exec(`CREATE TABLE groupmembers(
-				id INTEGER PRIMARY KEY AUTOINCREMENT,
-				userid INTEGER REFERENCES users(id) ON DELETE CASCADE,
-				groupid INTEGER REFERENCES groups(id) ON DELETE CASCADE,
-				is_approved INTEGER DEFAULT 0
-	);`)
-	db.Exec(`CREATE INDEX groupmembers_userid_index on groupmembers(userid);`)
-	db.Exec(`CREATE INDEX groupmembers_groupid_userid_index on groupmembers(groupid, userid);`)
-	db.Exec(`CREATE INDEX groupmembers_groupid_private_index on groupmembers(groupid, is_approved);`)
 }
 
 func Migrate() {

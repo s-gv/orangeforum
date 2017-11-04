@@ -103,6 +103,7 @@ var GroupEditHandler = A(func(w http.ResponseWriter, r *http.Request, sess Sessi
 	desc := r.FormValue("desc")
 	headerMsg := r.FormValue("header_msg")
 	isSticky := r.FormValue("is_sticky") != ""
+	isPrivate := r.FormValue("is_private") != ""
 	isDeleted := false
 	mods := strings.Split(r.FormValue("mods"), ",")
 	for i, mod := range mods {
@@ -131,7 +132,7 @@ var GroupEditHandler = A(func(w http.ResponseWriter, r *http.Request, sess Sessi
 				http.Redirect(w, r, "/groups/edit", http.StatusSeeOther)
 				return
 			}
-			db.Exec(`INSERT INTO groups(name, description, header_msg, is_sticky, created_date, updated_date) VALUES(?, ?, ?, ?, ?, ?);`, name, desc, headerMsg, isSticky, time.Now().Unix(), time.Now().Unix())
+			db.Exec(`INSERT INTO groups(name, description, header_msg, is_sticky, is_private, created_date, updated_date) VALUES(?, ?, ?, ?, ?, ?, ?);`, name, desc, headerMsg, isSticky, isPrivate, time.Now().Unix(), time.Now().Unix())
 			groupID := models.ReadGroupIDByName(name)
 			for _, mod := range mods {
 				if mod != "" {
@@ -155,7 +156,7 @@ var GroupEditHandler = A(func(w http.ResponseWriter, r *http.Request, sess Sessi
 			if !isUserSuperAdmin {
 				db.QueryRow(`SELECT is_sticky FROM groups WHERE id=?;`, groupID).Scan(&isSticky)
 			}
-			db.Exec(`UPDATE groups SET name=?, description=?, header_msg=?, is_sticky=?, updated_date=? WHERE id=?;`, name, desc, headerMsg, isSticky, time.Now().Unix(), groupID)
+			db.Exec(`UPDATE groups SET name=?, description=?, header_msg=?, is_sticky=?, is_private=?, updated_date=? WHERE id=?;`, name, desc, headerMsg, isSticky, isPrivate, time.Now().Unix(), groupID)
 			db.Exec(`DELETE FROM mods WHERE groupid=?;`, groupID)
 			db.Exec(`DELETE FROM admins WHERE groupid=?;`, groupID)
 			for _, mod := range mods {
@@ -181,8 +182,8 @@ var GroupEditHandler = A(func(w http.ResponseWriter, r *http.Request, sess Sessi
 
 	if groupID != "" {
 		// Open to edit
-		db.QueryRow(`SELECT name, description, header_msg, is_sticky, is_closed FROM groups WHERE id=?;`, groupID).Scan(
-			&name, &desc, &headerMsg, &isSticky, &isDeleted,
+		db.QueryRow(`SELECT name, description, header_msg, is_sticky, is_private, is_closed FROM groups WHERE id=?;`, groupID).Scan(
+			&name, &desc, &headerMsg, &isSticky, &isPrivate, &isDeleted,
 		)
 		mods = models.ReadMods(groupID)
 		admins = models.ReadAdmins(groupID)
@@ -195,6 +196,7 @@ var GroupEditHandler = A(func(w http.ResponseWriter, r *http.Request, sess Sessi
 		"Desc": desc,
 		"HeaderMsg": headerMsg,
 		"IsSticky": isSticky,
+		"IsPrivate": isPrivate,
 		"IsDeleted": isDeleted,
 		"Mods": strings.Join(mods, ", "),
 		"Admins": strings.Join(admins, ", "),
