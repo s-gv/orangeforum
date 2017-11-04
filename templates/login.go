@@ -30,7 +30,7 @@ const loginSrc = `
 {{ if .Common.Msg }}
 	<tr>
 		<th></th>
-		<td><span class="danger">{{ .Common.Msg }}</span></td>
+		<td><span class="alert">{{ .Common.Msg }}</span></td>
 	</tr>
 {{ end }}
 	<tr>

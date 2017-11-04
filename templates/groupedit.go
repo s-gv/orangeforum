@@ -38,6 +38,10 @@ const groupeditSrc = `
 		<th><label for="admins">Admins (can edit this page):</label></th>
 		<td><input type="text" name="admins" id="admins" placeholder="user1, user2" value="{{ .Admins }}"></td>
 	</tr>
+	<tr>
+		<th><label for="is_private">Private:</label></th>
+		<td><input type="checkbox" name="is_private" id="is_private"{{ if .IsPrivate }} value="1" checked{{ end }}></td>
+	</tr>
 {{ if .Common.IsSuperAdmin }}
 	<tr>
 		<th><label for="is_sticky">Sticky:</label></th>
@@ -47,7 +51,7 @@ const groupeditSrc = `
 {{ if .Common.Msg }}
 	<tr>
 		<th></th>
-		<td>{{ .Common.Msg }}</td>
+		<td><span class="alert">{{ .Common.Msg }}</span></td>
 	</tr>
 {{ end }}
 	<tr>

@@ -193,7 +193,7 @@ textarea {
 .comment p:first-child {
 	margin-top: 0px;
 }
-.danger {
+.alert {
 	color: red;
 }
 `

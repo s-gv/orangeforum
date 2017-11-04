@@ -28,7 +28,7 @@ const commenteditSrc = `
 	<div><input type="checkbox" name="is_sticky"{{ if .IsSticky }} checked{{ end }}> Sticky</div>
 	{{ end }}
 
-	{{ .Common.Msg }}
+	<span class="alert">{{ .Common.Msg }}</span>
 
 	<div>
 	{{ if .CommentID }}
