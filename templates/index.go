@@ -17,10 +17,11 @@ const indexSrc = `
 <h2>{{ .HeaderMsg }}</h2>
 {{ if .Groups }}
 {{ range .Groups }}
-<div class="row">
+<div class="topic-row">
 	<div><a href="/groups?name={{ .Name }}">{{ .Name }}</a></div>
 	<div class="muted">{{ .Desc }}</div>
 </div>
+<hr class="sep">
 {{ end }}
 {{ else }}
 <div class="row">
@@ -31,10 +32,11 @@ const indexSrc = `
 <h1>Recent Topics</h1>
 {{ if .Topics }}
 {{ range .Topics }}
-<div class="row">
+<div class="topic-row">
 	<div><a href="/topics?id={{ .ID }}">{{ .Title }}</a></div>
 	<div class="muted"><a href="/users?u={{ .OwnerName }}">{{ .OwnerName }}</a> in <a href="/groups?name={{ .GroupName }}">{{ .GroupName }}</a> {{ .CreatedDate }} | {{ .NumComments }} comments</div>
 </div>
+<hr class="sep">
 {{ end }}
 {{ else }}
 <div class="row">

@@ -182,7 +182,7 @@ textarea {
 .sep {
 	border: none;
 	height: 1px;
-	background-color: #ccc;
+	background-color: #e9e9e9;
 }
 #title {
 	margin-bottom: 0px;
@@ -191,7 +191,16 @@ textarea {
 	margin-top: 0px;
 }
 .comment p:first-child {
-	margin-top: 0px;
+	margin-top: 10px;
+}
+.comment-row {
+	margin-bottom: 30px;
+}
+.comment-title {
+	font-size: 90%;
+}
+.topic-row {
+
 }
 .alert {
 	color: red;

@@ -30,26 +30,26 @@ const topicindexSrc = `
 </div>
 
 <h2 id="title"><a href="/topics?id={{ .TopicID }}">{{ .TopicName }}{{ if .IsClosed }} [closed]{{ end }}</a></h2>
-<div class="muted"><a href="/users?u={{ .OwnerName }}">{{ .OwnerName }}</a> in <a href="/groups?name={{ .GroupName }}">{{ .GroupName }}</a> {{ .CreatedDate }}</div>
-<div class="row">
+<div class="comment-title muted"><a href="/users?u={{ .OwnerName }}">{{ .OwnerName }}</a> in <a href="/groups?name={{ .GroupName }}">{{ .GroupName }}</a> {{ .CreatedDate }}</div>
+<div class="comment-row">
 	<div class="comment">
 		<p>{{ .Content }}</p>
 	</div>
-	<hr class="sep">
 </div>
+<hr class="sep">
 
 {{ if .Comments }}
 {{ range .Comments }}
-<div class="row" id="comment-{{ .ID }}">
-	<div class="muted"><a href="/users?u={{ .UserName }}">{{ .UserName }}</a> <a href="/comments?id={{ .ID }}">{{ .CreatedDate }}</a>{{ if or .IsOwner $.IsAdmin $.IsMod $.IsSuperAdmin }} | <a href="/comments/edit?id={{ .ID }}">edit</a> {{end}}</div>
+<div class="comment-row" id="comment-{{ .ID }}">
+	<div class="comment-title muted"><a href="/users?u={{ .UserName }}">{{ .UserName }}</a> <a href="/comments?id={{ .ID }}">{{ .CreatedDate }}</a>{{ if or .IsOwner $.IsAdmin $.IsMod $.IsSuperAdmin }} | <a href="/comments/edit?id={{ .ID }}">edit</a> {{end}}</div>
 	{{ if .IsDeleted }}
-		<div>[DELETED]</div>
+		<div class="comment">[DELETED]</div>
 	{{ else }}
 		<div class="comment">{{ .Content }}</div>
 		{{ if .ImgSrc }}<div><img src="/img?name={{ .ImgSrc }}"></div>{{ end }}
 	{{ end }}
-	<hr class="sep">
 </div>
+<hr class="sep">
 {{ end }}
 {{ else }}
 <div class="row">

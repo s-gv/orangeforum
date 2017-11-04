@@ -34,14 +34,17 @@ const groupindexSrc = `
 {{ end }}
 
 {{ if .Topics }}
+<div style="margin-top: 30px;">
 {{ range .Topics }}
 	{{ if not .IsDeleted }}
-	<div class="row">
+	<div class="topic-row">
 		<div><a href="/topics?id={{ .ID }}">{{ .Title }}{{ if .IsClosed }} [closed] {{ end }}</a></div>
 		<div class="muted"><a href="/users?u={{ .Owner }}">{{ .Owner }}</a> {{ .CreatedDate }} | <a href="/topics?id={{ .ID }}">{{ .NumComments }} comments</a></div>
 	</div>
+	<hr class="sep">
 	{{ end }}
 {{ end }}
+</div>
 {{ else }}
 <div class="row">
 	<div class="muted">No topics here.</div>
