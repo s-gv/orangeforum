@@ -88,7 +88,7 @@ var CommentCreateHandler = A(func(w http.ResponseWriter, r *http.Request, sess S
 
 	if r.Method == "POST" {
 		if content == "" {
-			http.Redirect(w, r, "/comments/new?tid="+topicID, http.StatusSeeOther)
+			http.Redirect(w, r, "/topics?id="+topicID+"#comment-last", http.StatusSeeOther)
 			return
 		}
 		if !isMod && !isAdmin && !isSuperAdmin {

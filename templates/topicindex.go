@@ -64,4 +64,16 @@ const topicindexSrc = `
 </div>
 {{ end }}
 
+{{ if .Common.UserName }}
+<div style="margin-top: 40px;">
+<form action="/comments/new" method="POST" enctype="multipart/form-data">
+	<input type="hidden" name="csrf" value="{{ .Common.CSRF }}">
+	<input type="hidden" name="id" value="{{ .CommentID }}">
+	<input type="hidden" name="tid" value="{{ .TopicID }}">
+	<textarea name="content" rows="12" placeholder="Your comment..."></textarea>
+	<input type="submit" name="action" class="no-double-post" value="Add comment">
+</form>
+</div>
+{{ end }}
+
 {{ end }}`
