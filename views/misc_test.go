@@ -11,8 +11,22 @@ import (
 	"github.com/s-gv/orangeforum/static"
 	"github.com/s-gv/orangeforum/models/db"
 	"github.com/s-gv/orangeforum/models"
+	"os"
 	"strings"
 )
+
+func TestMain(m *testing.M) {
+	// Setup
+	db.Init("sqlite3", ":memory:")
+	models.Migrate()
+
+	models.CreateSuperUser("admin", "admin12345")
+
+	// Run tests
+	retCode := m.Run()
+
+	os.Exit(retCode)
+}
 
 func TestStyleHandler(t *testing.T) {
 	req, err := http.NewRequest("GET", "/static/css/orangeforum.css", nil)
@@ -42,9 +56,6 @@ func TestStyleHandler(t *testing.T) {
 }
 
 func TestIndexHandler(t *testing.T) {
-	db.Init("sqlite3", "file::memory:?mode=memory&cache=shared")
-	models.Migrate()
-
 	req, err := http.NewRequest("GET", "/", nil)
 	if err != nil {
 		t.Fatal(err)
