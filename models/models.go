@@ -9,7 +9,7 @@ import (
 	"log"
 )
 
-const ModelVersion = 2
+const ModelVersion = 3
 
 func Migration1() {
 	db.Exec(`CREATE TABLE configs(name VARCHAR(250), val TEXT);`)
@@ -82,9 +82,15 @@ func Migration1() {
 				created_date INTEGER,
 				updated_date INTEGER
 	);`)
+	// db.Exec(`ALTER TABLES comments DROP COLUMN is_sticky;`) // Migration 3
+	// db.Exec(`ALTER TABLE comments ADD COLUMN pos INTEGER DEFAULT 0;`) // Migration 3
 	db.Exec(`CREATE INDEX comments_userid_created_index on comments(userid, created_date);`)
 	db.Exec(`CREATE INDEX comments_parentid_index on comments(parentid);`)
 	db.Exec(`CREATE INDEX comments_topicid_sticky_created_index on comments(topicid, is_sticky DESC, created_date);`)
+	// db.Exec(`DROP INDEX comments_topicid_sticky_created_index;`) // Migration 3
+	// db.Exec(`CREATE INDEX comments_topicid_created_index on comments(topicid, created_date);`) // Migration 3
+	// db.Exec(`CREATE INDEX comments_topicid_pos_index on comments(topicid, pos);`) // Migration 3
+	// db.Exec(`CREATE INDEX comments_topicid_posdesc_index on comments(topicid, pos DESC);`) // Migration 3
 	db.Exec(`CREATE INDEX comments_created_index on comments(created_date);`)
 
 	db.Exec(`CREATE TABLE mods(
@@ -158,6 +164,16 @@ func Migration2() {
 	db.Exec(`ALTER TABLE groups ADD COLUMN is_private INTEGER DEFAULT 0;`)
 }
 
+func Migration3() {
+	db.Exec(`ALTER TABLE comments ADD COLUMN pos INTEGER DEFAULT 0;`)
+	db.Exec(`UPDATE comments SET pos=-1 WHERE is_sticky=1;`)
+	db.Exec(`CREATE INDEX comments_topicid_pos_index on comments(topicid, pos);`)
+	db.Exec(`CREATE INDEX comments_topicid_posdesc_index on comments(topicid, pos DESC);`)
+	db.Exec(`CREATE INDEX comments_topicid_created_index on comments(topicid, created_date);`)
+	// db.Exec(`ALTER TABLES comments DROP COLUMN is_sticky;`) // Not supported by sqlite3. Ignore column.
+	db.Exec(`DROP INDEX comments_topicid_sticky_created_index;`)
+}
+
 func Migrate() {
 	dbver := db.Version()
 	if dbver == ModelVersion {
@@ -188,6 +204,10 @@ func Migrate() {
 			Migration2()
 
 			WriteConfig(Version, "2");
+		} else if dbver == 2 {
+			Migration3()
+
+			WriteConfig(Version, "3");
 		}
 		dbver = db.Version()
 	}

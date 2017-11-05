@@ -15,11 +15,17 @@ import (
 	"html/template"
 )
 
+var numCommentsPerPage = 100
+
 var TopicIndexHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Session) {
 	topicID := r.FormValue("id")
-	lastCommentDate, err := strconv.ParseInt(r.FormValue("lcd"), 10, 64)
+	page64, err := strconv.ParseInt(r.FormValue("p"), 10, 64)
 	if err != nil {
-		lastCommentDate = 0
+		page64 = 0
+	}
+	page := int(page64)
+	if page < 0 {
+		page = 0
 	}
 	var title, content, groupID, groupName string
 	var isDeleted, isClosed bool
@@ -41,6 +47,10 @@ var TopicIndexHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Ses
 		db.QueryRow(`SELECT token FROM topicsubscriptions WHERE topicid=? AND userid=?;`, topicID, sess.UserID).Scan(&subToken)
 	}
 
+	var lastPos int
+	db.QueryRow(`SELECT pos FROM comments WHERE topicid=? ORDER BY pos DESC LIMIT 1;`, topicID).Scan(&lastPos)
+	isLastPage := (lastPos < (page+1)*numCommentsPerPage)
+
 	type Comment struct {
 		ID string
 		Content template.HTML
@@ -50,34 +60,24 @@ var TopicIndexHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Ses
 		IsOwner bool
 		IsDeleted bool
 	}
-	numCommentsPerPage := 4//100
 
 	var comments []Comment
 	var cDate int64
 	var rows *db.Rows
-	if lastCommentDate == 0 {
-		rows = db.Query(`SELECT users.id, users.username, comments.id, comments.content, comments.image, comments.is_deleted, comments.created_date FROM comments INNER JOIN users ON comments.userid=users.id AND comments.topicid=? ORDER BY comments.is_sticky DESC, comments.created_date ASC LIMIT ?;`, topicID, numCommentsPerPage+1)
+	if page == 0 {
+		rows = db.Query(`SELECT users.id, users.username, comments.id, comments.content, comments.image, comments.is_deleted, comments.created_date FROM comments INNER JOIN users ON comments.userid=users.id AND comments.topicid=? AND comments.pos < ? ORDER BY comments.pos;`, topicID, numCommentsPerPage)
 	} else {
-		rows = db.Query(`SELECT users.id, users.username, comments.id, comments.content, comments.image, comments.is_deleted, comments.created_date FROM comments INNER JOIN users ON comments.userid=users.id AND comments.topicid=? AND comments.created_date > ? AND comments.is_sticky=0 ORDER BY comments.created_date ASC LIMIT ?;`, topicID, lastCommentDate, numCommentsPerPage+1)
+		rows = db.Query(`SELECT users.id, users.username, comments.id, comments.content, comments.image, comments.is_deleted, comments.created_date FROM comments INNER JOIN users ON comments.userid=users.id AND comments.topicid=? AND comments.pos >= ? AND comments.pos < ? ORDER BY comments.pos;`, topicID, page*numCommentsPerPage, (page+1)*numCommentsPerPage)
 	}
-	numRows := 0
 	for rows.Next() {
-		if len(comments) < numCommentsPerPage {
-			comments = append(comments, Comment{})
-			c := &comments[len(comments)-1]
-			var ownerID int64
-			var content string
-			rows.Scan(&ownerID, &c.UserName, &c.ID, &content, &c.ImgSrc, &c.IsDeleted, &cDate)
-			c.CreatedDate = timeAgoFromNow(time.Unix(cDate, 0))
-			c.IsOwner = sess.UserID.Valid && (ownerID == sess.UserID.Int64)
-			c.Content = formatComment(content)
-		}
-		numRows = numRows + 1
-	}
-	if numRows > numCommentsPerPage {
-		lastCommentDate = cDate
-	} else {
-		lastCommentDate = 0
+		comments = append(comments, Comment{})
+		c := &comments[len(comments)-1]
+		var ownerID int64
+		var content string
+		rows.Scan(&ownerID, &c.UserName, &c.ID, &content, &c.ImgSrc, &c.IsDeleted, &cDate)
+		c.CreatedDate = timeAgoFromNow(time.Unix(cDate, 0))
+		c.IsOwner = sess.UserID.Valid && (ownerID == sess.UserID.Int64)
+		c.Content = formatComment(content)
 	}
 
 	var tmp string
@@ -105,7 +105,8 @@ var TopicIndexHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Ses
 		"IsAdmin": isAdmin,
 		"IsSuperAdmin": isSuperAdmin,
 		"Comments": comments,
-		"LastCommentDate": lastCommentDate,
+		"IsLastPage": isLastPage,
+		"NextPage": page+1,
 	})
 })
 

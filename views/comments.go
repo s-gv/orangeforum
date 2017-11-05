@@ -12,6 +12,7 @@ import (
 	"time"
 	"database/sql"
 	"github.com/s-gv/orangeforum/utils"
+	"strconv"
 )
 
 var CommentIndexHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Session) {
@@ -98,8 +99,16 @@ var CommentCreateHandler = A(func(w http.ResponseWriter, r *http.Request, sess S
 		if isImageUploadEnabled {
 			imageName = saveImage(r)
 		}
-		db.Exec(`INSERT INTO comments(content, image, topicid, userid, parentid, is_sticky, created_date, updated_date) VALUES(?, ?, ?, ?, ?, ?, ?, ?);`,
-			content, imageName, topicID, sess.UserID, sql.NullInt64{Valid:false}, isSticky, int64(time.Now().Unix()), int64(time.Now().Unix()))
+
+		var lastPos int
+		db.QueryRow(`SELECT pos FROM comments WHERE topicid=? ORDER BY pos DESC LIMIT 1;`, topicID).Scan(&lastPos)
+		newPos := lastPos + 1
+		if isSticky {
+			newPos = -newPos
+		}
+
+		db.Exec(`INSERT INTO comments(content, image, topicid, userid, parentid, pos, created_date, updated_date) VALUES(?, ?, ?, ?, ?, ?, ?, ?);`,
+			content, imageName, topicID, sess.UserID, sql.NullInt64{Valid:false}, newPos, int64(time.Now().Unix()), int64(time.Now().Unix()))
 		db.Exec(`UPDATE topics SET num_comments=num_comments+1, activity_date=? WHERE id=?;`, int(time.Now().Unix()), topicID)
 		if models.Config(models.AllowTopicSubscription) != "0" {
 			var userName string
@@ -116,7 +125,11 @@ var CommentCreateHandler = A(func(w http.ResponseWriter, r *http.Request, sess S
 				}
 			}
 		}
-		http.Redirect(w, r, "/topics?id="+topicID+"#comment-last", http.StatusSeeOther)
+		page := newPos / numCommentsPerPage
+		if page < 0 {
+			page = 0
+		}
+		http.Redirect(w, r, "/topics?id="+topicID+"&p="+strconv.Itoa(page)+"#comment-last", http.StatusSeeOther)
 		return
 	}
 
@@ -145,7 +158,8 @@ var CommentUpdateHandler = A(func(w http.ResponseWriter, r *http.Request, sess S
 
 	var groupID, topicID, groupName, topicName, parentComment, topicOwnerName, topicOwnerID string
 	var topicCreatedDate int64
-	if db.QueryRow(`SELECT topicid FROM comments WHERE id=?;`, commentID).Scan(&topicID) != nil {
+	var pos int
+	if db.QueryRow(`SELECT topicid, pos FROM comments WHERE id=?;`, commentID).Scan(&topicID, &pos) != nil {
 		ErrNotFoundHandler(w, r)
 		return
 	}
@@ -188,10 +202,23 @@ var CommentUpdateHandler = A(func(w http.ResponseWriter, r *http.Request, sess S
 				return
 			}
 			if !isMod && !isAdmin && !isSuperAdmin {
-				db.QueryRow(`SELECT is_sticky FROM comments WHERE id=?;`, commentID).Scan(&isSticky)
+				isSticky = (pos < 0)
 			}
-			db.Exec(`UPDATE comments SET content=?, is_sticky=?, updated_date=? WHERE id=?;`, content, isSticky, int64(time.Now().Unix()), commentID)
-			http.Redirect(w, r, "/topics?id="+topicID+"#comment-"+commentID, http.StatusSeeOther)
+			if isSticky {
+				if pos > 0 {
+					pos = -pos
+				}
+			} else {
+				if pos < 0 {
+					pos = -pos
+				}
+			}
+			db.Exec(`UPDATE comments SET content=?, pos=?, updated_date=? WHERE id=?;`, content, pos, int64(time.Now().Unix()), commentID)
+			page := pos / numCommentsPerPage
+			if page < 0 {
+				page = 0
+			}
+			http.Redirect(w, r, "/topics?id="+topicID+"&p="+strconv.Itoa(page)+"#comment-"+commentID, http.StatusSeeOther)
 		}
 		if action == "Delete" {
 			db.Exec(`UPDATE comments SET is_deleted=1 WHERE id=?;`, commentID)
@@ -204,7 +231,8 @@ var CommentUpdateHandler = A(func(w http.ResponseWriter, r *http.Request, sess S
 		return
 	}
 	isDeleted := false
-	db.QueryRow(`SELECT content, is_sticky, is_deleted FROM comments WHERE id=?;`, commentID).Scan(&content, &isSticky, &isDeleted)
+	db.QueryRow(`SELECT content, is_deleted FROM comments WHERE id=?;`, commentID).Scan(&content, &isDeleted)
+	isSticky = (pos < 0)
 
 	templates.Render(w, "commentedit.html", map[string]interface{}{
 		"Common": readCommonData(r, sess),

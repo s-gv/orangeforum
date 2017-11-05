@@ -58,9 +58,9 @@ const topicindexSrc = `
 {{ end }}
 <div id="comment-last"></div>
 
-{{ if .LastCommentDate }}
+{{ if not .IsLastPage }}
 <div class="row">
-	<div><a href="/topics?id={{ .TopicID }}&lcd={{ .LastCommentDate }}">More</a></div>
+	<div><a href="/topics?id={{ .TopicID }}&p={{ .NextPage }}">More</a></div>
 </div>
 {{ end }}
 
