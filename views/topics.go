@@ -50,27 +50,31 @@ var TopicIndexHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Ses
 		IsOwner bool
 		IsDeleted bool
 	}
-	numCommentsPerPage := 100
+	numCommentsPerPage := 4//100
 
 	var comments []Comment
 	var cDate int64
 	var rows *db.Rows
 	if lastCommentDate == 0 {
-		rows = db.Query(`SELECT users.id, users.username, comments.id, comments.content, comments.image, comments.is_deleted, comments.created_date FROM comments INNER JOIN users ON comments.userid=users.id AND comments.topicid=? ORDER BY comments.is_sticky DESC, comments.created_date ASC LIMIT ?;`, topicID, numCommentsPerPage)
+		rows = db.Query(`SELECT users.id, users.username, comments.id, comments.content, comments.image, comments.is_deleted, comments.created_date FROM comments INNER JOIN users ON comments.userid=users.id AND comments.topicid=? ORDER BY comments.is_sticky DESC, comments.created_date ASC LIMIT ?;`, topicID, numCommentsPerPage+1)
 	} else {
-		rows = db.Query(`SELECT users.id, users.username, comments.id, comments.content, comments.image, comments.is_deleted, comments.created_date FROM comments INNER JOIN users ON comments.userid=users.id AND comments.topicid=? AND comments.created_date > ? AND comments.is_sticky=0 ORDER BY comments.created_date ASC LIMIT ?;`, topicID, lastCommentDate, numCommentsPerPage)
+		rows = db.Query(`SELECT users.id, users.username, comments.id, comments.content, comments.image, comments.is_deleted, comments.created_date FROM comments INNER JOIN users ON comments.userid=users.id AND comments.topicid=? AND comments.created_date > ? AND comments.is_sticky=0 ORDER BY comments.created_date ASC LIMIT ?;`, topicID, lastCommentDate, numCommentsPerPage+1)
 	}
+	numRows := 0
 	for rows.Next() {
-		comments = append(comments, Comment{})
-		c := &comments[len(comments)-1]
-		var ownerID int64
-		var content string
-		rows.Scan(&ownerID, &c.UserName, &c.ID, &content, &c.ImgSrc, &c.IsDeleted, &cDate)
-		c.CreatedDate = timeAgoFromNow(time.Unix(cDate, 0))
-		c.IsOwner = sess.UserID.Valid && (ownerID == sess.UserID.Int64)
-		c.Content = formatComment(content)
+		if len(comments) < numCommentsPerPage {
+			comments = append(comments, Comment{})
+			c := &comments[len(comments)-1]
+			var ownerID int64
+			var content string
+			rows.Scan(&ownerID, &c.UserName, &c.ID, &content, &c.ImgSrc, &c.IsDeleted, &cDate)
+			c.CreatedDate = timeAgoFromNow(time.Unix(cDate, 0))
+			c.IsOwner = sess.UserID.Valid && (ownerID == sess.UserID.Int64)
+			c.Content = formatComment(content)
+		}
+		numRows = numRows + 1
 	}
-	if len(comments) >= numCommentsPerPage {
+	if numRows > numCommentsPerPage {
 		lastCommentDate = cDate
 	} else {
 		lastCommentDate = 0
