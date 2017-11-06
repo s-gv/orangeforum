@@ -12,7 +12,6 @@ import (
 	"regexp"
 	"errors"
 	"net/url"
-	"fmt"
 )
 
 func grabCSRFToken(body string) (string, error) {
@@ -59,21 +58,26 @@ func loginForTest(username string, passwd string) (string, error) {
 		return "", cerr
 	}
 
-	fmt.Printf("body: %s\n", loginRR.Body.String())
-
 	// POST login and record sessionid
 	form := url.Values{}
 	form.Add("username", username)
 	form.Add("passwd", passwd)
 	form.Add("csrf", csrfToken)
 	loginReq, _ = http.NewRequest("POST", "/login", strings.NewReader(form.Encode()))
+	loginReq.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	loginReq.AddCookie(&http.Cookie{Name: "sessionid", Path: "/", Value: sessionid, HttpOnly: true})
 	loginRR = httptest.NewRecorder()
 	http.HandlerFunc(LoginHandler).ServeHTTP(loginRR, loginReq)
 
-	fmt.Printf("body: %s\n", loginRR.Body.String())
+	if header, ok := loginRR.HeaderMap["Location"]; ok {
+		if header[0] == "/" {
+			return sessionid, nil
+		} else {
+			return "", errors.New("Unexpected re-direct after posting login. Maybe wrong password?")
+		}
+	}
 
-	return sessionid, nil
+	return "", errors.New("Login failed")
 }
 
 func TestUserProfileHandler(t *testing.T) {
@@ -90,8 +94,12 @@ func TestUserProfileHandler(t *testing.T) {
 		t.Errorf("handler returned wrong status code: got %v", status)
 	}
 
-	if body := rr.Body.String(); !strings.Contains(body, "admin")  {
+	body := rr.Body.String()
+	if !strings.Contains(body, "admin")  {
 		t.Errorf("Profile page does not have the name of the user. Body: %s\n", body)
+	}
+	if strings.Contains(body, "private") {
+		t.Errorf("Public profile page shows private info. Body: %s\n", body)
 	}
 }
 
@@ -101,12 +109,20 @@ func TestLoggedInUserProfileHandler(t *testing.T) {
 	if err != nil {
 		t.Fatalf("%v\n", err.Error())
 	}
-	t.Errorf("sessionid: %s\n", sessionid)
-	/*
 
-	if body := loginRR.Body.String(); !strings.Contains(body, "dfasdf")  {
+	req, _ := http.NewRequest("GET", "/users?u=admin", nil)
+	req.AddCookie(&http.Cookie{Name: "sessionid", Path: "/", Value: sessionid, HttpOnly: true})
+	rr := httptest.NewRecorder()
+	http.HandlerFunc(UserProfileHandler).ServeHTTP(rr, req)
+
+	body := rr.Body.String()
+	if !strings.Contains(body, "admin")  {
 		t.Errorf("Profile page does not have the name of the user. Body: %s\n", body)
 	}
-	*/
-
+	if !strings.Contains(body, "private") {
+		t.Errorf("Profile page doesn't show private info when logged in. Body: %s\n", body)
+	}
+	if !strings.Contains(body, "/changepass") {
+		t.Errorf("Profile page doesn't have a link to change password page when logged in. Body: %s\n", body)
+	}
 }
