@@ -205,4 +205,7 @@ textarea {
 .alert {
 	color: red;
 }
+a, .muted, h3 {
+	word-wrap: break-word;
+}
 `
