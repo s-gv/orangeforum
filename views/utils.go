@@ -49,7 +49,7 @@ type ExtraNote struct {
 var linkRe *regexp.Regexp
 
 func init() {
-	linkRe = regexp.MustCompile("https?://[^\\s]+[A-Za-z0-9/\\&\\+\\?#,_-]")
+	linkRe = regexp.MustCompile("https?://[A-Za-z0-9\\-]+\\.[A-Za-z0-9\\-\\.]+(\\:[0-9]+)?[a-zA-Z0-9@:%_\\+\\.~#?&/=;\\-]*[a-zA-Z0-9@:%_\\+~#?&/=;\\-]")
 }
 
 func ErrServerHandler(w http.ResponseWriter, r *http.Request) {
