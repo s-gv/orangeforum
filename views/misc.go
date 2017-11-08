@@ -46,13 +46,16 @@ var IndexHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Session)
 		NumComments int
 	}
 	topics := []Topic{}
-	trows := db.Query(`SELECT topics.id, topics.title, topics.num_comments, topics.created_date, groups.name, users.username FROM topics INNER JOIN groups ON topics.groupid=groups.id INNER JOIN users ON topics.userid=users.id ORDER BY topics.created_date DESC LIMIT 20;`)
+	trows := db.Query(`SELECT topics.id, topics.title, topics.num_comments, topics.created_date, topics.is_deleted, topics.is_closed, groups.name, groups.is_closed, users.username FROM topics INNER JOIN groups ON topics.groupid=groups.id INNER JOIN users ON topics.userid=users.id ORDER BY topics.created_date DESC LIMIT 20;`)
 	for trows.Next() {
-		topics = append(topics, Topic{})
-		t := &topics[len(topics)-1]
+		t := Topic{}
 		var cDate int64
-		trows.Scan(&t.ID, &t.Title, &t.NumComments, &cDate, &t.GroupName, &t.OwnerName)
+		var isTopicDeleted, isTopicClosed, isGroupClosed bool
+		trows.Scan(&t.ID, &t.Title, &t.NumComments, &cDate, &isTopicDeleted, &isTopicClosed, &t.GroupName, &isGroupClosed, &t.OwnerName)
 		t.CreatedDate = timeAgoFromNow(time.Unix(cDate, 0))
+		if !isTopicDeleted && !isTopicClosed && !isGroupClosed {
+			topics = append(topics, t)
+		}
 	}
 	templates.Render(w, "index.html", map[string]interface{}{
 		"Common": readCommonData(r, sess),
