@@ -19,8 +19,9 @@ import (
 	"time"
 	"strconv"
 	"errors"
-	"math/rand"
+	"crypto/rand"
 	"github.com/s-gv/orangeforum/models/db"
+	"encoding/base64"
 )
 
 type CommonData struct {
@@ -170,7 +171,7 @@ func saveImage(r *http.Request) string {
 			if handler.Filename != "" {
 				ext := strings.ToLower(filepath.Ext(handler.Filename))
 				if ext == ".jpg" || ext == ".png" || ext == ".jpeg" {
-					fileName := randSeq(64) + ext
+					fileName := randSeq(32) + ext
 					f, err := os.OpenFile(dataDir+fileName, os.O_WRONLY|os.O_CREATE, 0666)
 					if err == nil {
 						defer f.Close()
@@ -199,12 +200,11 @@ func validatePasswd(passwd string, passwdConfirm string) error {
 }
 
 func randSeq(n int) string {
-	var letters = []rune("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
-	b := make([]rune, n)
-	for i := range b {
-		b[i] = letters[rand.Intn(len(letters))]
+	b := make([]byte, n)
+	if _, err := rand.Read(b); err != nil {
+		log.Panicf("[ERROR] Unable to generate random number: %s\n", err.Error())
 	}
-	return string(b)
+	return base64.URLEncoding.EncodeToString(b)
 }
 
 func readCommonData(r *http.Request, sess Session) CommonData {

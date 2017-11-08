@@ -151,7 +151,7 @@ var ForgotPasswdHandler = UA(func(w http.ResponseWriter, r *http.Request, sess S
 		}
 		forumName := models.Config(models.ForumName)
 
-		resetToken := randSeq(64)
+		resetToken := randSeq(40)
 		db.Exec(`UPDATE users SET reset_token=?, reset_token_date=? WHERE username=?;`, resetToken, int64(time.Now().Unix()), userName)
 
 		resetLink := "https://" + r.Host + "/resetpass?r=" + resetToken
