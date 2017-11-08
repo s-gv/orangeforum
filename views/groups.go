@@ -127,8 +127,28 @@ var GroupEditHandler = A(func(w http.ResponseWriter, r *http.Request, sess Sessi
 
 	if r.Method == "POST" {
 		if action == "Create" {
+			if len(name) < 3 || len(name) > 40 {
+				sess.SetFlashMsg("Group name should have 3-40 characters.")
+				http.Redirect(w, r, "/groups/edit", http.StatusSeeOther)
+				return
+			}
+			if len(desc) > 160 {
+				sess.SetFlashMsg("Group description should have less than 160 characters.")
+				http.Redirect(w, r, "/groups/edit", http.StatusSeeOther)
+				return
+			}
+			if len(headerMsg) > 160 {
+				sess.SetFlashMsg("Announcement should have less than 160 characters.")
+				http.Redirect(w, r, "/groups/edit", http.StatusSeeOther)
+				return
+			}
 			if err := validateName(name); err != nil {
 				sess.SetFlashMsg(err.Error())
+				http.Redirect(w, r, "/groups/edit", http.StatusSeeOther)
+				return
+			}
+			if len(admins) > 32 || len(mods) > 32 {
+				sess.SetFlashMsg("Number of admins/mods should no more than 32.")
 				http.Redirect(w, r, "/groups/edit", http.StatusSeeOther)
 				return
 			}
@@ -146,8 +166,28 @@ var GroupEditHandler = A(func(w http.ResponseWriter, r *http.Request, sess Sessi
 			}
 			http.Redirect(w, r, "/groups?name="+name, http.StatusSeeOther)
 		} else if action == "Update" {
+			if len(name) < 3 || len(name) > 40 {
+				sess.SetFlashMsg("Group name should have 3-40 characters.")
+				http.Redirect(w, r, "/groups/edit?id="+groupID, http.StatusSeeOther)
+				return
+			}
+			if len(desc) > 160 {
+				sess.SetFlashMsg("Group description should have less than 160 characters.")
+				http.Redirect(w, r, "/groups/edit?id="+groupID, http.StatusSeeOther)
+				return
+			}
+			if len(headerMsg) > 160 {
+				sess.SetFlashMsg("Announcement should have less than 160 characters.")
+				http.Redirect(w, r, "/groups/edit?id="+groupID, http.StatusSeeOther)
+				return
+			}
 			if err := validateName(name); err != nil {
 				sess.SetFlashMsg(err.Error())
+				http.Redirect(w, r, "/groups/edit?id="+groupID, http.StatusSeeOther)
+				return
+			}
+			if len(admins) > 32 || len(mods) > 32 {
+				sess.SetFlashMsg("Number of admins/mods should no more than 32.")
 				http.Redirect(w, r, "/groups/edit?id="+groupID, http.StatusSeeOther)
 				return
 			}

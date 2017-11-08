@@ -26,6 +26,12 @@ const profileSrc = `
 		<th><label for="email">Email (private):</label></th>
 		<td><input type="email" name="email" id="email" value={{ .Email }}></td>
 	</tr>
+	{{ if .Common.Msg }}
+	<tr>
+		<th></th>
+		<td><span class="alert">{{ .Common.Msg }}</span></td>
+	</tr>
+	{{ end }}
 	<tr>
 		<th></th>
 		<td><input type="submit" name="action" value="Update"></td>

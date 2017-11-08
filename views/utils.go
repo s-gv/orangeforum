@@ -190,8 +190,8 @@ func saveImage(r *http.Request) string {
 }
 
 func validatePasswd(passwd string, passwdConfirm string) error {
-	if len(passwd) < 8 {
-		return errors.New("Password should have at least 8 characters.")
+	if len(passwd) < 8 || len(passwd) > 40 {
+		return errors.New("Password should have 8-40 characters.")
 	}
 	if passwd != passwdConfirm {
 		return errors.New("Passwords don't match.")

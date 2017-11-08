@@ -15,6 +15,7 @@ import (
 	"html/template"
 	"github.com/s-gv/orangeforum/models/db"
 	"time"
+	"fmt"
 )
 
 var LoginHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Session) {
@@ -30,6 +31,10 @@ var LoginHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Session)
 	if r.Method == "POST" {
 		userName := r.PostFormValue("username")
 		passwd := r.PostFormValue("passwd")
+		if len(userName) > 200 || len(passwd) > 200 {
+			fmt.Fprint(w, "username / password too long.")
+			return
+		}
 		if err = sess.Authenticate(userName, passwd); err == nil {
 			http.Redirect(w, r, redirectURL, http.StatusSeeOther)
 			return
@@ -66,8 +71,8 @@ var SignupHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Session
 		passwd := r.PostFormValue("passwd")
 		passwdConfirm := r.PostFormValue("confirm")
 		email := r.PostFormValue("email")
-		if len(userName) == 0 {
-			sess.SetFlashMsg("Username cannot be blank.")
+		if len(userName) < 2 || len(userName) > 32 {
+			sess.SetFlashMsg("Username should have 2-32 characters.")
 			http.Redirect(w, r, "/signup", http.StatusSeeOther)
 			return
 		}
@@ -89,6 +94,11 @@ var SignupHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Session
 		}
 		if err := validatePasswd(passwd, passwdConfirm); err != nil {
 			sess.SetFlashMsg(err.Error())
+			http.Redirect(w, r, "/signup", http.StatusSeeOther)
+			return
+		}
+		if len(email) > 64 {
+			sess.SetFlashMsg("Email should have fewer than 64 characters.")
 			http.Redirect(w, r, "/signup", http.StatusSeeOther)
 			return
 		}
@@ -138,7 +148,7 @@ var ChangePasswdHandler = UA(func(w http.ResponseWriter, r *http.Request, sess S
 var ForgotPasswdHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Session) {
 	if r.Method == "POST" {
 		userName := r.PostFormValue("username")
-		if userName == "" || !models.ProbeUser(userName) {
+		if userName == "" || len(userName) > 200 || !models.ProbeUser(userName) {
 			sess.SetFlashMsg("Username doesn't exist.")
 			http.Redirect(w, r, "/forgotpass", http.StatusSeeOther)
 			return

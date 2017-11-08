@@ -96,8 +96,9 @@ var CommentCreateHandler = A(func(w http.ResponseWriter, r *http.Request, sess S
 			imageName = saveImage(r)
 		}
 
-		if content == "" && imageName == "" {
-			http.Redirect(w, r, "/topics?id="+topicID+"#comment-last", http.StatusSeeOther)
+		if (len(content) < 2 && imageName == "") || len(content) > 5000 {
+			sess.SetFlashMsg("Comment should have 2-5000 characters.")
+			http.Redirect(w, r, "/comments/new?tid="+topicID, http.StatusSeeOther)
 			return
 		}
 
@@ -198,6 +199,11 @@ var CommentUpdateHandler = A(func(w http.ResponseWriter, r *http.Request, sess S
 	if r.Method == "POST" {
 		action := r.PostFormValue("action")
 		if action == "Update" {
+			if len(content) < 2 || len(content) > 5000 {
+				sess.SetFlashMsg("Comment should have 2-5000 characters.")
+				http.Redirect(w, r, "/comments/edit?id="+commentID, http.StatusSeeOther)
+				return
+			}
 			if content == "" {
 				http.Redirect(w, r, "/comments/edit?id="+commentID, http.StatusSeeOther)
 				return

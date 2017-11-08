@@ -131,8 +131,13 @@ var TopicCreateHandler = A(func(w http.ResponseWriter, r *http.Request, sess Ses
 		title := r.PostFormValue("title")
 		content := r.PostFormValue("content")
 		isSticky := r.PostFormValue("is_sticky") != ""
-		if len(title) < 1 || len(title) > 150 {
-			sess.SetFlashMsg("Invalid number of characters in the title. Valid range: 1-150.")
+		if len(title) < 8 || len(title) > 80 {
+			sess.SetFlashMsg("Title should have 8-80 characters.")
+			http.Redirect(w, r, "/topics/new?gid="+groupID, http.StatusSeeOther)
+			return
+		}
+		if len(content) > 5000 {
+			sess.SetFlashMsg("Content should have less than 5000 characters.")
 			http.Redirect(w, r, "/topics/new?gid="+groupID, http.StatusSeeOther)
 			return
 		}
@@ -214,12 +219,16 @@ var TopicUpdateHandler = A(func(w http.ResponseWriter, r *http.Request, sess Ses
 	}
 
 	if r.Method == "POST" {
-		if len(title) < 1 || len(title) > 150 {
-			sess.SetFlashMsg("Invalid number of characters in the title. Valid range: 1-150.")
+		if len(title) < 8 || len(title) > 80 {
+			sess.SetFlashMsg("Title should have 8-80 characters.")
 			http.Redirect(w, r, "/topics/edit?id="+topicID, http.StatusSeeOther)
 			return
 		}
-
+		if len(content) > 5000 {
+			sess.SetFlashMsg("Content should have less than 5000 characters.")
+			http.Redirect(w, r, "/topics/edit?id="+topicID, http.StatusSeeOther)
+			return
+		}
 		if action == "Update" {
 			db.Exec(`UPDATE topics SET title=?, content=?, is_sticky=?, updated_date=? WHERE id=?;`, title, content, isSticky, int(time.Now().Unix()), topicID)
 		} else if action == "Close" && (isMod || isAdmin || isSuperAdmin) {

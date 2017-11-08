@@ -34,6 +34,16 @@ var UserProfileHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Se
 			if isSuperAdmin || userID == sess.UserID.Int64 {
 				email := r.FormValue("email")
 				about := r.FormValue("about")
+				if len(email) > 64 {
+					sess.SetFlashMsg("Email should have fewer than 64 characters.")
+					http.Redirect(w, r, "/users?u="+userName, http.StatusSeeOther)
+					return
+				}
+				if len(about) > 1024 {
+					sess.SetFlashMsg("About should have fewer than 1024 characters.")
+					http.Redirect(w, r, "/users?u="+userName, http.StatusSeeOther)
+					return
+				}
 				db.Exec(`UPDATE users SET email=?, about=? WHERE id=?;`, email, about, userID)
 			} else {
 				ErrForbiddenHandler(w, r)
