@@ -71,6 +71,9 @@ const topicindexSrc = `
 	<input type="hidden" name="id" value="{{ .CommentID }}">
 	<input type="hidden" name="tid" value="{{ .TopicID }}">
 	<textarea name="content" rows="12" placeholder="Your comment..."></textarea>
+	{{ if .IsImageUploadEnabled }}
+	<div>Add Image (optional): <input type="file" name="img" accept="image/*"></div>
+	{{ end }}
 	<input type="submit" name="action" class="no-double-post" value="Add comment">
 </form>
 </div>

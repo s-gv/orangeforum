@@ -104,6 +104,7 @@ var TopicIndexHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Ses
 		"IsMod": isMod,
 		"IsAdmin": isAdmin,
 		"IsSuperAdmin": isSuperAdmin,
+		"IsImageUploadEnabled": models.Config(models.ImageUploadEnabled) != "0",
 		"Comments": comments,
 		"IsLastPage": isLastPage,
 		"NextPage": page+1,
