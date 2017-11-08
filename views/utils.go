@@ -178,7 +178,7 @@ func saveImage(r *http.Request) string {
 						io.Copy(f, file)
 						imageName = fileName
 					} else {
-						log.Panicf("[ERROR] Error writing opening file: %s\n", err)
+						log.Panicf("[ERROR] Error writing file: %s\n", err)
 					}
 				}
 			}

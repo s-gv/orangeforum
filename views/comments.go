@@ -88,16 +88,17 @@ var CommentCreateHandler = A(func(w http.ResponseWriter, r *http.Request, sess S
 	db.QueryRow(`SELECT is_superadmin FROM users WHERE id=?`, sess.UserID).Scan(&isSuperAdmin)
 
 	if r.Method == "POST" {
-		if content == "" {
-			http.Redirect(w, r, "/topics?id="+topicID+"#comment-last", http.StatusSeeOther)
-			return
-		}
 		if !isMod && !isAdmin && !isSuperAdmin {
 			isSticky = false
 		}
 		imageName := ""
 		if isImageUploadEnabled {
 			imageName = saveImage(r)
+		}
+
+		if content == "" && imageName == "" {
+			http.Redirect(w, r, "/topics?id="+topicID+"#comment-last", http.StatusSeeOther)
+			return
 		}
 
 		var lastPos int
