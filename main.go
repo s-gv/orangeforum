@@ -16,6 +16,7 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 	"fmt"
 	"syscall"
+	"net/http/fcgi"
 )
 
 func getCreds() (string, string) {
@@ -64,6 +65,7 @@ func main() {
 	createUser := flag.Bool("createuser", false, "Create user")
 	changePasswd := flag.Bool("changepasswd", false, "Change password")
 	deleteSessions := flag.Bool("deletesessions", false, "Delete all sessions (logout all users)")
+	fcgiMode := flag.Bool("fcgi", false, "Fast CGI rather than listening on a port")
 
 	flag.Parse()
 
@@ -158,11 +160,17 @@ func main() {
 	mux.HandleFunc("/users/topics", views.UserTopicsHandler)
 	mux.HandleFunc("/users/groups", views.UserGroupsHandler)
 
+	if *fcgiMode {
+		fcgi.Serve(nil, mux)
+		return
+	}
+
 	srv := &http.Server{
 		Handler: mux,
 		Addr: *addr,
-		WriteTimeout: 45 * time.Second,
-		ReadTimeout:  45 * time.Second,
+		WriteTimeout: 30 * time.Second,
+		ReadTimeout:  30 * time.Second,
+		IdleTimeout:  120 * time.Second,
 	}
 
 	log.Println("[INFO] Starting orangeforum at", *addr)
