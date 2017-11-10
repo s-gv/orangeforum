@@ -47,12 +47,14 @@ type ExtraNote struct {
 }
 
 var linkRe *regexp.Regexp
+var italicRe *regexp.Regexp
 var boldRe *regexp.Regexp
 var codeRe *regexp.Regexp
 
 func init() {
 	linkRe = regexp.MustCompile("https?://([A-Za-z0-9\\-]+\\.[A-Za-z0-9\\-\\.]+|localhost)(:[0-9]+)?[a-zA-Z0-9@:%_\\+\\.~#?&/=;\\-]*[a-zA-Z0-9@:%_\\+~#?&/=;\\-]")
-	boldRe = regexp.MustCompile("\\*([^\\*\n]+)\\*")
+	italicRe = regexp.MustCompile("\\*([^\\*\n]+)\\*")
+	boldRe = regexp.MustCompile("\\*\\*([^\\*\n]+)\\*\\*")
 	codeRe = regexp.MustCompile("```.*\n(?s:(.+))\n```")
 }
 
@@ -144,6 +146,7 @@ func formatComment(comment string) template.HTML {
 	comment = strings.Replace(comment, "\n", "<br>", -1)
 
 	comment = boldRe.ReplaceAllString(comment, "<b>$1</b>")
+	comment = italicRe.ReplaceAllString(comment, "<em>$1</em>")
 
 	comment = linkRe.ReplaceAllString(comment, "<a href=\"$0\">$0</a>")
 
