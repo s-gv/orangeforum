@@ -50,12 +50,14 @@ var linkRe *regexp.Regexp
 var italicRe *regexp.Regexp
 var boldRe *regexp.Regexp
 var codeRe *regexp.Regexp
+var oldCodeRe *regexp.Regexp
 
 func init() {
 	linkRe = regexp.MustCompile("https?://([A-Za-z0-9\\-]+\\.[A-Za-z0-9\\-\\.]+|localhost)(:[0-9]+)?[a-zA-Z0-9@:%_\\+\\.~#?&/=;\\-]*[a-zA-Z0-9@:%_\\+~#?&/=;\\-]")
 	italicRe = regexp.MustCompile("\\*([^\\*\n]+)\\*")
 	boldRe = regexp.MustCompile("\\*\\*([^\\*\n]+)\\*\\*")
 	codeRe = regexp.MustCompile("```.*\n(?s:(.+))\n```")
+	oldCodeRe = regexp.MustCompile("(?:^|\n)    ([^\n]+)")
 }
 
 func ErrServerHandler(w http.ResponseWriter, r *http.Request) {
@@ -140,7 +142,14 @@ func formatComment(comment string) template.HTML {
 
 	comment = template.HTMLEscapeString(comment)
 
-	comment = codeRe.ReplaceAllString(comment, "<pre>$1</pre>")
+	if strings.Contains(comment, "```") {
+		// Newer version -- Markdown style backtick marked code blocks
+		comment = codeRe.ReplaceAllString(comment, "<pre>$1</pre>")
+	} else {
+		// Older version -- SO style 4-space indented code blocks
+		comment = oldCodeRe.ReplaceAllString(comment, "<pre>$1</pre>")
+		comment = strings.Replace(comment, "</pre><pre>", "\n", -1)
+	}
 
 	comment = strings.Replace(comment, "\n\n", "</p><p>", -1)
 	comment = strings.Replace(comment, "\n", "<br>", -1)
