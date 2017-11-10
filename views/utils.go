@@ -47,9 +47,13 @@ type ExtraNote struct {
 }
 
 var linkRe *regexp.Regexp
+var boldRe *regexp.Regexp
+var codeRe *regexp.Regexp
 
 func init() {
-	linkRe = regexp.MustCompile("https?://[A-Za-z0-9\\-]+\\.[A-Za-z0-9\\-\\.]+(\\:[0-9]+)?[a-zA-Z0-9@:%_\\+\\.~#?&/=;\\-]*[a-zA-Z0-9@:%_\\+~#?&/=;\\-]")
+	linkRe = regexp.MustCompile("https?://([A-Za-z0-9\\-]+\\.[A-Za-z0-9\\-\\.]+|localhost)(:[0-9]+)?[a-zA-Z0-9@:%_\\+\\.~#?&/=;\\-]*[a-zA-Z0-9@:%_\\+~#?&/=;\\-]")
+	boldRe = regexp.MustCompile("\\*([^\\*\n]+)\\*")
+	codeRe = regexp.MustCompile("\\s\\s\\s\\s([^\\n]+)")
 }
 
 func ErrServerHandler(w http.ResponseWriter, r *http.Request) {
@@ -131,33 +135,16 @@ func validateName(name string) error {
 
 func formatComment(comment string) template.HTML {
 	comment = strings.Replace(comment, "\r", "", -1)
-	formatted := "<p>"
-	preClosed := true
-	for _, para := range strings.Split(comment, "\n") {
-		if para == "" {
-			if !preClosed {
-				formatted = formatted + "</pre>"
-			}
-			formatted = formatted + "</p><p>"
-		} else {
-			if len(para) > 4 && para[:4] == "    " {
-				if preClosed {
-					formatted = formatted + "<pre>"
-					preClosed = false
-				}
-				formatted = formatted + template.HTMLEscapeString(para[4:]) + "\n"
-			} else {
-				escapedPara := template.HTMLEscapeString(para)
-				linkedPara := linkRe.ReplaceAllString(escapedPara, "<a href=\"$0\">$0</a>")
-				formatted = formatted + linkedPara + " "
-			}
-		}
-	}
-	if !preClosed {
-		formatted = formatted + "</pre>"
-	}
-	formatted = formatted + "</p>"
+	comment = template.HTMLEscapeString(comment)
+	log.Printf("Raw:\n%s\n", comment)
+	comment = codeRe.ReplaceAllString(comment, "<pre>$1</pre>")
+	log.Printf("Pre:\n%s\n", comment)
+	comment = strings.Replace(comment, "\n\n", "</p><p>", -1)
+	comment = strings.Replace(comment, "\n", "<br>", -1)
+	comment = boldRe.ReplaceAllString(comment, "<b>$1</b>")
+	comment = linkRe.ReplaceAllString(comment, "<a href=\"$0\">$0</a>")
 
+	formatted := "<p>\n" + comment + "\n</p>"
 	return template.HTML(formatted)
 }
 
