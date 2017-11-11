@@ -50,6 +50,11 @@ var TopicIndexHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Ses
 	var lastPos int
 	db.QueryRow(`SELECT pos FROM comments WHERE topicid=? ORDER BY pos DESC LIMIT 1;`, topicID).Scan(&lastPos)
 	isLastPage := (lastPos < (page+1)*numCommentsPerPage)
+	isFirstPage := (page == 0)
+	numPages := 0
+	if lastPos > 0 {
+		numPages = lastPos / numCommentsPerPage
+	}
 
 	type Comment struct {
 		ID string
@@ -106,8 +111,11 @@ var TopicIndexHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Ses
 		"IsSuperAdmin": isSuperAdmin,
 		"IsImageUploadEnabled": models.Config(models.ImageUploadEnabled) != "0",
 		"Comments": comments,
+		"IsFirstPage": isFirstPage,
 		"IsLastPage": isLastPage,
 		"NextPage": page+1,
+		"CurrentPage": page,
+		"Pages": make([]int, numPages),
 	})
 })
 

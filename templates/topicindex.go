@@ -58,9 +58,22 @@ const topicindexSrc = `
 {{ end }}
 <div id="comment-last"></div>
 
+{{ if .Pages }}
+	<div style="float: right; max-width: 70%;">
+	Pages:
+	{{ range $i, $e := .Pages }}
+		{{ if eq $i $.CurrentPage }}
+		{{ $i }}
+		{{ else }}
+		<a href="/topics?id={{ $.TopicID }}&p={{ $i }}">{{ $i }}</a>
+		{{ end }}
+	{{ end }}
+	</div>
+{{ end }}
+
 {{ if not .IsLastPage }}
-<div class="row">
-	<div><a href="/topics?id={{ .TopicID }}&p={{ .NextPage }}">More</a></div>
+<div>
+	<div><a href="/topics?id={{ .TopicID }}&p={{ .NextPage }}">Next Page</a></div>
 </div>
 {{ end }}
 
