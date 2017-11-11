@@ -58,7 +58,7 @@ const topicindexSrc = `
 {{ end }}
 <div id="comment-last"></div>
 
-{{ if .Pages }}
+{{ if gt .NumPages 1 }}
 	<div style="float: right; max-width: 70%;">
 	Pages:
 	{{ range $i, $e := .Pages }}
