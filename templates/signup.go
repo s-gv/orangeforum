@@ -27,10 +27,12 @@ const signupSrc = `
 		<th><label for="email">Email (optional):</label></th>
 		<td><input type="text" name="email" id="email"></td>
 	</tr>
+{{ if not .Common.IsSuperAdmin }}
 	<tr>
 		<th></th>
 		<td>Already have an account? <a href="/login?next={{ .next }}">Login</a></td>
 	</tr>
+{{ end }}
 {{ if .Common.Msg }}
 	<tr>
 		<th></th>

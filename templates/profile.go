@@ -17,11 +17,11 @@ const profileSrc = `
 		<td>{{ .UserName }}</td>
 	</tr>
 	<tr>
-		<th>About{{ if .IsSelf }} (public):{{ end }}</th>
-		<td>{{ if .IsSelf }}<textarea name="about" rows="6">{{ .About }}</textarea>{{ else }}{{ .About }}{{ end }}
+		<th>About{{ if or .IsSelf .Common.IsSuperAdmin }} (public){{ end }}:</th>
+		<td>{{ if or .IsSelf .Common.IsSuperAdmin }}<textarea name="about" rows="6">{{ .About }}</textarea>{{ else }}{{ .About }}{{ end }}
 		</td>
 	</tr>
-{{ if .IsSelf }}
+{{ if or .IsSelf .Common.IsSuperAdmin }}
 	<tr>
 		<th><label for="email">Email (private):</label></th>
 		<td><input type="email" name="email" id="email" value={{ .Email }}></td>
@@ -38,22 +38,34 @@ const profileSrc = `
 	</tr>
 {{ end }}
 	<tr>
-		<th><a href="/users/topics?u={{ .UserName }}">topics</a>{{ if .IsSelf }} (public){{ end }}</th>
+		<th><a href="/users/topics?u={{ .UserName }}">topics</a>{{ if or .IsSelf .Common.IsSuperAdmin }} (public){{ end }}</th>
 		<td></td>
 	</tr>
 	<tr>
-		<th><a href="/users/comments?u={{ .UserName }}">comments</a>{{ if .IsSelf }} (public){{ end }}</th>
+		<th><a href="/users/comments?u={{ .UserName }}">comments</a>{{ if or .IsSelf .Common.IsSuperAdmin }} (public){{ end }}</th>
 		<td></td>
 	</tr>
+{{ if or .IsSelf .Common.IsSuperAdmin }}
+	<tr>
+		<th><a href="/users/groups">groups</a>{{ if or .IsSelf .Common.IsSuperAdmin }} (private){{ end }}</th>
+		<td></td>
+	</tr>
+	<tr>
+		<th><a href="/changepass?u={{ .UserName }}">change password</a></th>
+		<td></td>
+	</tr>
+{{ end }}
+{{ if and .IsSelf .Common.IsSuperAdmin }}
+	<tr>
+		<th><a href="/admin">admin section</a></th>
+		<td></td>
+	</tr>
+	<tr>
+		<th><a href="/signup">sign-up new user</a>
+		<td></td>
+	</tr>
+{{ end }}
 {{ if .IsSelf }}
-	<tr>
-		<th><a href="/users/groups">groups</a>{{ if .IsSelf }} (private){{ end }}</th>
-		<td></td>
-	</tr>
-	<tr>
-		<th><a href="/changepass">change password</a></th>
-		<td></td>
-	</tr>
 	<tr>
 		<th><a href="/logout">logout</a></th>
 		<td></td>
@@ -72,12 +84,6 @@ const profileSrc = `
 		</td>
 	</tr>
 {{ end }}
-{{ end }}
-{{ if and .IsSelf .Common.IsSuperAdmin }}
-	<tr>
-		<th><a href="/admin">admin</a> (private)</th>
-		<td></td>
-	</tr>
 {{ end }}
 </table>
 </form>

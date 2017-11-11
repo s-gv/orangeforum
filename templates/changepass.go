@@ -9,11 +9,18 @@ const changepassSrc = `
 
 <form action="/changepass" method="POST">
 <input type="hidden" name="csrf" value="{{ .Common.CSRF }}">
+<input type="hidden" name="u" value="{{ .UserName }}">
 <table class="form">
+	<tr>
+		<th><label for="username">User:</label></th>
+		<td>{{ .UserName }}</td>
+	</tr>
+{{ if not .Common.IsSuperAdmin }}
 	<tr>
 		<th><label for="passwd">Current password:</label></th>
 		<td><input type="password" name="passwd" id="passwd" required></td>
 	</tr>
+{{ end }}
 	<tr>
 		<th><label for="newpass">New password:</label></th>
 		<td><input type="password" name="newpass" id="newpass" required></td>

@@ -61,7 +61,7 @@ var SignupHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Session
 	if redirectURL == "" || err != nil {
 		redirectURL = "/"
 	}
-	if sess.IsUserValid() {
+	if sess.IsUserValid() && !sess.IsUserSuperAdmin() {
 		http.Redirect(w, r, redirectURL, http.StatusSeeOther)
 		return
 	}
@@ -103,6 +103,11 @@ var SignupHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Session
 			return
 		}
 		models.CreateUser(userName, passwd, email)
+		if sess.IsUserSuperAdmin() {
+			sess.SetFlashMsg("User "+userName+" created")
+			http.Redirect(w, r, "/signup", http.StatusSeeOther)
+			return
+		}
 		sess.Authenticate(userName, passwd)
 		http.Redirect(w, r, redirectURL, http.StatusSeeOther)
 	}
@@ -114,34 +119,47 @@ var SignupHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Session
 
 
 var ChangePasswdHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Session) {
-	userName, err := sess.UserName()
-	if err != nil {
-		http.Redirect(w, r, "/", http.StatusSeeOther)
+	userName := r.FormValue("u")
+	commonData := readCommonData(r, sess)
+	if !sess.IsUserValid() {
+		ErrForbiddenHandler(w, r)
+		return
+	}
+	if userName != commonData.UserName && !commonData.IsSuperAdmin {
+		ErrForbiddenHandler(w, r)
 		return
 	}
 	if r.Method == "POST" {
-		passwd := r.PostFormValue("passwd")
+		if !commonData.IsSuperAdmin {
+			passwd := r.PostFormValue("passwd")
+			if sess.Authenticate(userName, passwd) != nil {
+				sess.SetFlashMsg("Current password incorrect.")
+				http.Redirect(w, r, "/changepass?u="+userName, http.StatusSeeOther)
+				return
+			}
+		}
 		newPasswd := r.PostFormValue("newpass")
 		newPasswdConfirm := r.PostFormValue("confirm")
-		if sess.Authenticate(userName, passwd) != nil {
-			sess.SetFlashMsg("Current password incorrect.")
-			http.Redirect(w, r, "/changepass", http.StatusSeeOther)
-			return
-		}
 		if err := validatePasswd(newPasswd, newPasswdConfirm); err != nil {
 			sess.SetFlashMsg(err.Error())
-			http.Redirect(w, r, "/changepass", http.StatusSeeOther)
+			http.Redirect(w, r, "/changepass?u="+userName, http.StatusSeeOther)
 			return
 		}
 		if err := models.UpdateUserPasswd(userName, newPasswd); err != nil {
 			log.Panicf("[ERROR] Error changing password: %s\n", err)
 		}
+		if commonData.IsSuperAdmin {
+			var userID string
+			db.QueryRow(`SELECT id FROM users WHERE username=?;`, userName).Scan(&userID)
+			db.Exec(`DELETE FROM sessions WHERE userid=?;`, userID)
+		}
 		sess.SetFlashMsg("Password change successful.")
-		http.Redirect(w, r, "/changepass", http.StatusSeeOther)
+		http.Redirect(w, r, "/changepass?u="+userName, http.StatusSeeOther)
 		return
 	}
 	templates.Render(w, "changepass.html", map[string]interface{}{
-		"Common": readCommonData(r, sess),
+		"Common": commonData,
+		"UserName": userName,
 	})
 })
 
