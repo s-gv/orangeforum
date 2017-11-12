@@ -33,6 +33,7 @@ var IndexHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Session)
 		groups = append(groups, Group{})
 		g := &groups[len(groups)-1]
 		rows.Scan(&g.Name, &g.Desc, &g.IsSticky)
+		g.Desc = censor(g.Desc)
 	}
 	sort.Slice(groups, func(i, j int) bool {return groups[i].Name < groups[j].Name})
 	sort.Slice(groups, func(i, j int) bool {return groups[i].IsSticky > groups[j].IsSticky})
@@ -53,6 +54,7 @@ var IndexHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Session)
 		var isTopicDeleted, isTopicClosed, isGroupClosed bool
 		trows.Scan(&t.ID, &t.Title, &t.NumComments, &cDate, &isTopicDeleted, &isTopicClosed, &t.GroupName, &isGroupClosed, &t.OwnerName)
 		t.CreatedDate = timeAgoFromNow(time.Unix(cDate, 0))
+		t.Title = censor(t.Title)
 		if !isTopicDeleted && !isTopicClosed && !isGroupClosed {
 			topics = append(topics, t)
 		}
@@ -77,6 +79,7 @@ var AdminIndexHandler = A(func (w http.ResponseWriter, r *http.Request, sess Ses
 	if r.Method == "POST" && linkID == "" {
 		forumName := r.PostFormValue("forum_name")
 		headerMsg := r.PostFormValue("header_msg")
+		censoredWords := r.PostFormValue("censored_words")
 		loginMsg := r.PostFormValue("login_msg")
 		signupMsg := r.PostFormValue("signup_msg")
 		signupDisabled := "0"
@@ -123,6 +126,7 @@ var AdminIndexHandler = A(func (w http.ResponseWriter, r *http.Request, sess Ses
 			models.WriteConfig(models.LoginMsg, loginMsg)
 			models.WriteConfig(models.SignupMsg, signupMsg)
 			models.WriteConfig(models.SignupDisabled, signupDisabled)
+			models.WriteConfig(models.CensoredWords, censoredWords)
 			models.WriteConfig(models.GroupCreationDisabled, groupCreationDisabled)
 			models.WriteConfig(models.ImageUploadEnabled, imageUploadEnabled)
 			models.WriteConfig(models.AllowGroupSubscription, allowGroupSubscription)

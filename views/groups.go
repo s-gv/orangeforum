@@ -55,6 +55,7 @@ var GroupIndexHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Ses
 		t := Topic{}
 		rows.Scan(&t.ID, &t.Title, &t.IsDeleted, &t.IsClosed, &t.NumComments, &t.cDateUnix, &t.Owner)
 		t.CreatedDate = timeAgoFromNow(time.Unix(t.cDateUnix, 0))
+		t.Title = censor(t.Title)
 		topics = append(topics, t)
 	}
 
@@ -80,9 +81,9 @@ var GroupIndexHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Ses
 	templates.Render(w, "groupindex.html", map[string]interface{}{
 		"Common": commonData,
 		"GroupName": name,
-		"GroupDesc": groupDesc,
+		"GroupDesc": censor(groupDesc),
 		"GroupID": groupID,
-		"HeaderMsg": headerMsg,
+		"HeaderMsg": censor(headerMsg),
 		"SubToken": subToken,
 		"Topics": topics,
 		"IsMod": isMod,
@@ -135,6 +136,11 @@ var GroupEditHandler = A(func(w http.ResponseWriter, r *http.Request, sess Sessi
 				http.Redirect(w, r, "/groups/edit", http.StatusSeeOther)
 				return
 			}
+			if censored := censor(name); censored != name {
+				sess.SetFlashMsg("Fix group name: " + censored)
+				http.Redirect(w, r, "/groups/edit", http.StatusSeeOther)
+				return
+			}
 			if len(desc) > 160 {
 				sess.SetFlashMsg("Group description should have less than 160 characters.")
 				http.Redirect(w, r, "/groups/edit", http.StatusSeeOther)
@@ -171,6 +177,11 @@ var GroupEditHandler = A(func(w http.ResponseWriter, r *http.Request, sess Sessi
 		} else if action == "Update" {
 			if len(name) < 3 || len(name) > 40 {
 				sess.SetFlashMsg("Group name should have 3-40 characters.")
+				http.Redirect(w, r, "/groups/edit?id="+groupID, http.StatusSeeOther)
+				return
+			}
+			if censored := censor(name); censored != name {
+				sess.SetFlashMsg("Fix group name: " + censored)
 				http.Redirect(w, r, "/groups/edit?id="+groupID, http.StatusSeeOther)
 				return
 			}

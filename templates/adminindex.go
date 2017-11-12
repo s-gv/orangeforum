@@ -29,6 +29,10 @@ const adminindexSrc = `
 		<td><input type="text" name="signup_msg" id="signup_msg" value="{{ index .Config "signup_msg" }}"></td>
 	</tr>
 	<tr>
+		<th><label for="censored_words"><div class="col-label">Censored words:</label></th>
+		<td><textarea name="censored_words" id="censored_words" rows="4" placeholder="shit, bitch, poop">{{ index .Config "censored_words" }}</textarea></td>
+	</tr>
+	<tr>
 		<th><label for="body_appendage"><div class="col-label">Body Appendage:</label></th>
 		<td><textarea name="body_appendage" id="body_appendage" rows="4" placeholder="<script>Analytics or something</script>">{{ index .Config "body_appendage" }}</textarea></td>
 	</tr>

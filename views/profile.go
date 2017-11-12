@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"time"
 	"github.com/s-gv/orangeforum/templates"
+	"html/template"
 )
 
 var UserProfileHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Session) {
@@ -95,7 +96,7 @@ var UserCommentsHandler = UA(func(w http.ResponseWriter, r *http.Request, sess S
 
 	type Comment struct {
 		ID string
-		Content string
+		Content template.HTML
 		TopicID string
 		TopicName string
 		CreatedDate string
@@ -118,8 +119,10 @@ var UserCommentsHandler = UA(func(w http.ResponseWriter, r *http.Request, sess S
 		comments = append(comments, Comment{})
 		c := &comments[len(comments)-1]
 
-		rows.Scan(&c.TopicName, &c.TopicID, &c.ID, &c.Content, &c.ImgSrc, &cDate, &c.IsDeleted)
+		var content string
+		rows.Scan(&c.TopicName, &c.TopicID, &c.ID, &content, &c.ImgSrc, &cDate, &c.IsDeleted)
 		c.CreatedDate = timeAgoFromNow(time.Unix(cDate, 0))
+		c.Content = formatComment(content)
 	}
 
 	if len(comments) >= commentsPerPage {
@@ -169,6 +172,7 @@ var UserTopicsHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Ses
 		t := &topics[len(topics)-1]
 		rows.Scan(&t.ID, &t.Title, &t.IsDeleted, &t.IsClosed, &cDate)
 		t.CreatedDate = timeAgoFromNow(time.Unix(cDate, 0))
+		t.Title = censor(t.Title)
 	}
 
 	if len(topics) >= numTopicsPerPage {

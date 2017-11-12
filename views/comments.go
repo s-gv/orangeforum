@@ -14,7 +14,6 @@ import (
 	"github.com/s-gv/orangeforum/utils"
 	"strconv"
 	"strings"
-	"log"
 )
 
 var CommentIndexHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Session) {
@@ -99,9 +98,7 @@ var CommentCreateHandler = A(func(w http.ResponseWriter, r *http.Request, sess S
 		if quoteContent[0] == '\n' {
 			quoteContent = quoteContent[1:]
 		}
-		log.Printf("before:\n%s", quoteContent)
 		quoteContent = quoteRe.ReplaceAllString(quoteContent, "$1> $2")
-		log.Printf("after:\n%s", quoteContent)
 		quoteContent = "```\n" + quotedUser + " wrote:\n" + quoteContent + "\n```\n"
 	}
 

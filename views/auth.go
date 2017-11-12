@@ -79,6 +79,11 @@ var SignupHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Session
 			http.Redirect(w, r, "/signup", http.StatusSeeOther)
 			return
 		}
+		if censored := censor(userName); censored != userName {
+			sess.SetFlashMsg("Fix username: " + censored)
+			http.Redirect(w, r, "/signup", http.StatusSeeOther)
+			return
+		}
 		hasSpecial := false
 		for _, ch := range userName {
 			if (ch < 'A' || ch > 'Z') && (ch < 'a' || ch > 'z') && ch != '_' && (ch < '0' || ch > '9') {

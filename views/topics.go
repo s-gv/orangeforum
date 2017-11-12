@@ -100,7 +100,7 @@ var TopicIndexHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Ses
 		"GroupID": groupID,
 		"TopicID": topicID,
 		"GroupName": groupName,
-		"TopicName": title,
+		"TopicName": censor(title),
 		"OwnerName": ownerName,
 		"CreatedDate": timeAgoFromNow(time.Unix(createdDate, 0)),
 		"SubToken": subToken,

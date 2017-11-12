@@ -53,6 +53,9 @@ var boldRe *regexp.Regexp
 var codeRe *regexp.Regexp
 var oldCodeRe *regexp.Regexp
 var quoteRe *regexp.Regexp
+var censorRe *regexp.Regexp
+
+var censored string
 
 func init() {
 	linkRe = regexp.MustCompile("https?://([A-Za-z0-9\\-]+\\.[A-Za-z0-9\\-\\.]+|localhost)(:[0-9]+)?[a-zA-Z0-9@:%_\\+\\.~#?&/=;\\-]*[a-zA-Z0-9@:%_\\+~#?&/=;\\-]")
@@ -163,7 +166,32 @@ func formatComment(comment string) template.HTML {
 	comment = linkRe.ReplaceAllString(comment, "<a href=\"$0\">$0</a>")
 
 	formatted := "<p>" + comment + "</p>"
-	return template.HTML(formatted)
+	return template.HTML(censor(formatted))
+}
+
+func censor(content string) string {
+	cWords := models.Config(models.CensoredWords)
+	if cWords != censored {
+		censored = cWords
+		cWordList := strings.Split(censored, ",")
+		if len(cWordList) > 0 {
+			r := "(?i:"
+			for i, w := range cWordList {
+				r = r + strings.TrimSpace(w)
+				if i < len(cWordList)-1 {
+					r = r + "|"
+				}
+			}
+			r = r + ")"
+			censorRe = regexp.MustCompile(r)
+		} else {
+			censorRe = nil
+		}
+	}
+	if censorRe != nil {
+		return censorRe.ReplaceAllString(content, "****")
+	}
+	return content
 }
 
 func saveImage(r *http.Request) string {

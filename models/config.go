@@ -11,6 +11,7 @@ const (
 	HeaderMsg string = "header_msg"
 	LoginMsg string = "login_msg"
 	SignupMsg string = "signup_msg"
+	CensoredWords string = "censored_words"
 	SignupDisabled string = "signup_disabled"
 	GroupCreationDisabled string = "group_creation_disabled"
 	ImageUploadEnabled string = "image_upload_enabled"
@@ -54,27 +55,31 @@ func Config(key string) string {
 	if key == LoginMsg {
 		return ""
 	}
+	if key == CensoredWords {
+		return ""
+	}
 	return "0"
 }
 
 func ConfigAllVals() map[string]interface{} {
 	vals := map[string]interface{}{
-		"forum_name": Config(ForumName),
-		"header_msg": Config(HeaderMsg),
-		"login_msg": Config(LoginMsg),
-		"signup_msg": Config(SignupMsg),
-		"signup_disabled": Config(SignupDisabled) == "1",
-		"group_creation_disabled": Config(GroupCreationDisabled) == "1",
-		"image_upload_enabled": Config(ImageUploadEnabled) == "1",
-		"allow_group_subscription": Config(AllowGroupSubscription) == "1",
-		"allow_topic_subscription": Config(AllowTopicSubscription) == "1",
-		"data_dir": Config(DataDir),
-		"body_appendage": Config(BodyAppendage),
-		"default_from_mail": Config(DefaultFromMail),
-		"smtp_host": Config(SMTPHost),
-		"smtp_port": Config(SMTPPort),
-		"smtp_user": Config(SMTPUser),
-		"smtp_pass": Config(SMTPPass),
+		ForumName: Config(ForumName),
+		HeaderMsg: Config(HeaderMsg),
+		LoginMsg: Config(LoginMsg),
+		SignupMsg: Config(SignupMsg),
+		CensoredWords: Config(CensoredWords),
+		SignupDisabled: Config(SignupDisabled) == "1",
+		GroupCreationDisabled: Config(GroupCreationDisabled) == "1",
+		ImageUploadEnabled: Config(ImageUploadEnabled) == "1",
+		AllowGroupSubscription: Config(AllowGroupSubscription) == "1",
+		AllowTopicSubscription: Config(AllowTopicSubscription) == "1",
+		DataDir: Config(DataDir),
+		BodyAppendage: Config(BodyAppendage),
+		DefaultFromMail: Config(DefaultFromMail),
+		SMTPHost: Config(SMTPHost),
+		SMTPPort: Config(SMTPPort),
+		SMTPUser: Config(SMTPUser),
+		SMTPPass: Config(SMTPPass),
 	}
 	return vals
 }
