@@ -15,7 +15,7 @@ import (
 	"html/template"
 )
 
-var numCommentsPerPage = 100
+var numCommentsPerPage = 50
 
 var TopicIndexHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Session) {
 	topicID := r.FormValue("id")
