@@ -13,6 +13,8 @@ import (
 	"database/sql"
 	"github.com/s-gv/orangeforum/utils"
 	"strconv"
+	"strings"
+	"log"
 )
 
 var CommentIndexHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Session) {
@@ -60,6 +62,7 @@ var CommentIndexHandler = UA(func(w http.ResponseWriter, r *http.Request, sess S
 
 var CommentCreateHandler = A(func(w http.ResponseWriter, r *http.Request, sess Session) {
 	topicID := r.FormValue("tid")
+	quoteID := r.FormValue("quote")
 	content := r.PostFormValue("content")
 	isSticky := r.PostFormValue("is_sticky") != ""
 	isImageUploadEnabled := models.Config(models.ImageUploadEnabled) != "0"
@@ -85,7 +88,22 @@ var CommentCreateHandler = A(func(w http.ResponseWriter, r *http.Request, sess S
 	isMod := db.QueryRow(`SELECT id FROM mods WHERE groupid=? AND userid=?;`, groupID, sess.UserID).Scan(&tmp) == nil
 	isAdmin := db.QueryRow(`SELECT id FROM admins WHERE groupid=? AND userid=?;`, groupID, sess.UserID).Scan(&tmp) == nil
 	isSuperAdmin := false
-	db.QueryRow(`SELECT is_superadmin FROM users WHERE id=?`, sess.UserID).Scan(&isSuperAdmin)
+	db.QueryRow(`SELECT is_superadmin FROM users WHERE id=?;`, sess.UserID).Scan(&isSuperAdmin)
+
+	quoteContent := ""
+	if quoteID != "" {
+		var quotedUser string
+		db.QueryRow(`SELECT comments.content, users.username FROM comments INNER JOIN users ON comments.userid=users.id WHERE comments.id=?;`, quoteID).Scan(&quoteContent, &quotedUser)
+		quoteContent = strings.Replace(quoteContent, "\r", "", -1)
+		quoteContent = codeRe.ReplaceAllString(quoteContent, "\n$1\n")
+		if quoteContent[0] == '\n' {
+			quoteContent = quoteContent[1:]
+		}
+		log.Printf("before:\n%s", quoteContent)
+		quoteContent = quoteRe.ReplaceAllString(quoteContent, "$1> $2")
+		log.Printf("after:\n%s", quoteContent)
+		quoteContent = "```\n" + quotedUser + " wrote:\n" + quoteContent + "\n```\n"
+	}
 
 	if r.Method == "POST" {
 		if !isMod && !isAdmin && !isSuperAdmin {
@@ -144,7 +162,7 @@ var CommentCreateHandler = A(func(w http.ResponseWriter, r *http.Request, sess S
 		"TopicName": topicName,
 		"GroupName": groupName,
 		"ParentComment": parentComment,
-		"Content": "",
+		"Content": quoteContent,
 		"IsSticky": false,
 		"IsMod": isMod,
 		"IsAdmin": isAdmin,

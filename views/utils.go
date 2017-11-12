@@ -52,6 +52,7 @@ var italicRe *regexp.Regexp
 var boldRe *regexp.Regexp
 var codeRe *regexp.Regexp
 var oldCodeRe *regexp.Regexp
+var quoteRe *regexp.Regexp
 
 func init() {
 	linkRe = regexp.MustCompile("https?://([A-Za-z0-9\\-]+\\.[A-Za-z0-9\\-\\.]+|localhost)(:[0-9]+)?[a-zA-Z0-9@:%_\\+\\.~#?&/=;\\-]*[a-zA-Z0-9@:%_\\+~#?&/=;\\-]")
@@ -59,6 +60,7 @@ func init() {
 	boldRe = regexp.MustCompile("\\*\\*([^\\*\n]+)\\*\\*")
 	codeRe = regexp.MustCompile("(?:^|\n)```.*\n(?s:(.+))\n```(?:$|\n)")
 	oldCodeRe = regexp.MustCompile("(?:^|\n)    ([^\n]+)")
+	quoteRe = regexp.MustCompile("((?:^|\n)>*)[ ]*(\\S[^\n]*)")
 }
 
 func ErrServerHandler(w http.ResponseWriter, r *http.Request) {
