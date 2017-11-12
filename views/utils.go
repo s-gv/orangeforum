@@ -30,6 +30,7 @@ type CommonData struct {
 	UserName string
 	IsSuperAdmin bool
 	ForumName string
+	PageTitle string
 	CurrentURL template.URL
 	BodyAppendage string
 	IsGroupSubAllowed bool

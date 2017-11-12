@@ -92,8 +92,11 @@ var TopicIndexHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Ses
 	db.QueryRow(`SELECT is_superadmin FROM users WHERE id=?`, sess.UserID).Scan(&isSuperAdmin)
 	isOwner := sess.UserID.Valid && ownerID == sess.UserID.Int64
 
+	commonData := readCommonData(r, sess)
+	commonData.PageTitle = title
+
 	templates.Render(w, "topicindex.html", map[string]interface{}{
-		"Common": readCommonData(r, sess),
+		"Common": commonData,
 		"GroupID": groupID,
 		"TopicID": topicID,
 		"GroupName": groupName,

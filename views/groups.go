@@ -74,8 +74,11 @@ var GroupIndexHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Ses
 		lastTopicDate = 0
 	}
 
+	commonData := readCommonData(r, sess)
+	commonData.PageTitle = name
+
 	templates.Render(w, "groupindex.html", map[string]interface{}{
-		"Common": readCommonData(r, sess),
+		"Common": commonData,
 		"GroupName": name,
 		"GroupDesc": groupDesc,
 		"GroupID": groupID,
