@@ -11,6 +11,13 @@ const signupSrc = `
 <input type="hidden" name="csrf" value="{{ .Common.CSRF }}">
 <input type="hidden" name="next" value="{{ .next }}">
 <table class="form">
+{{ if .SignupMsg }}
+	<tr>
+		<th></th>
+		<td>{{ .SignupMsg }}</td>
+	</tr>
+{{ end }}
+{{ if not .IsDisabled }}
 	<tr>
 		<th><label for="username">Username:</label></th>
 		<td><input type="text" name="username" id="username" required></td>
@@ -27,22 +34,28 @@ const signupSrc = `
 		<th><label for="email">Email (optional):</label></th>
 		<td><input type="text" name="email" id="email"></td>
 	</tr>
-{{ if not .Common.IsSuperAdmin }}
+	{{ if not .Common.IsSuperAdmin }}
 	<tr>
 		<th></th>
 		<td>Already have an account? <a href="/login?next={{ .next }}">Login</a></td>
 	</tr>
-{{ end }}
-{{ if .Common.Msg }}
+	{{ end }}
+	{{ if .Common.Msg }}
 	<tr>
 		<th></th>
 		<td><span class="alert">{{ .Common.Msg }}</span></td>
 	</tr>
-{{ end }}
+	{{ end }}
 	<tr>
 		<th></th>
 		<td><input type="submit" value="Signup"></td>
 	</tr>
+{{ else }}
+	<tr>
+		<th></th>
+		<td>New user sign-up disabled.</td>
+	</tr>
+{{ end }}
 </table>
 </form>
 

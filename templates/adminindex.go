@@ -21,6 +21,14 @@ const adminindexSrc = `
 		<td><input type="text" name="header_msg" id="header_msg" value="{{ index .Config "header_msg" }}"></td>
 	</tr>
 	<tr>
+		<th><label for="login_msg">Login message:</label></th>
+		<td><input type="text" name="login_msg" id="login_msg" value="{{ index .Config "login_msg" }}"></td>
+	</tr>
+	<tr>
+		<th><label for="signup_msg">Signup message:</label></th>
+		<td><input type="text" name="signup_msg" id="signup_msg" value="{{ index .Config "signup_msg" }}"></td>
+	</tr>
+	<tr>
 		<th><label for="body_appendage"><div class="col-label">Body Appendage:</label></th>
 		<td><textarea name="body_appendage" id="body_appendage" rows="4" placeholder="<script>Analytics or something</script>">{{ index .Config "body_appendage" }}</textarea></td>
 	</tr>
@@ -68,6 +76,12 @@ const adminindexSrc = `
 		<th><label for="allow_topic_subscription">Allow e-mail subscriptions to topics:</label></th>
 		<td><input type="checkbox" name="allow_topic_subscription" id="allow_topic_subscription" value="1"{{ if index .Config "allow_topic_subscription" }} checked{{ end }}></td>
 	</tr>
+	{{ if .Common.Msg }}
+	<tr>
+		<th></th>
+		<td><span class="alert">{{ .Common.Msg }}</span></td>
+	</tr>
+	{{ end }}
 	<tr>
 		<th></th>
 		<td><input type="submit" value="Update"></td>
@@ -147,7 +161,5 @@ const adminindexSrc = `
 		<td>{{ .NumComments }}</td>
 	</tr>
 </table>
-
-<p>{{ .Common.Msg }}</p>
 
 {{ end }}`

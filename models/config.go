@@ -9,6 +9,8 @@ import "github.com/s-gv/orangeforum/models/db"
 const (
 	ForumName string = "forum_name"
 	HeaderMsg string = "header_msg"
+	LoginMsg string = "login_msg"
+	SignupMsg string = "signup_msg"
 	SignupDisabled string = "signup_disabled"
 	GroupCreationDisabled string = "group_creation_disabled"
 	ImageUploadEnabled string = "image_upload_enabled"
@@ -46,6 +48,12 @@ func Config(key string) string {
 	if err := row.Scan(&val); err == nil {
 		return val
 	}
+	if key == SignupMsg {
+		return ""
+	}
+	if key == LoginMsg {
+		return ""
+	}
 	return "0"
 }
 
@@ -53,6 +61,8 @@ func ConfigAllVals() map[string]interface{} {
 	vals := map[string]interface{}{
 		"forum_name": Config(ForumName),
 		"header_msg": Config(HeaderMsg),
+		"login_msg": Config(LoginMsg),
+		"signup_msg": Config(SignupMsg),
 		"signup_disabled": Config(SignupDisabled) == "1",
 		"group_creation_disabled": Config(GroupCreationDisabled) == "1",
 		"image_upload_enabled": Config(ImageUploadEnabled) == "1",

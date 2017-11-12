@@ -47,6 +47,7 @@ var LoginHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Session)
 	templates.Render(w, "login.html", map[string]interface{}{
 		"Common": readCommonData(r, sess),
 		"next": template.URL(url.QueryEscape(redirectURL)),
+		"LoginMsg": models.Config(models.LoginMsg),
 	})
 })
 
@@ -65,6 +66,8 @@ var SignupHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Session
 		http.Redirect(w, r, redirectURL, http.StatusSeeOther)
 		return
 	}
+
+	isSignupDisabled := models.Config(models.SignupDisabled) != "0"
 
 	if r.Method == "POST" {
 		userName := r.PostFormValue("username")
@@ -102,6 +105,10 @@ var SignupHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Session
 			http.Redirect(w, r, "/signup", http.StatusSeeOther)
 			return
 		}
+		if isSignupDisabled && !sess.IsUserSuperAdmin() {
+			ErrForbiddenHandler(w, r)
+			return
+		}
 		models.CreateUser(userName, passwd, email)
 		if sess.IsUserSuperAdmin() {
 			sess.SetFlashMsg("User "+userName+" created")
@@ -112,8 +119,10 @@ var SignupHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Session
 		http.Redirect(w, r, redirectURL, http.StatusSeeOther)
 	}
 	templates.Render(w, "signup.html", map[string]interface{}{
-		"Common": readCommonData(r, sess),
-		"next": template.URL(url.QueryEscape(redirectURL)),
+		"Common":     readCommonData(r, sess),
+		"next":       template.URL(url.QueryEscape(redirectURL)),
+		"IsDisabled": isSignupDisabled && !sess.IsUserSuperAdmin(),
+		"SignupMsg": models.Config(models.SignupMsg),
 	})
 })
 

@@ -77,6 +77,8 @@ var AdminIndexHandler = A(func (w http.ResponseWriter, r *http.Request, sess Ses
 	if r.Method == "POST" && linkID == "" {
 		forumName := r.PostFormValue("forum_name")
 		headerMsg := r.PostFormValue("header_msg")
+		loginMsg := r.PostFormValue("login_msg")
+		signupMsg := r.PostFormValue("signup_msg")
 		signupDisabled := "0"
 		groupCreationDisabled := "0"
 		imageUploadEnabled := "0"
@@ -118,6 +120,8 @@ var AdminIndexHandler = A(func (w http.ResponseWriter, r *http.Request, sess Ses
 		if errMsg == "" {
 			models.WriteConfig(models.ForumName, forumName)
 			models.WriteConfig(models.HeaderMsg, headerMsg)
+			models.WriteConfig(models.LoginMsg, loginMsg)
+			models.WriteConfig(models.SignupMsg, signupMsg)
 			models.WriteConfig(models.SignupDisabled, signupDisabled)
 			models.WriteConfig(models.GroupCreationDisabled, groupCreationDisabled)
 			models.WriteConfig(models.ImageUploadEnabled, imageUploadEnabled)
@@ -130,6 +134,7 @@ var AdminIndexHandler = A(func (w http.ResponseWriter, r *http.Request, sess Ses
 			models.WriteConfig(models.SMTPPort, smtpPort)
 			models.WriteConfig(models.SMTPUser, smtpUser)
 			models.WriteConfig(models.SMTPPass, smtpPass)
+			sess.SetFlashMsg("Update successful.")
 		} else {
 			sess.SetFlashMsg(errMsg)
 		}

@@ -11,6 +11,12 @@ const loginSrc = `
 <input type="hidden" name="csrf" value="{{ .Common.CSRF }}">
 <input type="hidden" name="next" value="{{ .next }}">
 <table class="form">
+{{ if .LoginMsg }}
+	<tr>
+		<th></th>
+		<td>{{ .LoginMsg }}</td>
+	</tr>
+{{ end }}
 	<tr>
 		<th>Username:</th>
 		<td><input type="text" name="username" required></td>
