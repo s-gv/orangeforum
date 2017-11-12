@@ -93,7 +93,7 @@ var TopicIndexHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Ses
 	isOwner := sess.UserID.Valid && ownerID == sess.UserID.Int64
 
 	commonData := readCommonData(r, sess)
-	commonData.PageTitle = title
+	commonData.PageTitle = censor(title)
 
 	templates.Render(w, "topicindex.html", map[string]interface{}{
 		"Common": commonData,
