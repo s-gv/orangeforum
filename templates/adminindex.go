@@ -61,6 +61,10 @@ const adminindexSrc = `
 		<td><input type="text" name="smtp_pass" id="smtp_pass" value="{{ index .Config "smtp_pass" }}"></td>
 	</tr>
 	<tr>
+		<th><label for="read_only">Read-only mode:</label></th>
+		<td><input type="checkbox" name="read_only" id="read_only" value="1"{{ if index .Config "read_only" }} checked{{ end }}></td>
+	</tr>
+	<tr>
 		<th><label for="signup_disabled">Signup disabled:</label></th>
 		<td><input type="checkbox" name="signup_disabled" id="signup_disabled" value="1"{{ if index .Config "signup_disabled" }} checked{{ end }}></td>
 	</tr>

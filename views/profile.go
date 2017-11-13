@@ -23,6 +23,26 @@ var UserProfileHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Se
 		return
 	}
 
+	templates.Render(w, "profile.html", map[string]interface{}{
+		"Common": readCommonData(r, sess),
+		"UserName": userName,
+		"About": about,
+		"Email": email,
+		"IsSelf": sess.UserID.Valid && (userID == sess.UserID.Int64),
+		"IsBanned": isBanned,
+	})
+})
+
+var UserProfileUpdateHandler = A(func(w http.ResponseWriter, r *http.Request, sess Session) {
+	userName := r.FormValue("u")
+	var about, email string
+	var isBanned bool
+	var userID int64
+	if db.QueryRow(`SELECT id, about, email, is_banned FROM users WHERE username=?;`, userName).Scan(&userID, &about, &email, &isBanned) != nil {
+		ErrNotFoundHandler(w, r)
+		return
+	}
+
 	if r.Method == "POST" {
 		if !sess.UserID.Valid {
 			ErrForbiddenHandler(w, r)
@@ -66,18 +86,9 @@ var UserProfileHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Se
 				return
 			}
 		}
-		http.Redirect(w, r, "/users?u="+userName, http.StatusSeeOther)
-		return
 	}
-
-	templates.Render(w, "profile.html", map[string]interface{}{
-		"Common": readCommonData(r, sess),
-		"UserName": userName,
-		"About": about,
-		"Email": email,
-		"IsSelf": sess.UserID.Valid && (userID == sess.UserID.Int64),
-		"IsBanned": isBanned,
-	})
+	sess.SetFlashMsg("Update successful.")
+	http.Redirect(w, r, "/users?u="+userName, http.StatusSeeOther)
 })
 
 var UserCommentsHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Session) {

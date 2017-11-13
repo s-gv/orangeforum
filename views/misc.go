@@ -87,6 +87,7 @@ var AdminIndexHandler = A(func (w http.ResponseWriter, r *http.Request, sess Ses
 		imageUploadEnabled := "0"
 		allowGroupSubscription := "0"
 		allowTopicSubscription := "0"
+		readOnlyMode := "0"
 		dataDir := r.PostFormValue("data_dir")
 		bodyAppendage := r.PostFormValue("body_appendage")
 		defaultFromEmail := r.PostFormValue("default_from_mail")
@@ -108,6 +109,9 @@ var AdminIndexHandler = A(func (w http.ResponseWriter, r *http.Request, sess Ses
 		}
 		if r.PostFormValue("allow_topic_subscription") != "" {
 			allowTopicSubscription = "1"
+		}
+		if r.PostFormValue(models.ReadOnlyMode) != "" {
+			readOnlyMode = "1"
 		}
 		if dataDir != "" {
 			if dataDir[len(dataDir)-1] != '/' {
@@ -131,6 +135,7 @@ var AdminIndexHandler = A(func (w http.ResponseWriter, r *http.Request, sess Ses
 			models.WriteConfig(models.ImageUploadEnabled, imageUploadEnabled)
 			models.WriteConfig(models.AllowGroupSubscription, allowGroupSubscription)
 			models.WriteConfig(models.AllowTopicSubscription, allowTopicSubscription)
+			models.WriteConfig(models.ReadOnlyMode, readOnlyMode)
 			models.WriteConfig(models.DataDir, dataDir)
 			models.WriteConfig(models.BodyAppendage, bodyAppendage)
 			models.WriteConfig(models.DefaultFromMail, defaultFromEmail)

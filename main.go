@@ -156,6 +156,7 @@ func main() {
 	mux.HandleFunc("/resetpass", views.ResetPasswdHandler)
 
 	mux.HandleFunc("/users", views.UserProfileHandler)
+	mux.HandleFunc("/users/update", views.UserProfileUpdateHandler)
 	mux.HandleFunc("/users/comments", views.UserCommentsHandler)
 	mux.HandleFunc("/users/topics", views.UserTopicsHandler)
 	mux.HandleFunc("/users/groups", views.UserGroupsHandler)

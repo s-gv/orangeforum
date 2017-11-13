@@ -110,6 +110,10 @@ func A(handler func(w http.ResponseWriter, r *http.Request, sess Session)) func(
 			http.Redirect(w, r, "/login?next="+url.QueryEscape(redirectURL), http.StatusSeeOther)
 			return
 		}
+		if r.Method == "POST" && models.Config(models.ReadOnlyMode) != "0" && !sess.IsUserSuperAdmin() {
+			http.Error(w, "Forum is in read-only mode.", http.StatusForbidden)
+			return
+		}
 		//log.Printf("[INFO] Request: %s\n", r.URL)
 		handler(w, r, sess)
 	}

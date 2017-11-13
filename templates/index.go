@@ -12,9 +12,10 @@ const indexSrc = `
 	<a class="link-btn" href="/groups/edit">New Group</a>
 	{{ end }}
 </div>
-
+{{ if .HeaderMsg }}
+<p><em>{{ .HeaderMsg }}</em></p>
+{{ end }}
 <h1>Groups</h1>
-<h2>{{ .HeaderMsg }}</h2>
 {{ if .Groups }}
 {{ range .Groups }}
 <div class="topic-row">

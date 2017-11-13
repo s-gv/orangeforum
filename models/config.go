@@ -17,6 +17,7 @@ const (
 	ImageUploadEnabled string = "image_upload_enabled"
 	AllowGroupSubscription string = "allow_group_subscription"
 	AllowTopicSubscription string = "allow_topic_subscription"
+	ReadOnlyMode string = "read_only"
 	DataDir string = "data_dir"
 	BodyAppendage string = "body_appendage"
 	DefaultFromMail string = "default_from_mail"
@@ -73,6 +74,7 @@ func ConfigAllVals() map[string]interface{} {
 		ImageUploadEnabled: Config(ImageUploadEnabled) == "1",
 		AllowGroupSubscription: Config(AllowGroupSubscription) == "1",
 		AllowTopicSubscription: Config(AllowTopicSubscription) == "1",
+		ReadOnlyMode: Config(ReadOnlyMode) == "1",
 		DataDir: Config(DataDir),
 		BodyAppendage: Config(BodyAppendage),
 		DefaultFromMail: Config(DefaultFromMail),

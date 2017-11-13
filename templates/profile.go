@@ -8,7 +8,7 @@ const profileSrc = `
 {{ define "content" }}
 
 
-<form action="/users" method="POST">
+<form action="/users/update" method="POST">
 <input type="hidden" name="csrf" value="{{ .Common.CSRF }}">
 <input type="hidden" name="u" value="{{ .UserName }}">
 <table class="form">
