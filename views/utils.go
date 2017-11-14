@@ -258,6 +258,14 @@ func readCommonData(r *http.Request, sess Session) CommonData {
 			currentURL = currentURL + "?" + r.URL.RawQuery
 		}
 	}
+	/*
+	pmNotification := false
+	if sess.UserID.Valid {
+		var tmp string
+		if err := db.QueryRow(`SELECT id FROM messages WHERE toid=? AND is_read=?`, sess.UserID, false).Scan(&tmp); err == nil {
+			pmNotification = true
+		}
+	}*/
 
 	rows := db.Query(`SELECT id, name FROM extranotes;`)
 	var extraNotes []ExtraNote

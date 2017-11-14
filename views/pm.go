@@ -14,7 +14,7 @@ import (
 	"strconv"
 )
 
-var messagesPerPage = 3
+var messagesPerPage = 50
 
 var PrivateMessageHandler = A(func(w http.ResponseWriter, r *http.Request, sess Session) {
 	startDate := time.Now().Unix()
@@ -59,7 +59,7 @@ var PrivateMessageHandler = A(func(w http.ResponseWriter, r *http.Request, sess 
 		return
 	}
 
-	//db.Exec(`UPDATE messages SET is_read=? WHERE toid=?;`, true, sess.UserID)
+	db.Exec(`UPDATE messages SET is_read=? WHERE toid=?;`, true, sess.UserID)
 
 	templates.Render(w, "pm.html", map[string]interface{}{
 		"Common": readCommonData(r, sess),
@@ -94,7 +94,7 @@ var PrivateMessageCreateHandler = A(func(w http.ResponseWriter, r *http.Request,
 				touserids = append(touserids, userid)
 			} else {
 				sess.SetFlashMsg("Username not found: " + username)
-				http.Redirect(w, r, "/pm", http.StatusSeeOther)
+				http.Redirect(w, r, "/pm#end", http.StatusSeeOther)
 				return
 			}
 		}
@@ -103,7 +103,7 @@ var PrivateMessageCreateHandler = A(func(w http.ResponseWriter, r *http.Request,
 			db.Exec(`INSERT INTO messages(fromid, toid, content, created_date) VALUES(?, ?, ?, ?);`, sess.UserID, userid, content, int(time.Now().Unix()))
 		}
 
-		http.Redirect(w, r, "/pm", http.StatusSeeOther)
+		http.Redirect(w, r, "/pm#end", http.StatusSeeOther)
 		return
 	}
 })

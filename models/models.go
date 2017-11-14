@@ -167,6 +167,7 @@ func Migration1() {
 	// db.Exec(`CREATE INDEX messages_toid_index on messages(toid);`) // Migration 4
 	// db.Exec(`CREATE INDEX messages_fromid_created_index on messages(fromid, created_date DESC);`) // Migration 4
 	// db.Exec(`CREATE INDEX messages_toid_created_index on messages(toid, created_date DESC);`) // Migration 4
+	// db.Exec(`CREATE INDEX messages_toid_isread_index on messages(toid, is_read);`) // Migration 4
 
 }
 
@@ -202,6 +203,7 @@ func Migration4() {
 	db.Exec(`CREATE INDEX messages_toid_index on messages(toid);`)
 	db.Exec(`CREATE INDEX messages_fromid_created_index on messages(fromid, created_date DESC);`)
 	db.Exec(`CREATE INDEX messages_toid_created_index on messages(toid, created_date DESC);`)
+	db.Exec(`CREATE INDEX messages_toid_isread_index on messages(toid, is_read);`)
 }
 
 func Migrate() {
