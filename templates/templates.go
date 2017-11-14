@@ -69,6 +69,9 @@ func init() {
 
 	tmpls["topicindex.html"] = template.Must(template.New("base").Parse(baseSrc))
 	template.Must(tmpls["topicindex.html"].New("topicindex").Parse(topicindexSrc))
+
+	tmpls["pm.html"] = template.Must(template.New("base").Parse(baseSrc))
+	template.Must(tmpls["pm.html"].New("pm").Parse(pmSrc))
 }
 
 func Render(wr io.Writer, template string, data interface{}) {

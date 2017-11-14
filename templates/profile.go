@@ -67,6 +67,10 @@ const profileSrc = `
 {{ end }}
 {{ if .IsSelf }}
 	<tr>
+		<th><a href="/pm">private messages</a></th>
+		<td></td>
+	</tr>
+	<tr>
 		<th><a href="/logout">logout</a></th>
 		<td></td>
 	</tr>

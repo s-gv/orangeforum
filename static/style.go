@@ -208,4 +208,22 @@ textarea {
 a, .muted, h3, .comment p {
 	word-wrap: break-word;
 }
+
+.muted .link-button {
+	border: none;
+  	outline: none;
+  	background: none;
+  	cursor: pointer;
+  	color: grey;
+  	padding: 0;
+  	text-decoration: none;
+  	font-family: inherit;
+  	font-size: inherit;
+}
+.muted .link-button:focus {
+	outline: none;
+}
+.muted .link-button:active {
+	color: grey;
+}
 `

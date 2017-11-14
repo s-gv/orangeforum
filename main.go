@@ -133,6 +133,10 @@ func main() {
 
 	mux.HandleFunc("/admin", views.AdminIndexHandler)
 
+	mux.HandleFunc("/pm", views.PrivateMessageHandler)
+	mux.HandleFunc("/pm/new", views.PrivateMessageCreateHandler)
+	mux.HandleFunc("/pm/delete", views.PrivateMessageDeleteHandler)
+
 	mux.HandleFunc("/groups/edit", views.GroupEditHandler)
 	mux.HandleFunc("/groups/subscribe", views.GroupSubscribeHandler)
 	mux.HandleFunc("/groups/unsubscribe", views.GroupUnsubscribeHandler)

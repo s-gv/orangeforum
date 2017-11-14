@@ -9,7 +9,7 @@ import (
 	"log"
 )
 
-const ModelVersion = 3
+const ModelVersion = 4
 
 func Migration1() {
 	db.Exec(`CREATE TABLE configs(name VARCHAR(250), val TEXT);`)
@@ -153,6 +153,21 @@ func Migration1() {
 	);`)
 	db.Exec(`CREATE INDEX sessions_sessionid_index on sessions(sessionid);`)
 	db.Exec(`CREATE INDEX sessions_userid_index on sessions(userid);`)
+
+	/*
+	db.Exec(`CREATE TABLE messages(
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				content TEXT DEFAULT '',
+				fromid INTEGER REFERENCES users(id) ON DELETE CASCADE,
+				toid INTEGER REFERENCES users(id) ON DELETE CASCADE,
+				is_read INTEGER DEFAULT 0,
+				created_date INTEGER NOT NULL
+	);`) */ // Migration 4
+	// db.Exec(`CREATE INDEX messages_fromid_index on messages(fromid);`) // Migration 4
+	// db.Exec(`CREATE INDEX messages_toid_index on messages(toid);`) // Migration 4
+	// db.Exec(`CREATE INDEX messages_fromid_created_index on messages(fromid, created_date DESC);`) // Migration 4
+	// db.Exec(`CREATE INDEX messages_toid_created_index on messages(toid, created_date DESC);`) // Migration 4
+
 }
 
 func Migration2() {
@@ -172,6 +187,21 @@ func Migration3() {
 	db.Exec(`CREATE INDEX comments_topicid_created_index on comments(topicid, created_date);`)
 	// db.Exec(`ALTER TABLES comments DROP COLUMN is_sticky;`) // Not supported by sqlite3. Ignore column.
 	db.Exec(`DROP INDEX comments_topicid_sticky_created_index;`)
+}
+
+func Migration4() {
+	db.Exec(`CREATE TABLE messages(
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				content TEXT DEFAULT '',
+				fromid INTEGER REFERENCES users(id) ON DELETE CASCADE,
+				toid INTEGER REFERENCES users(id) ON DELETE CASCADE,
+				is_read INTEGER DEFAULT 0,
+				created_date INTEGER NOT NULL
+	);`)
+	db.Exec(`CREATE INDEX messages_fromid_index on messages(fromid);`)
+	db.Exec(`CREATE INDEX messages_toid_index on messages(toid);`)
+	db.Exec(`CREATE INDEX messages_fromid_created_index on messages(fromid, created_date DESC);`)
+	db.Exec(`CREATE INDEX messages_toid_created_index on messages(toid, created_date DESC);`)
 }
 
 func Migrate() {
@@ -208,6 +238,10 @@ func Migrate() {
 			Migration3()
 
 			WriteConfig(Version, "3");
+		} else if dbver == 3 {
+			Migration4()
+
+			WriteConfig(Version, "4")
 		}
 		dbver = db.Version()
 	}

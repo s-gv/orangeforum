@@ -10,7 +10,7 @@ const baseSrc = `<!DOCTYPE html>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<link rel="stylesheet" type="text/css" href="/static/css/orangeforum.css?v=130">
+	<link rel="stylesheet" type="text/css" href="/static/css/orangeforum.css?v=140">
 	<title>
 		{{ if .Common.PageTitle }}
 			{{ .Common.PageTitle }}
@@ -46,7 +46,7 @@ const baseSrc = `<!DOCTYPE html>
 		{{ end }}
 		</div>
 	</div>
-	<script src="/static/js/orangeforum.js?v=130"></script>
+	<script src="/static/js/orangeforum.js?v=140"></script>
 	{{ .Common.BodyAppendage }}
 </body>
 </html>`
