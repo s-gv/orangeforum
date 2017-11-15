@@ -103,9 +103,9 @@ var GroupEditHandler = A(func(w http.ResponseWriter, r *http.Request, sess Sessi
 	userName := commonData.UserName
 
 	groupID := r.FormValue("id")
-	name := r.FormValue("name")
-	desc := r.FormValue("desc")
-	headerMsg := r.FormValue("header_msg")
+	name := strings.TrimSpace(r.FormValue("name"))
+	desc := strings.TrimSpace(r.FormValue("desc"))
+	headerMsg := strings.TrimSpace(r.FormValue("header_msg"))
 	isSticky := r.FormValue("is_sticky") != ""
 	isPrivate := r.FormValue("is_private") != ""
 	isDeleted := false

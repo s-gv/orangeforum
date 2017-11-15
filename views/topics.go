@@ -13,6 +13,7 @@ import (
 	"github.com/s-gv/orangeforum/utils"
 	"strconv"
 	"html/template"
+	"strings"
 )
 
 var numCommentsPerPage = 50
@@ -138,8 +139,8 @@ var TopicCreateHandler = A(func(w http.ResponseWriter, r *http.Request, sess Ses
 	db.QueryRow(`SELECT is_superadmin FROM users WHERE id=?`, sess.UserID).Scan(&isSuperAdmin)
 
 	if r.Method == "POST" {
-		title := r.PostFormValue("title")
-		content := r.PostFormValue("content")
+		title := strings.TrimSpace(r.PostFormValue("title"))
+		content := strings.TrimSpace(r.PostFormValue("content"))
 		isSticky := r.PostFormValue("is_sticky") != ""
 		if len(title) < 8 || len(title) > 80 {
 			sess.SetFlashMsg("Title should have 8-80 characters.")
@@ -190,8 +191,8 @@ var TopicCreateHandler = A(func(w http.ResponseWriter, r *http.Request, sess Ses
 var TopicUpdateHandler = A(func(w http.ResponseWriter, r *http.Request, sess Session) {
 	topicID := r.FormValue("id")
 	groupID := ""
-	title := r.PostFormValue("title")
-	content := r.PostFormValue("content")
+	title := strings.TrimSpace(r.PostFormValue("title"))
+	content := strings.TrimSpace(r.PostFormValue("content"))
 	action := r.PostFormValue("action")
 	isSticky := r.PostFormValue("is_sticky") != ""
 	isClosed := true

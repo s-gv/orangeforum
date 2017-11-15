@@ -71,8 +71,8 @@ var PrivateMessageHandler = A(func(w http.ResponseWriter, r *http.Request, sess 
 
 var PrivateMessageCreateHandler = A(func(w http.ResponseWriter, r *http.Request, sess Session) {
 	if r.Method == "POST" {
-		tousers := r.PostFormValue("to")
-		content := r.PostFormValue("content")
+		tousers := strings.TrimSpace(r.PostFormValue("to"))
+		content := strings.TrimSpace(r.PostFormValue("content"))
 
 		if tousers == "" {
 			sess.SetFlashMsg("No users to send the message to.")

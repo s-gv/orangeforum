@@ -62,7 +62,7 @@ var CommentIndexHandler = UA(func(w http.ResponseWriter, r *http.Request, sess S
 var CommentCreateHandler = A(func(w http.ResponseWriter, r *http.Request, sess Session) {
 	topicID := r.FormValue("tid")
 	quoteID := r.FormValue("quote")
-	content := r.PostFormValue("content")
+	content := strings.TrimSpace(r.PostFormValue("content"))
 	isSticky := r.PostFormValue("is_sticky") != ""
 	isImageUploadEnabled := models.Config(models.ImageUploadEnabled) != "0"
 	var groupID, groupName, topicName, parentComment, topicOwnerID, topicOwnerName string
@@ -175,7 +175,7 @@ var CommentCreateHandler = A(func(w http.ResponseWriter, r *http.Request, sess S
 
 var CommentUpdateHandler = A(func(w http.ResponseWriter, r *http.Request, sess Session) {
 	commentID := r.FormValue("id")
-	content := r.PostFormValue("content")
+	content := strings.TrimSpace(r.PostFormValue("content"))
 	isSticky := r.PostFormValue("is_sticky") != ""
 
 	var groupID, topicID, groupName, topicName, parentComment, topicOwnerName, topicOwnerID string

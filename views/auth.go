@@ -70,10 +70,10 @@ var SignupHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Session
 	isSignupDisabled := models.Config(models.SignupDisabled) != "0"
 
 	if r.Method == "POST" {
-		userName := r.PostFormValue("username")
+		userName := strings.TrimSpace(r.PostFormValue("username"))
 		passwd := r.PostFormValue("passwd")
 		passwdConfirm := r.PostFormValue("confirm")
-		email := r.PostFormValue("email")
+		email := strings.TrimSpace(r.PostFormValue("email"))
 		if len(userName) < 2 || len(userName) > 32 {
 			sess.SetFlashMsg("Username should have 2-32 characters.")
 			http.Redirect(w, r, "/signup", http.StatusSeeOther)

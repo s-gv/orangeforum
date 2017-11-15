@@ -11,6 +11,7 @@ import (
 	"time"
 	"github.com/s-gv/orangeforum/templates"
 	"html/template"
+	"strings"
 )
 
 var UserProfileHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Session) {
@@ -53,7 +54,7 @@ var UserProfileUpdateHandler = A(func(w http.ResponseWriter, r *http.Request, se
 		db.QueryRow(`SELECT is_superadmin FROM users WHERE id=?;`, sess.UserID).Scan(&isSuperAdmin)
 		if action == "Update" {
 			if isSuperAdmin || userID == sess.UserID.Int64 {
-				email := r.FormValue("email")
+				email := strings.TrimSpace(r.FormValue("email"))
 				about := r.FormValue("about")
 				if len(email) > 64 {
 					sess.SetFlashMsg("Email should have fewer than 64 characters.")

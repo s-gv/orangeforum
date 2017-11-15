@@ -14,6 +14,7 @@ import (
 	"time"
 	"io"
 	"github.com/s-gv/orangeforum/static"
+	"strings"
 )
 
 var IndexHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Session) {
@@ -77,11 +78,11 @@ var AdminIndexHandler = A(func (w http.ResponseWriter, r *http.Request, sess Ses
 	linkID := r.PostFormValue("linkid")
 
 	if r.Method == "POST" && linkID == "" {
-		forumName := r.PostFormValue("forum_name")
-		headerMsg := r.PostFormValue("header_msg")
+		forumName := strings.TrimSpace(r.PostFormValue("forum_name"))
+		headerMsg := strings.TrimSpace(r.PostFormValue("header_msg"))
 		censoredWords := r.PostFormValue("censored_words")
-		loginMsg := r.PostFormValue("login_msg")
-		signupMsg := r.PostFormValue("signup_msg")
+		loginMsg := strings.TrimSpace(r.PostFormValue("login_msg"))
+		signupMsg := strings.TrimSpace(r.PostFormValue("signup_msg"))
 		signupDisabled := "0"
 		groupCreationDisabled := "0"
 		imageUploadEnabled := "0"
