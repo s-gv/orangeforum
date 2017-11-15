@@ -63,6 +63,23 @@ var PrivateMessageHandler = A(func(w http.ResponseWriter, r *http.Request, sess 
 		cont = formatReply(to, cont)
 	}
 
+	if flag := r.FormValue("flag"); flag != "" {
+		rows := db.Query(`SELECT users.username FROM mods
+			INNER JOIN users ON users.id=mods.userid
+			INNER JOIN topics ON topics.groupid=mods.groupid
+			INNER JOIN comments ON comments.topicid=topics.id
+			WHERE comments.id=?;`, flag)
+		for rows.Next() {
+			var mod string
+			rows.Scan(&mod)
+			if to != "" {
+				to = to + ", "
+			}
+			to = to + mod
+		}
+		cont = "Flagging " + "http://" + r.Host + "/comments?id="+flag
+	}
+
 	if lmd != "" && len(msgs) == 0 {
 		http.Redirect(w, r, "/pm", http.StatusSeeOther)
 		return

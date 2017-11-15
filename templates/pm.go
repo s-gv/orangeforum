@@ -15,7 +15,7 @@ const pmSrc = `
 	<div class="comment-title muted">
 		{{ if not .IsRead }}<span class="alert">&#x2757;</span>{{ end }}
 		<a href="/users?u={{ .From }}">{{ .From }}</a> {{ .CreatedDate }} |
-		<a href="/pm?quote={{ .ID }}">reply</a> |
+		<a href="/pm?quote={{ .ID }}#end">reply</a> |
 		<form method="post" action="/pm/delete" style="display: inline;">
 			<input type="hidden" name="csrf" value="{{ $.Common.CSRF }}">
   			<input type="hidden" name="id" value="{{ .ID }}">

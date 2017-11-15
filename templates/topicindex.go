@@ -41,7 +41,13 @@ const topicindexSrc = `
 {{ if .Comments }}
 {{ range .Comments }}
 <div class="comment-row" id="comment-{{ .ID }}">
-	<div class="comment-title muted"><a href="/users?u={{ .UserName }}">{{ .UserName }}</a> <a href="/comments?id={{ .ID }}">{{ .CreatedDate }}</a>{{ if or .IsOwner $.IsAdmin $.IsMod $.IsSuperAdmin }} | <a href="/comments/edit?id={{ .ID }}">edit</a>{{end}}{{ if not .IsDeleted }} | <a href="/comments/new?tid={{ $.TopicID }}&quote={{ .ID }}">quote</a>{{ end }}</div>
+	<div class="comment-title muted">
+		<a href="/users?u={{ .UserName }}">{{ .UserName }}</a>
+		<a href="/comments?id={{ .ID }}">{{ .CreatedDate }}</a>
+		{{ if or .IsOwner $.IsAdmin $.IsMod $.IsSuperAdmin }} | <a href="/comments/edit?id={{ .ID }}">edit</a>{{end}}
+		{{ if not .IsDeleted }} | <a href="/comments/new?tid={{ $.TopicID }}&quote={{ .ID }}">quote</a>{{ end }}
+		| <a href="/pm?flag={{ .ID }}#end">flag</a>
+	</div>
 	{{ if .IsDeleted }}
 		<div class="comment">[DELETED]</div>
 	{{ else }}
