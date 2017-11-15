@@ -17,7 +17,6 @@ import (
 	"fmt"
 	"syscall"
 	"net/http/fcgi"
-	"os"
 )
 
 func getCreds() (string, string) {
@@ -58,17 +57,12 @@ func main() {
 	rand.Seed(time.Now().UnixNano())
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
-	createUserCommand := flag.NewFlagSet("createuser", flag.ExitOnError)
-	userFlag := createUserCommand.String("username", "", "Username")
-	passwdFlag := createUserCommand.String("password", "", "Password")
-	emailFlag := createUserCommand.String("email", "", "Email")
-
 	dsn := flag.String("dsn", "orangeforum.db", "Data source name")
 	dbDriver := flag.String("dbdriver", "sqlite3", "DB driver name")
 	addr := flag.String("addr", ":9123", "Port to listen on")
 	shouldMigrate := flag.Bool("migrate", false, "Migrate DB")
 	createSuperUser := flag.Bool("createsuperuser", false, "Create superuser (interactive)")
-	//createUser := flag.Bool("createuser", false, "Create user (interactive)")
+	createUser := flag.Bool("createuser", false, "Create user. Optional arguments: <username> <password> <email>")
 	changePasswd := flag.Bool("changepasswd", false, "Change password")
 	deleteSessions := flag.Bool("deletesessions", false, "Delete all sessions (logout all users)")
 	fcgiMode := flag.Bool("fcgi", false, "Fast CGI rather than listening on a port")
@@ -85,16 +79,6 @@ func main() {
 	if models.IsMigrationNeeded() {
 		log.Panicf("[ERROR] DB migration needed.\n")
 	}
-	if len(os.Args) >= 2 {
-		switch os.Args[1] {
-		case "createuser":
-			createUserCommand.Parse(os.Args[2:])
-
-		default:
-			fmt.Printf("%q is not valid command.\n", os.Args[1])
-			os.Exit(2)
-		}
-	}
 
 	if *createSuperUser {
 		fmt.Printf("Creating superuser...\n")
@@ -107,18 +91,24 @@ func main() {
 		return
 	}
 
-	if createUserCommand.Parsed() {
-		user := *userFlag
-		pass := *passwdFlag
-		if user == "" || pass == "" {
-			fmt.Printf("Creating user...\n")
-			user, pass = getCreds()
+	if *createUser {
+		args := flag.Args()
+		var username, passwd, email string
+		if len(args) >= 2 {
+			username = args[0]
+			passwd = args[1]
+		} else {
+			username, passwd = getCreds()
 		}
-		if user == "" || pass == "" {
-			fmt.Printf("Error creating user. Exiting...\n")
+		if len(args) >= 3 {
+			email = args[2]
 		}
-		if err := models.CreateUser(user, pass, *emailFlag); err != nil {
-			fmt.Printf("Error creating user: %s\n", err)
+		if username != "" && passwd != "" {
+			if err := models.CreateUser(username, passwd, email); err != nil {
+				fmt.Printf("Error creating user: %s\n", err)
+			}
+		} else {
+			fmt.Printf("Error: Username and password cannot be blank.\n")
 		}
 		return
 	}
