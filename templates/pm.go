@@ -15,6 +15,7 @@ const pmSrc = `
 	<div class="comment-title muted">
 		{{ if not .IsRead }}<span class="alert">&#x2757;</span>{{ end }}
 		<a href="/users?u={{ .From }}">{{ .From }}</a> {{ .CreatedDate }} |
+		<a href="/pm?quote={{ .ID }}">reply</a> |
 		<form method="post" action="/pm/delete" style="display: inline;">
 			<input type="hidden" name="csrf" value="{{ $.Common.CSRF }}">
   			<input type="hidden" name="id" value="{{ .ID }}">
@@ -42,11 +43,11 @@ const pmSrc = `
 	<table class="form">
 		<tr>
 			<th>To:</th>
-			<td><input type="text" name="to" placeholder="username" value=""></td>
+			<td><input type="text" name="to" placeholder="username" value="{{ .To }}"></td>
 		</tr>
 		<tr>
 			<th>Content:</th>
-			<td><textarea name="content" rows="12"></textarea></td>
+			<td><textarea name="content" rows="12">{{ .Content }}</textarea></td>
 		</tr>
 		{{ if .Common.Msg }}
 		<tr>

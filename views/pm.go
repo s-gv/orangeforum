@@ -54,6 +54,15 @@ var PrivateMessageHandler = A(func(w http.ResponseWriter, r *http.Request, sess 
 		}
 	}
 
+	to, cont := "", ""
+
+	if pmid := r.FormValue("quote"); pmid != "" {
+		db.QueryRow(`SELECT users.username, messages.content
+			FROM messages INNER JOIN users ON messages.fromid=users.id
+			WHERE messages.id=?;`, pmid).Scan(&to, &cont)
+		cont = formatReply(to, cont)
+	}
+
 	if lmd != "" && len(msgs) == 0 {
 		http.Redirect(w, r, "/pm", http.StatusSeeOther)
 		return
@@ -66,6 +75,8 @@ var PrivateMessageHandler = A(func(w http.ResponseWriter, r *http.Request, sess 
 		"Messages": msgs,
 		"LastMessageDate": lastMessageDate,
 		"FirstMessageDate": startDate,
+		"To": to,
+		"Content": cont,
 	})
 })
 

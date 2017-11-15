@@ -95,13 +95,7 @@ var CommentCreateHandler = A(func(w http.ResponseWriter, r *http.Request, sess S
 		var isDeleted bool
 		db.QueryRow(`SELECT comments.content, comments.is_deleted, users.username FROM comments INNER JOIN users ON comments.userid=users.id WHERE comments.id=?;`, quoteID).Scan(&quoteContent, &isDeleted, &quotedUser)
 		if !isDeleted {
-			quoteContent = strings.Replace(quoteContent, "\r", "", -1)
-			quoteContent = codeRe.ReplaceAllString(quoteContent, "\n$1\n")
-			if quoteContent[0] == '\n' {
-				quoteContent = quoteContent[1:]
-			}
-			quoteContent = quoteRe.ReplaceAllString(quoteContent, "$1> $2")
-			quoteContent = "```\n" + quotedUser + " wrote:\n" + quoteContent + "\n```\n"
+			quoteContent = formatReply(quotedUser, quoteContent)
 		} else {
 			quoteContent = ""
 		}

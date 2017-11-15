@@ -174,6 +174,17 @@ func formatComment(comment string) template.HTML {
 	return template.HTML(censor(formatted))
 }
 
+func formatReply(quotedUser string, quoteContent string) string {
+	quoteContent = strings.Replace(quoteContent, "\r", "", -1)
+	quoteContent = codeRe.ReplaceAllString(quoteContent, "\n$1\n")
+	if quoteContent[0] == '\n' {
+		quoteContent = quoteContent[1:]
+	}
+	quoteContent = quoteRe.ReplaceAllString(quoteContent, "$1> $2")
+	quoteContent = "```\n" + quotedUser + " wrote:\n" + quoteContent + "\n```\n"
+	return quoteContent
+}
+
 func censor(content string) string {
 	cWords := models.Config(models.CensoredWords)
 	if cWords != censored {
