@@ -67,7 +67,7 @@ const profileSrc = `
 {{ end }}
 {{ if .IsSelf }}
 	<tr>
-		<th><a href="/pm">private messages</a></th>
+		<th><a href="/pm">private messages{{ if .Common.IsNotification }}<span class="alert">&#x2757</span>{{ end }}</a></th>
 		<td></td>
 	</tr>
 	<tr>

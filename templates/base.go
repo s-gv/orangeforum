@@ -29,7 +29,7 @@ const baseSrc = `<!DOCTYPE html>
 			</div>
 			<div id="navright">
 				{{ if .Common.UserName }}
-				<a href="/users?u={{ .Common.UserName }}">{{ .Common.UserName }}</a>
+				<a href="/users?u={{ .Common.UserName }}">{{ .Common.UserName }}{{ if .Common.IsNotification }}<span class="alert">&#x2757</span>{{ end }}</a>
 				{{ else }}
 				<a href="/login?next={{ .Common.CurrentURL }}">Login</a>
 				{{ end }}

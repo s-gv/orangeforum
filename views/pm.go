@@ -103,6 +103,7 @@ var PrivateMessageCreateHandler = A(func(w http.ResponseWriter, r *http.Request,
 			db.Exec(`INSERT INTO messages(fromid, toid, content, created_date) VALUES(?, ?, ?, ?);`, sess.UserID, userid, content, int(time.Now().Unix()))
 		}
 
+		sess.SetFlashMsg("Message sent.")
 		http.Redirect(w, r, "/pm#end", http.StatusSeeOther)
 		return
 	}

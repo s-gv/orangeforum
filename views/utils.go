@@ -25,17 +25,18 @@ import (
 )
 
 type CommonData struct {
-	CSRF string
-	Msg string
-	UserName string
-	IsSuperAdmin bool
-	ForumName string
-	PageTitle string
-	CurrentURL template.URL
-	BodyAppendage string
+	CSRF              string
+	Msg               string
+	UserName          string
+	IsSuperAdmin      bool
+	IsNotification    bool
+	ForumName         string
+	PageTitle         string
+	CurrentURL        template.URL
+	BodyAppendage     string
 	IsGroupSubAllowed bool
 	IsTopicSubAllowed bool
-	ExtraNotesShort []ExtraNote
+	ExtraNotesShort   []ExtraNote
 }
 
 type ExtraNote struct {
@@ -258,14 +259,14 @@ func readCommonData(r *http.Request, sess Session) CommonData {
 			currentURL = currentURL + "?" + r.URL.RawQuery
 		}
 	}
-	/*
+
 	pmNotification := false
 	if sess.UserID.Valid {
 		var tmp string
 		if err := db.QueryRow(`SELECT id FROM messages WHERE toid=? AND is_read=?`, sess.UserID, false).Scan(&tmp); err == nil {
 			pmNotification = true
 		}
-	}*/
+	}
 
 	rows := db.Query(`SELECT id, name FROM extranotes;`)
 	var extraNotes []ExtraNote
@@ -276,15 +277,16 @@ func readCommonData(r *http.Request, sess Session) CommonData {
 	}
 
 	return CommonData{
-		CSRF:sess.CSRFToken,
-		Msg:sess.FlashMsg(),
-		UserName:userName,
-		IsSuperAdmin:isSuperAdmin,
-		ForumName:models.Config(models.ForumName),
-		CurrentURL:template.URL(url.QueryEscape(currentURL)),
-		IsGroupSubAllowed:models.Config(models.AllowGroupSubscription) != "0",
-		IsTopicSubAllowed:models.Config(models.AllowTopicSubscription) != "0",
-		BodyAppendage:models.Config(models.BodyAppendage),
-		ExtraNotesShort:extraNotes,
+		CSRF:              sess.CSRFToken,
+		Msg:               sess.FlashMsg(),
+		UserName:          userName,
+		IsSuperAdmin:      isSuperAdmin,
+		IsNotification:    pmNotification,
+		ForumName:         models.Config(models.ForumName),
+		CurrentURL:        template.URL(url.QueryEscape(currentURL)),
+		IsGroupSubAllowed: models.Config(models.AllowGroupSubscription) != "0",
+		IsTopicSubAllowed: models.Config(models.AllowTopicSubscription) != "0",
+		BodyAppendage:     models.Config(models.BodyAppendage),
+		ExtraNotesShort:   extraNotes,
 	}
 }
