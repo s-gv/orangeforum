@@ -5,16 +5,16 @@
 package views
 
 import (
-	"net/http"
-	"github.com/s-gv/orangeforum/templates"
 	"github.com/s-gv/orangeforum/models"
-	"html/template"
 	"github.com/s-gv/orangeforum/models/db"
-	"sort"
-	"time"
-	"io"
 	"github.com/s-gv/orangeforum/static"
+	"github.com/s-gv/orangeforum/templates"
+	"html/template"
+	"io"
+	"net/http"
+	"sort"
 	"strings"
+	"time"
 )
 
 var IndexHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Session) {
@@ -24,8 +24,8 @@ var IndexHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Session)
 	}
 
 	type Group struct {
-		Name string
-		Desc string
+		Name     string
+		Desc     string
 		IsSticky int
 	}
 	groups := []Group{}
@@ -36,14 +36,14 @@ var IndexHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Session)
 		rows.Scan(&g.Name, &g.Desc, &g.IsSticky)
 		g.Desc = censor(g.Desc)
 	}
-	sort.Slice(groups, func(i, j int) bool {return groups[i].Name < groups[j].Name})
-	sort.Slice(groups, func(i, j int) bool {return groups[i].IsSticky > groups[j].IsSticky})
+	sort.Slice(groups, func(i, j int) bool { return groups[i].Name < groups[j].Name })
+	sort.Slice(groups, func(i, j int) bool { return groups[i].IsSticky > groups[j].IsSticky })
 
 	type Topic struct {
-		ID string
-		Title string
-		GroupName string
-		OwnerName string
+		ID          string
+		Title       string
+		GroupName   string
+		OwnerName   string
 		CreatedDate string
 		NumComments int
 	}
@@ -61,15 +61,15 @@ var IndexHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Session)
 		}
 	}
 	templates.Render(w, "index.html", map[string]interface{}{
-		"Common": readCommonData(r, sess),
+		"Common":                readCommonData(r, sess),
 		"GroupCreationDisabled": models.Config(models.GroupCreationDisabled) == "1",
-		"HeaderMsg": models.Config(models.HeaderMsg),
-		"Groups": groups,
-		"Topics": topics,
+		"HeaderMsg":             models.Config(models.HeaderMsg),
+		"Groups":                groups,
+		"Topics":                topics,
 	})
 })
 
-var AdminIndexHandler = A(func (w http.ResponseWriter, r *http.Request, sess Session) {
+var AdminIndexHandler = A(func(w http.ResponseWriter, r *http.Request, sess Session) {
 	if !sess.IsUserSuperAdmin() {
 		ErrForbiddenHandler(w, r)
 		return
@@ -183,12 +183,12 @@ var AdminIndexHandler = A(func (w http.ResponseWriter, r *http.Request, sess Ses
 	}
 
 	templates.Render(w, "adminindex.html", map[string]interface{}{
-		"Common": readCommonData(r, sess),
-		"Config": models.ConfigAllVals(),
-		"ExtraNotes": extraNotes,
-		"NumUsers": models.NumUsers(),
-		"NumGroups": models.NumGroups(),
-		"NumTopics": models.NumTopics(),
+		"Common":      readCommonData(r, sess),
+		"Config":      models.ConfigAllVals(),
+		"ExtraNotes":  extraNotes,
+		"NumUsers":    models.NumUsers(),
+		"NumGroups":   models.NumGroups(),
+		"NumTopics":   models.NumTopics(),
 		"NumComments": models.NumComments(),
 	})
 })
@@ -205,10 +205,10 @@ var NoteHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Session) 
 		e.UpdatedDate = time.Unix(uDate, 0)
 		if e.URL == "" {
 			templates.Render(w, "extranote.html", map[string]interface{}{
-				"Common": readCommonData(r, sess),
-				"Name": e.Name,
+				"Common":      readCommonData(r, sess),
+				"Name":        e.Name,
 				"UpdatedDate": e.UpdatedDate,
-				"Content": template.HTML(e.Content),
+				"Content":     template.HTML(e.Content),
 			})
 			return
 		} else {

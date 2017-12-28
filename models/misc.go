@@ -5,8 +5,8 @@
 package models
 
 import (
-	"github.com/s-gv/orangeforum/models/db"
 	"database/sql"
+	"github.com/s-gv/orangeforum/models/db"
 )
 
 func NumUsers() int64 {
@@ -44,5 +44,3 @@ func NumComments() int64 {
 	}
 	return 0
 }
-
-

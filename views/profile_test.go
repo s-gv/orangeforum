@@ -5,13 +5,13 @@
 package views
 
 import (
+	"errors"
 	"net/http"
 	"net/http/httptest"
-	"testing"
-	"strings"
-	"regexp"
-	"errors"
 	"net/url"
+	"regexp"
+	"strings"
+	"testing"
 )
 
 func grabCSRFToken(body string) (string, error) {
@@ -95,7 +95,7 @@ func TestUserProfileHandler(t *testing.T) {
 	}
 
 	body := rr.Body.String()
-	if !strings.Contains(body, "admin")  {
+	if !strings.Contains(body, "admin") {
 		t.Errorf("Profile page does not have the name of the user. Body: %s\n", body)
 	}
 	if strings.Contains(body, "private") {
@@ -116,7 +116,7 @@ func TestLoggedInUserProfileHandler(t *testing.T) {
 	http.HandlerFunc(UserProfileHandler).ServeHTTP(rr, req)
 
 	body := rr.Body.String()
-	if !strings.Contains(body, "admin")  {
+	if !strings.Contains(body, "admin") {
 		t.Errorf("Profile page does not have the name of the user. Body: %s\n", body)
 	}
 	if !strings.Contains(body, "private") {

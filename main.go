@@ -5,18 +5,18 @@
 package main
 
 import (
-	"net/http"
-	"log"
 	"flag"
-	"github.com/s-gv/orangeforum/models/db"
-	"time"
-	"math/rand"
+	"fmt"
 	"github.com/s-gv/orangeforum/models"
+	"github.com/s-gv/orangeforum/models/db"
 	"github.com/s-gv/orangeforum/views"
 	"golang.org/x/crypto/ssh/terminal"
-	"fmt"
-	"syscall"
+	"log"
+	"math/rand"
+	"net/http"
 	"net/http/fcgi"
+	"syscall"
+	"time"
 )
 
 func getCreds() (string, string) {
@@ -182,8 +182,8 @@ func main() {
 	}
 
 	srv := &http.Server{
-		Handler: mux,
-		Addr: *addr,
+		Handler:      mux,
+		Addr:         *addr,
 		WriteTimeout: 30 * time.Second,
 		ReadTimeout:  30 * time.Second,
 		IdleTimeout:  120 * time.Second,

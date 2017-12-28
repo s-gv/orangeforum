@@ -32,7 +32,6 @@ func ReadMods(groupID string) []string {
 	return mods
 }
 
-
 func ReadAdmins(groupID string) []string {
 	rows := db.Query(`SELECT users.username FROM users INNER JOIN admins ON users.id=admins.userid WHERE admins.groupid=?;`, groupID)
 	var admins []string
@@ -52,8 +51,6 @@ func IsUserGroupAdmin(userID string, groupID string) bool {
 	}
 	return false
 }
-
-
 
 func ReadGroupIDByName(name string) string {
 	r := db.QueryRow(`SELECT id FROM groups WHERE name=?;`, name)

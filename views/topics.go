@@ -5,15 +5,15 @@
 package views
 
 import (
-	"github.com/s-gv/orangeforum/models/db"
-	"time"
-	"github.com/s-gv/orangeforum/templates"
 	"github.com/s-gv/orangeforum/models"
-	"net/http"
+	"github.com/s-gv/orangeforum/models/db"
+	"github.com/s-gv/orangeforum/templates"
 	"github.com/s-gv/orangeforum/utils"
-	"strconv"
 	"html/template"
+	"net/http"
+	"strconv"
 	"strings"
+	"time"
 )
 
 var numCommentsPerPage = 50
@@ -53,17 +53,17 @@ var TopicIndexHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Ses
 	isLastPage := (lastPos < (page+1)*numCommentsPerPage)
 	numPages := 0
 	if lastPos > 0 {
-		numPages = 1 + lastPos / numCommentsPerPage
+		numPages = 1 + lastPos/numCommentsPerPage
 	}
 
 	type Comment struct {
-		ID string
-		Content template.HTML
-		ImgSrc string
+		ID          string
+		Content     template.HTML
+		ImgSrc      string
 		CreatedDate string
-		UserName string
-		IsOwner bool
-		IsDeleted bool
+		UserName    string
+		IsOwner     bool
+		IsDeleted   bool
 	}
 
 	var comments []Comment
@@ -97,28 +97,28 @@ var TopicIndexHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Ses
 	commonData.PageTitle = censor(title)
 
 	templates.Render(w, "topicindex.html", map[string]interface{}{
-		"Common": commonData,
-		"GroupID": groupID,
-		"TopicID": topicID,
-		"GroupName": groupName,
-		"TopicName": censor(title),
-		"OwnerName": ownerName,
-		"CreatedDate": timeAgoFromNow(time.Unix(createdDate, 0)),
-		"SubToken": subToken,
-		"Title": title,
-		"Content": formatComment(content),
-		"IsClosed": isClosed,
-		"IsOwner": isOwner,
-		"IsMod": isMod,
-		"IsAdmin": isAdmin,
-		"IsSuperAdmin": isSuperAdmin,
+		"Common":               commonData,
+		"GroupID":              groupID,
+		"TopicID":              topicID,
+		"GroupName":            groupName,
+		"TopicName":            censor(title),
+		"OwnerName":            ownerName,
+		"CreatedDate":          timeAgoFromNow(time.Unix(createdDate, 0)),
+		"SubToken":             subToken,
+		"Title":                title,
+		"Content":              formatComment(content),
+		"IsClosed":             isClosed,
+		"IsOwner":              isOwner,
+		"IsMod":                isMod,
+		"IsAdmin":              isAdmin,
+		"IsSuperAdmin":         isSuperAdmin,
 		"IsImageUploadEnabled": models.Config(models.ImageUploadEnabled) != "0",
-		"Comments": comments,
-		"IsLastPage": isLastPage,
-		"NextPage": page+1,
-		"CurrentPage": page,
-		"Pages": make([]int, numPages),
-		"NumPages": numPages,
+		"Comments":             comments,
+		"IsLastPage":           isLastPage,
+		"NextPage":             page + 1,
+		"CurrentPage":          page,
+		"Pages":                make([]int, numPages),
+		"NumPages":             numPages,
 	})
 })
 
@@ -173,17 +173,17 @@ var TopicCreateHandler = A(func(w http.ResponseWriter, r *http.Request, sess Ses
 	}
 
 	templates.Render(w, "topicedit.html", map[string]interface{}{
-		"Common":    readCommonData(r, sess),
-		"GroupID":   groupID,
-		"GroupName": groupName,
-		"TopicID":   "",
-		"Title":     "",
-		"Content":   "",
-		"IsSticky": false,
-		"IsClosed": false,
-		"IsDeleted": false,
-		"IsMod": isMod,
-		"IsAdmin": isAdmin,
+		"Common":       readCommonData(r, sess),
+		"GroupID":      groupID,
+		"GroupName":    groupName,
+		"TopicID":      "",
+		"Title":        "",
+		"Content":      "",
+		"IsSticky":     false,
+		"IsClosed":     false,
+		"IsDeleted":    false,
+		"IsMod":        isMod,
+		"IsAdmin":      isAdmin,
 		"IsSuperAdmin": isSuperAdmin,
 	})
 })
@@ -263,15 +263,15 @@ var TopicUpdateHandler = A(func(w http.ResponseWriter, r *http.Request, sess Ses
 	}
 
 	templates.Render(w, "topicedit.html", map[string]interface{}{
-		"Common": readCommonData(r, sess),
-		"GroupID": groupID,
-		"GroupName": groupName,
-		"TopicID": topicID,
-		"Title": title,
+		"Common":       readCommonData(r, sess),
+		"GroupID":      groupID,
+		"GroupName":    groupName,
+		"TopicID":      topicID,
+		"Title":        title,
 		"Content":      content,
 		"IsSticky":     isSticky,
-		"IsClosed":    isClosed,
-		"IsDeleted": isDeleted,
+		"IsClosed":     isClosed,
+		"IsDeleted":    isDeleted,
 		"IsMod":        isMod,
 		"IsAdmin":      isAdmin,
 		"IsSuperAdmin": isSuperAdmin,
@@ -320,9 +320,9 @@ var TopicUnsubscribeHandler = UA(func(w http.ResponseWriter, r *http.Request, se
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1"></head>
 	<body><form action="/topics/unsubscribe" method="POST">
-	Unsubscribe from `+ topicName +`?
-	<input type="hidden" name="token" value="`+token+`">
-	<input type="hidden" name="csrf" value="`+sess.CSRFToken+`">
+	Unsubscribe from ` + topicName + `?
+	<input type="hidden" name="token" value="` + token + `">
+	<input type="hidden" name="csrf" value="` + sess.CSRFToken + `">
 	<input type="hidden" name="noredirect" value="1">
 	<input type="submit" value="Unsubscribe">
 	</form></body></html>`))

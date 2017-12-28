@@ -5,15 +5,15 @@
 package views
 
 import (
-	"net/http"
+	"database/sql"
 	"github.com/s-gv/orangeforum/models"
 	"github.com/s-gv/orangeforum/models/db"
 	"github.com/s-gv/orangeforum/templates"
-	"time"
-	"database/sql"
 	"github.com/s-gv/orangeforum/utils"
+	"net/http"
 	"strconv"
 	"strings"
+	"time"
 )
 
 var CommentIndexHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Session) {
@@ -42,20 +42,20 @@ var CommentIndexHandler = UA(func(w http.ResponseWriter, r *http.Request, sess S
 	isOwner := sess.UserID.Valid && db.QueryRow(`SELECT userid FROM comments WHERE id=?;`, commentID).Scan(&tmp) == nil
 
 	templates.Render(w, "commentindex.html", map[string]interface{}{
-		"Common": readCommonData(r, sess),
-		"ID": commentID,
-		"TopicID": topicID,
-		"TopicName": topicName,
-		"GroupName": groupName,
-		"OwnerName": ownerName,
-		"Content": formatComment(content),
-		"ImgSrc": imgSrc,
-		"IsMod": isMod,
-		"IsAdmin": isAdmin,
+		"Common":       readCommonData(r, sess),
+		"ID":           commentID,
+		"TopicID":      topicID,
+		"TopicName":    topicName,
+		"GroupName":    groupName,
+		"OwnerName":    ownerName,
+		"Content":      formatComment(content),
+		"ImgSrc":       imgSrc,
+		"IsMod":        isMod,
+		"IsAdmin":      isAdmin,
 		"IsSuperAdmin": isSuperAdmin,
-		"IsOwner": isOwner,
-		"IsDeleted": isDeleted,
-		"CreatedDate": timeAgoFromNow(time.Unix(cDate, 0)),
+		"IsOwner":      isOwner,
+		"IsDeleted":    isDeleted,
+		"CreatedDate":  timeAgoFromNow(time.Unix(cDate, 0)),
 	})
 })
 
@@ -124,7 +124,7 @@ var CommentCreateHandler = A(func(w http.ResponseWriter, r *http.Request, sess S
 		}
 
 		db.Exec(`INSERT INTO comments(content, image, topicid, userid, parentid, pos, created_date, updated_date) VALUES(?, ?, ?, ?, ?, ?, ?, ?);`,
-			content, imageName, topicID, sess.UserID, sql.NullInt64{Valid:false}, newPos, int64(time.Now().Unix()), int64(time.Now().Unix()))
+			content, imageName, topicID, sess.UserID, sql.NullInt64{Valid: false}, newPos, int64(time.Now().Unix()), int64(time.Now().Unix()))
 		db.Exec(`UPDATE topics SET num_comments=num_comments+1, activity_date=? WHERE id=?;`, int(time.Now().Unix()), topicID)
 		if models.Config(models.AllowTopicSubscription) != "0" {
 			var userName string
@@ -150,19 +150,19 @@ var CommentCreateHandler = A(func(w http.ResponseWriter, r *http.Request, sess S
 	}
 
 	templates.Render(w, "commentedit.html", map[string]interface{}{
-		"Common": readCommonData(r, sess),
-		"TopicID": topicID,
-		"TopicOwnerName": topicOwnerName,
-		"TopicCreatedDate": timeAgoFromNow(time.Unix(topicCreatedDate, 0)),
-		"CommentID": "",
-		"TopicName": topicName,
-		"GroupName": groupName,
-		"ParentComment": parentComment,
-		"Content": quoteContent,
-		"IsSticky": false,
-		"IsMod": isMod,
-		"IsAdmin": isAdmin,
-		"IsSuperAdmin": isSuperAdmin,
+		"Common":               readCommonData(r, sess),
+		"TopicID":              topicID,
+		"TopicOwnerName":       topicOwnerName,
+		"TopicCreatedDate":     timeAgoFromNow(time.Unix(topicCreatedDate, 0)),
+		"CommentID":            "",
+		"TopicName":            topicName,
+		"GroupName":            groupName,
+		"ParentComment":        parentComment,
+		"Content":              quoteContent,
+		"IsSticky":             false,
+		"IsMod":                isMod,
+		"IsAdmin":              isAdmin,
+		"IsSuperAdmin":         isSuperAdmin,
 		"IsImageUploadEnabled": isImageUploadEnabled,
 	})
 })
@@ -256,21 +256,20 @@ var CommentUpdateHandler = A(func(w http.ResponseWriter, r *http.Request, sess S
 	isSticky = (pos < 0)
 
 	templates.Render(w, "commentedit.html", map[string]interface{}{
-		"Common": readCommonData(r, sess),
-		"TopicID": topicID,
-		"TopicOwnerName": topicOwnerName,
-		"TopicCreatedDate": timeAgoFromNow(time.Unix(topicCreatedDate, 0)),
-		"CommentID": commentID,
-		"TopicName": topicName,
-		"GroupName": groupName,
-		"ParentComment": parentComment,
-		"Content": content,
-		"IsSticky": isSticky,
-		"IsMod": isMod,
-		"IsAdmin": isAdmin,
-		"IsSuperAdmin": isSuperAdmin,
-		"IsDeleted": isDeleted,
+		"Common":               readCommonData(r, sess),
+		"TopicID":              topicID,
+		"TopicOwnerName":       topicOwnerName,
+		"TopicCreatedDate":     timeAgoFromNow(time.Unix(topicCreatedDate, 0)),
+		"CommentID":            commentID,
+		"TopicName":            topicName,
+		"GroupName":            groupName,
+		"ParentComment":        parentComment,
+		"Content":              content,
+		"IsSticky":             isSticky,
+		"IsMod":                isMod,
+		"IsAdmin":              isAdmin,
+		"IsSuperAdmin":         isSuperAdmin,
+		"IsDeleted":            isDeleted,
 		"IsImageUploadEnabled": false,
 	})
 })
-

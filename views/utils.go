@@ -5,23 +5,23 @@
 package views
 
 import (
-	"net/http"
-	"log"
-	"runtime/debug"
-	"github.com/s-gv/orangeforum/models"
-	"net/url"
-	"regexp"
-	"strings"
-	"path/filepath"
-	"os"
-	"io"
-	"html/template"
-	"time"
-	"strconv"
-	"errors"
 	"crypto/rand"
-	"github.com/s-gv/orangeforum/models/db"
 	"encoding/base64"
+	"errors"
+	"github.com/s-gv/orangeforum/models"
+	"github.com/s-gv/orangeforum/models/db"
+	"html/template"
+	"io"
+	"log"
+	"net/http"
+	"net/url"
+	"os"
+	"path/filepath"
+	"regexp"
+	"runtime/debug"
+	"strconv"
+	"strings"
+	"time"
 )
 
 type CommonData struct {
@@ -40,10 +40,10 @@ type CommonData struct {
 }
 
 type ExtraNote struct {
-	ID int
-	Name string
-	Content string
-	URL string
+	ID          int
+	Name        string
+	Content     string
+	URL         string
 	CreatedDate time.Time
 	UpdatedDate time.Time
 }
@@ -106,7 +106,7 @@ func A(handler func(w http.ResponseWriter, r *http.Request, sess Session)) func(
 		if !sess.UserID.Valid {
 			redirectURL := r.URL.Path
 			if r.URL.RawQuery != "" {
-				redirectURL += "?"+r.URL.RawQuery
+				redirectURL += "?" + r.URL.RawQuery
 			}
 			http.Redirect(w, r, "/login?next="+url.QueryEscape(redirectURL), http.StatusSeeOther)
 			return
@@ -213,7 +213,7 @@ func censor(content string) string {
 func saveImage(r *http.Request) string {
 	imageName := ""
 	if dataDir := models.Config(models.DataDir); dataDir != "" {
-		r.ParseMultipartForm(32*1024*1024)
+		r.ParseMultipartForm(32 * 1024 * 1024)
 		file, handler, err := r.FormFile("img")
 		if err == nil {
 			defer file.Close()

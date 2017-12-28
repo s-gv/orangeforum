@@ -5,13 +5,13 @@
 package views
 
 import (
-	"github.com/s-gv/orangeforum/models/db"
-	"time"
-	"github.com/s-gv/orangeforum/templates"
 	"github.com/s-gv/orangeforum/models"
+	"github.com/s-gv/orangeforum/models/db"
+	"github.com/s-gv/orangeforum/templates"
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 )
 
 var GroupIndexHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Session) {
@@ -27,7 +27,6 @@ var GroupIndexHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Ses
 		db.QueryRow(`SELECT token FROM groupsubscriptions WHERE groupid=? AND userid=?;`, groupID, sess.UserID).Scan(&subToken)
 	}
 
-
 	numTopicsPerPage := 30
 	lastTopicDate, err := strconv.ParseInt(r.FormValue("ltd"), 10, 64)
 	if err != nil {
@@ -35,14 +34,14 @@ var GroupIndexHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Ses
 	}
 
 	type Topic struct {
-		ID int
-		Title string
-		IsDeleted bool
-		IsClosed bool
-		Owner string
+		ID          int
+		Title       string
+		IsDeleted   bool
+		IsClosed    bool
+		Owner       string
 		NumComments int
 		CreatedDate string
-		cDateUnix int64
+		cDateUnix   int64
 	}
 	var topics []Topic
 	var rows *db.Rows
@@ -79,16 +78,16 @@ var GroupIndexHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Ses
 	commonData.PageTitle = name
 
 	templates.Render(w, "groupindex.html", map[string]interface{}{
-		"Common": commonData,
-		"GroupName": name,
-		"GroupDesc": censor(groupDesc),
-		"GroupID": groupID,
-		"HeaderMsg": censor(headerMsg),
-		"SubToken": subToken,
-		"Topics": topics,
-		"IsMod": isMod,
-		"IsAdmin": isAdmin,
-		"IsSuperAdmin": isSuperAdmin,
+		"Common":        commonData,
+		"GroupName":     name,
+		"GroupDesc":     censor(groupDesc),
+		"GroupID":       groupID,
+		"HeaderMsg":     censor(headerMsg),
+		"SubToken":      subToken,
+		"Topics":        topics,
+		"IsMod":         isMod,
+		"IsAdmin":       isAdmin,
+		"IsSuperAdmin":  isSuperAdmin,
 		"LastTopicDate": lastTopicDate,
 	})
 })
@@ -244,19 +243,18 @@ var GroupEditHandler = A(func(w http.ResponseWriter, r *http.Request, sess Sessi
 	}
 
 	templates.Render(w, "groupedit.html", map[string]interface{}{
-		"Common": readCommonData(r, sess),
-		"ID": groupID,
+		"Common":    readCommonData(r, sess),
+		"ID":        groupID,
 		"GroupName": name,
-		"Desc": desc,
+		"Desc":      desc,
 		"HeaderMsg": headerMsg,
-		"IsSticky": isSticky,
+		"IsSticky":  isSticky,
 		"IsPrivate": isPrivate,
 		"IsDeleted": isDeleted,
-		"Mods": strings.Join(mods, ", "),
-		"Admins": strings.Join(admins, ", "),
+		"Mods":      strings.Join(mods, ", "),
+		"Admins":    strings.Join(admins, ", "),
 	})
 })
-
 
 var GroupSubscribeHandler = A(func(w http.ResponseWriter, r *http.Request, sess Session) {
 	groupID := r.FormValue("id")
@@ -300,9 +298,9 @@ var GroupUnsubscribeHandler = UA(func(w http.ResponseWriter, r *http.Request, se
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1"></head>
 	<body><form action="/groups/unsubscribe" method="POST">
-	Unsubscribe from `+groupName+`?
-	<input type="hidden" name="token" value=`+token+`>
-	<input type="hidden" name="csrf" value="`+sess.CSRFToken+`">
+	Unsubscribe from ` + groupName + `?
+	<input type="hidden" name="token" value=` + token + `>
+	<input type="hidden" name="csrf" value="` + sess.CSRFToken + `">
 	<input type="hidden" name="noredirect" value="1">
 	<input type="submit" value="Unsubscribe">
 	</form></body></html>`))

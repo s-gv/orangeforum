@@ -5,9 +5,9 @@
 package utils
 
 import (
-	"net/smtp"
 	"github.com/s-gv/orangeforum/models"
 	"log"
+	"net/smtp"
 )
 
 func SendMail(to string, sub string, body string) {
@@ -18,11 +18,11 @@ func SendMail(to string, sub string, body string) {
 			smtpUser := models.Config(models.SMTPUser)
 			smtpPass := models.Config(models.SMTPPass)
 			auth := smtp.PlainAuth("", smtpUser, smtpPass, smtpHost)
-			msg := []byte("From: "+models.Config(models.ForumName)+"<"+from+">\r\n" +
-				"To: "+to+"\r\n" +
-				"Subject: "+sub+"\r\n" +
+			msg := []byte("From: " + models.Config(models.ForumName) + "<" + from + ">\r\n" +
+				"To: " + to + "\r\n" +
+				"Subject: " + sub + "\r\n" +
 				"\r\n" +
-				body+"\r\n")
+				body + "\r\n")
 			var err error
 			if smtpUser != "" {
 				err = smtp.SendMail(models.Config(models.SMTPHost)+":"+models.Config(models.SMTPPort), auth, from, []string{to}, msg)

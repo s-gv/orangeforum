@@ -5,14 +5,14 @@
 package views
 
 import (
+	"github.com/s-gv/orangeforum/models"
+	"github.com/s-gv/orangeforum/models/db"
+	"github.com/s-gv/orangeforum/static"
 	"net/http"
 	"net/http/httptest"
-	"testing"
-	"github.com/s-gv/orangeforum/static"
-	"github.com/s-gv/orangeforum/models/db"
-	"github.com/s-gv/orangeforum/models"
 	"os"
 	"strings"
+	"testing"
 )
 
 func TestMain(m *testing.M) {
@@ -69,7 +69,7 @@ func TestIndexHandler(t *testing.T) {
 		t.Errorf("handler returned wrong status code: got %v", status)
 	}
 
-	if body := rr.Body.String(); !strings.Contains(body, "<a href=\"/login?next=%2F\">")  {
+	if body := rr.Body.String(); !strings.Contains(body, "<a href=\"/login?next=%2F\">") {
 		t.Errorf("Index page does not have link to the login page.")
 	}
 }

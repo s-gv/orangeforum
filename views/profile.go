@@ -5,13 +5,13 @@
 package views
 
 import (
-	"net/http"
 	"github.com/s-gv/orangeforum/models/db"
-	"strconv"
-	"time"
 	"github.com/s-gv/orangeforum/templates"
 	"html/template"
+	"net/http"
+	"strconv"
 	"strings"
+	"time"
 )
 
 var UserProfileHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Session) {
@@ -25,11 +25,11 @@ var UserProfileHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Se
 	}
 
 	templates.Render(w, "profile.html", map[string]interface{}{
-		"Common": readCommonData(r, sess),
+		"Common":   readCommonData(r, sess),
 		"UserName": userName,
-		"About": about,
-		"Email": email,
-		"IsSelf": sess.UserID.Valid && (userID == sess.UserID.Int64),
+		"About":    about,
+		"Email":    email,
+		"IsSelf":   sess.UserID.Valid && (userID == sess.UserID.Int64),
 		"IsBanned": isBanned,
 	})
 })
@@ -107,13 +107,13 @@ var UserCommentsHandler = UA(func(w http.ResponseWriter, r *http.Request, sess S
 	}
 
 	type Comment struct {
-		ID string
-		Content template.HTML
-		TopicID string
-		TopicName string
+		ID          string
+		Content     template.HTML
+		TopicID     string
+		TopicName   string
 		CreatedDate string
-		ImgSrc string
-		IsDeleted bool
+		ImgSrc      string
+		IsDeleted   bool
 	}
 
 	commentsPerPage := 50
@@ -144,9 +144,9 @@ var UserCommentsHandler = UA(func(w http.ResponseWriter, r *http.Request, sess S
 	}
 
 	templates.Render(w, "profilecomments.html", map[string]interface{}{
-		"Common": readCommonData(r, sess),
-		"OwnerName": ownerName,
-		"Comments": comments,
+		"Common":          readCommonData(r, sess),
+		"OwnerName":       ownerName,
+		"Comments":        comments,
 		"LastCommentDate": lastCommentDate,
 	})
 })
@@ -165,10 +165,10 @@ var UserTopicsHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Ses
 
 	numTopicsPerPage := 50
 	type Topic struct {
-		ID string
-		Title string
-		IsClosed bool
-		IsDeleted bool
+		ID          string
+		Title       string
+		IsClosed    bool
+		IsDeleted   bool
 		CreatedDate string
 	}
 	var topics []Topic
@@ -194,9 +194,9 @@ var UserTopicsHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Ses
 	}
 
 	templates.Render(w, "profiletopics.html", map[string]interface{}{
-		"Common": readCommonData(r, sess),
-		"OwnerName": ownerName,
-		"Topics": topics,
+		"Common":        readCommonData(r, sess),
+		"OwnerName":     ownerName,
+		"Topics":        topics,
 		"LastTopicDate": lastTopicDate,
 	})
 })
@@ -206,9 +206,9 @@ var UserGroupsHandler = A(func(w http.ResponseWriter, r *http.Request, sess Sess
 	var ownerName string
 
 	type Group struct {
-		ID string
-		Name string
-		IsClosed bool
+		ID          string
+		Name        string
+		IsClosed    bool
 		CreatedDate string
 	}
 	var adminInGroups []Group
@@ -232,9 +232,9 @@ var UserGroupsHandler = A(func(w http.ResponseWriter, r *http.Request, sess Sess
 	}
 
 	templates.Render(w, "profilegroups.html", map[string]interface{}{
-		"Common": readCommonData(r, sess),
-		"OwnerName": ownerName,
+		"Common":        readCommonData(r, sess),
+		"OwnerName":     ownerName,
 		"AdminInGroups": adminInGroups,
-		"ModInGroups": modInGroups,
+		"ModInGroups":   modInGroups,
 	})
 })
