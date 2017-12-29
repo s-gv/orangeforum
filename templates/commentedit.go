@@ -4,7 +4,6 @@
 
 package templates
 
-
 const commenteditSrc = `
 {{ define "content" }}
 

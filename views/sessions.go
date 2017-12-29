@@ -5,27 +5,27 @@
 package views
 
 import (
-	"errors"
-	"net/http"
 	"database/sql"
-	"time"
-	"github.com/s-gv/orangeforum/models/db"
 	"encoding/hex"
-	"log"
+	"errors"
+	"github.com/s-gv/orangeforum/models/db"
 	"golang.org/x/crypto/bcrypt"
+	"log"
+	"net/http"
+	"time"
 )
 
 type Session struct {
-	SessionID string
-	UserID sql.NullInt64
-	CSRFToken string
-	Msg string
+	SessionID   string
+	UserID      sql.NullInt64
+	CSRFToken   string
+	Msg         string
 	CreatedDate time.Time
 	UpdatedDate time.Time
 }
 
-const maxSessionLife = 200*time.Hour
-const maxSessionLifeBeforeUpdate = 100*time.Hour
+const maxSessionLife = 200 * time.Hour
+const maxSessionLifeBeforeUpdate = 100 * time.Hour
 
 var ErrAuthFail = errors.New("username / password incorrect")
 var ErrNoFlashMsg = errors.New("No flash message")
@@ -136,6 +136,6 @@ func ClearSession(w http.ResponseWriter, r *http.Request) {
 		sessionID := cookie.Value
 		db.Exec(`DELETE FROM sessions WHERE sessionid=?;`, sessionID)
 	}
-	http.SetCookie(w, &http.Cookie{Name: "sessionid", Value: "", Expires: time.Now().Add(-300*time.Hour), HttpOnly: true})
-	http.SetCookie(w, &http.Cookie{Name: "csrftoken", Value: "", Expires: time.Now().Add(-300*time.Hour)})
+	http.SetCookie(w, &http.Cookie{Name: "sessionid", Value: "", Expires: time.Now().Add(-300 * time.Hour), HttpOnly: true})
+	http.SetCookie(w, &http.Cookie{Name: "csrftoken", Value: "", Expires: time.Now().Add(-300 * time.Hour)})
 }

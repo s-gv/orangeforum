@@ -5,12 +5,12 @@
 package models
 
 import (
-	"golang.org/x/crypto/bcrypt"
-	"github.com/s-gv/orangeforum/models/db"
 	"database/sql"
 	"encoding/hex"
-	"time"
 	"errors"
+	"github.com/s-gv/orangeforum/models/db"
+	"golang.org/x/crypto/bcrypt"
+	"time"
 )
 
 func createUser(userName string, passwd string, email string, isSuperAdmin bool) error {
@@ -53,7 +53,7 @@ func ReadUserNameByToken(resetToken string) (string, error) {
 		var rDate int64
 		if err := r.Scan(&userName, &rDate); err == nil {
 			resetDate := time.Unix(rDate, 0)
-			if resetDate.After(time.Now().Add(-48*time.Hour)) {
+			if resetDate.After(time.Now().Add(-48 * time.Hour)) {
 				return userName, nil
 			}
 		}
@@ -87,4 +87,3 @@ func ProbeUser(userName string) bool {
 	}
 	return true
 }
-

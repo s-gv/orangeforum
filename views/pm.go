@@ -5,13 +5,13 @@
 package views
 
 import (
-	"time"
-	"net/http"
-	"strings"
-	"html/template"
 	"github.com/s-gv/orangeforum/models/db"
 	"github.com/s-gv/orangeforum/templates"
+	"html/template"
+	"net/http"
 	"strconv"
+	"strings"
+	"time"
 )
 
 var messagesPerPage = 50
@@ -26,12 +26,12 @@ var PrivateMessageHandler = A(func(w http.ResponseWriter, r *http.Request, sess 
 	}
 
 	type Message struct {
-		ID string
-		From string
-		To string
-		IsRead bool
+		ID          string
+		From        string
+		To          string
+		IsRead      bool
 		CreatedDate string
-		Content template.HTML
+		Content     template.HTML
 	}
 
 	var lastMessageDate int64
@@ -77,7 +77,7 @@ var PrivateMessageHandler = A(func(w http.ResponseWriter, r *http.Request, sess 
 			}
 			to = to + mod
 		}
-		cont = "Flagging " + "http://" + r.Host + "/comments?id="+flag
+		cont = "Flagging " + "http://" + r.Host + "/comments?id=" + flag
 	}
 
 	if lmd != "" && len(msgs) == 0 {
@@ -88,12 +88,12 @@ var PrivateMessageHandler = A(func(w http.ResponseWriter, r *http.Request, sess 
 	db.Exec(`UPDATE messages SET is_read=? WHERE toid=?;`, true, sess.UserID)
 
 	templates.Render(w, "pm.html", map[string]interface{}{
-		"Common": readCommonData(r, sess),
-		"Messages": msgs,
-		"LastMessageDate": lastMessageDate,
+		"Common":           readCommonData(r, sess),
+		"Messages":         msgs,
+		"LastMessageDate":  lastMessageDate,
 		"FirstMessageDate": startDate,
-		"To": to,
-		"Content": cont,
+		"To":               to,
+		"Content":          cont,
 	})
 })
 

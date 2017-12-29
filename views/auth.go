@@ -5,17 +5,17 @@
 package views
 
 import (
-	"net/http"
-	"github.com/s-gv/orangeforum/models"
-	"github.com/s-gv/orangeforum/templates"
-	"strings"
-	"github.com/s-gv/orangeforum/utils"
-	"log"
-	"net/url"
-	"html/template"
-	"github.com/s-gv/orangeforum/models/db"
-	"time"
 	"fmt"
+	"github.com/s-gv/orangeforum/models"
+	"github.com/s-gv/orangeforum/models/db"
+	"github.com/s-gv/orangeforum/templates"
+	"github.com/s-gv/orangeforum/utils"
+	"html/template"
+	"log"
+	"net/http"
+	"net/url"
+	"strings"
+	"time"
 )
 
 var LoginHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Session) {
@@ -45,8 +45,8 @@ var LoginHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Session)
 		}
 	}
 	templates.Render(w, "login.html", map[string]interface{}{
-		"Common": readCommonData(r, sess),
-		"next": template.URL(url.QueryEscape(redirectURL)),
+		"Common":   readCommonData(r, sess),
+		"next":     template.URL(url.QueryEscape(redirectURL)),
 		"LoginMsg": models.Config(models.LoginMsg),
 	})
 })
@@ -116,7 +116,7 @@ var SignupHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Session
 		}
 		models.CreateUser(userName, passwd, email)
 		if sess.IsUserSuperAdmin() {
-			sess.SetFlashMsg("User "+userName+" created")
+			sess.SetFlashMsg("User " + userName + " created")
 			http.Redirect(w, r, "/signup", http.StatusSeeOther)
 			return
 		}
@@ -127,10 +127,9 @@ var SignupHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Session
 		"Common":     readCommonData(r, sess),
 		"next":       template.URL(url.QueryEscape(redirectURL)),
 		"IsDisabled": isSignupDisabled && !sess.IsUserSuperAdmin(),
-		"SignupMsg": models.Config(models.SignupMsg),
+		"SignupMsg":  models.Config(models.SignupMsg),
 	})
 })
-
 
 var ChangePasswdHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Session) {
 	userName := r.FormValue("u")
@@ -172,7 +171,7 @@ var ChangePasswdHandler = UA(func(w http.ResponseWriter, r *http.Request, sess S
 		return
 	}
 	templates.Render(w, "changepass.html", map[string]interface{}{
-		"Common": commonData,
+		"Common":   commonData,
 		"UserName": userName,
 	})
 })
@@ -199,7 +198,7 @@ var ForgotPasswdHandler = UA(func(w http.ResponseWriter, r *http.Request, sess S
 		resetLink := "https://" + r.Host + "/resetpass?r=" + resetToken
 		sub := forumName + " Password Recovery"
 		msg := "Someone (hopefully you) requested we reset your password at " + forumName + ".\r\n" +
-			"If you want to change it, visit "+resetLink+"\r\n\r\nIf not, just ignore this message."
+			"If you want to change it, visit " + resetLink + "\r\n\r\nIf not, just ignore this message."
 		utils.SendMail(email, sub, msg)
 		sess.SetFlashMsg("Password reset link sent to your e-mail.")
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
@@ -233,6 +232,6 @@ var ResetPasswdHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Se
 	}
 	templates.Render(w, "resetpass.html", map[string]interface{}{
 		"ResetToken": resetToken,
-		"Common": readCommonData(r, sess),
+		"Common":     readCommonData(r, sess),
 	})
 })

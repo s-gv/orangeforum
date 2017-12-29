@@ -155,14 +155,14 @@ func Migration1() {
 	db.Exec(`CREATE INDEX sessions_userid_index on sessions(userid);`)
 
 	/*
-	db.Exec(`CREATE TABLE messages(
-				id INTEGER PRIMARY KEY AUTOINCREMENT,
-				content TEXT DEFAULT '',
-				fromid INTEGER REFERENCES users(id) ON DELETE CASCADE,
-				toid INTEGER REFERENCES users(id) ON DELETE CASCADE,
-				is_read INTEGER DEFAULT 0,
-				created_date INTEGER NOT NULL
-	);`) */ // Migration 4
+		db.Exec(`CREATE TABLE messages(
+					id INTEGER PRIMARY KEY AUTOINCREMENT,
+					content TEXT DEFAULT '',
+					fromid INTEGER REFERENCES users(id) ON DELETE CASCADE,
+					toid INTEGER REFERENCES users(id) ON DELETE CASCADE,
+					is_read INTEGER DEFAULT 0,
+					created_date INTEGER NOT NULL
+		);`) */ // Migration 4
 	// db.Exec(`CREATE INDEX messages_fromid_index on messages(fromid);`) // Migration 4
 	// db.Exec(`CREATE INDEX messages_toid_index on messages(toid);`) // Migration 4
 	// db.Exec(`CREATE INDEX messages_fromid_created_index on messages(fromid, created_date DESC);`) // Migration 4
@@ -217,7 +217,7 @@ func Migrate() {
 		if dbver == 0 {
 			Migration1()
 
-			WriteConfig(Version, "1");
+			WriteConfig(Version, "1")
 			WriteConfig(HeaderMsg, "")
 			WriteConfig(ForumName, "Orange Forum")
 			WriteConfig(SignupDisabled, "0")
@@ -235,11 +235,11 @@ func Migrate() {
 		} else if dbver == 1 {
 			Migration2()
 
-			WriteConfig(Version, "2");
+			WriteConfig(Version, "2")
 		} else if dbver == 2 {
 			Migration3()
 
-			WriteConfig(Version, "3");
+			WriteConfig(Version, "3")
 		} else if dbver == 3 {
 			Migration4()
 
