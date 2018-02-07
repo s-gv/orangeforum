@@ -22,7 +22,7 @@ import (
 func getCreds() (string, string) {
 	var userName string
 	fmt.Printf("Username: ")
-	fmt.Scan(&userName)
+	fmt.Scanf("%s\n", &userName)
 
 	fmt.Printf("Password: ")
 	password, err := terminal.ReadPassword(int(syscall.Stdin))
