@@ -20,7 +20,7 @@ import (
 
 var LoginHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Session) {
 	redirectURL, err := url.QueryUnescape(r.FormValue("next"))
-	if redirectURL == "" || err != nil {
+	if err != nil || redirectURL == "" || redirectURL[0] != '/' {
 		redirectURL = "/"
 	}
 	if sess.IsUserValid() {
@@ -59,7 +59,7 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 
 var SignupHandler = UA(func(w http.ResponseWriter, r *http.Request, sess Session) {
 	redirectURL, err := url.QueryUnescape(r.FormValue("next"))
-	if redirectURL == "" || err != nil {
+	if err != nil || redirectURL == "" || redirectURL[0] != '/' {
 		redirectURL = "/"
 	}
 	if sess.IsUserValid() && !sess.IsUserSuperAdmin() {
