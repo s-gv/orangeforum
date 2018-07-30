@@ -7,6 +7,7 @@ package main
 import (
 	"flag"
 	"fmt"
+    "github.com/eyedeekay/sam-forwarder/config"
 	"github.com/s-gv/orangeforum/models"
 	"github.com/s-gv/orangeforum/models/db"
 	"github.com/s-gv/orangeforum/views"
@@ -66,8 +67,21 @@ func main() {
 	changePasswd := flag.Bool("changepasswd", false, "Change password")
 	deleteSessions := flag.Bool("deletesessions", false, "Delete all sessions (logout all users)")
 	fcgiMode := flag.Bool("fcgi", false, "Fast CGI rather than listening on a port")
+    usei2p := flag.Bool("usei2p", false, "Forward the service to the i2p network as an eepSite")
+    i2pconf := flag.String("i2pini", "./contrib/tunnels.orangeforum.conf", "i2p tunnel configuration file to use")
 
 	flag.Parse()
+
+    if *usei2p {
+        if i2pforwarder, i2perr := i2ptunconf.NewSAMForwarderFromConfig(*i2pconf, "127.0.0.1", "7656"); i2perr != nil {
+            fmt.Printf("Error creating i2p tunnel from config, %s", i2perr.Error())
+            return
+        }else{
+            *addr = i2pforwarder.Target()
+            fmt.Printf("Serving eepSite on, %s", i2pforwarder.Base32())
+            go i2pforwarder.Serve()
+        }
+    }
 
 	db.Init(*dbDriver, *dsn)
 
