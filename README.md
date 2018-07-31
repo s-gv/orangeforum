@@ -56,6 +56,12 @@ To use postgres, run `./orangeforum -dbdriver postgres -dsn postgres://pguser:pg
 
 To save an sqlite db at a different location, run `./orangeforum -dsn path/to/myforum.db`.
 
+- `-usei2p=<bool>`: Use `./orangeforum -usei2p=true` to forward the service to i2p.
+- `-i2pini file`: Use `./orangeforum -i2pini contrib/tunnels.orangeforum.conf` to configure an i2p service with an ini-like file.
+
+When using i2p, the listening port will be set by the i2p configuration, and
+arguments passed to -addr will be canceled out.
+
 Commands
 --------
 
