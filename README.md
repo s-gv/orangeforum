@@ -62,6 +62,33 @@ To save an sqlite db at a different location, run `./orangeforum -dsn path/to/my
 When using i2p, the listening port will be set by the i2p configuration, and
 arguments passed to -addr will be canceled out.
 
+### Docker
+
+To build the an image for running orangeforum within docker from source, first
+clone this git repository and change to it's directory. Then run:
+
+        docker build -t $(whoami)/orangeforum .
+
+To use within docker, you can run by creating a data container interactively to
+set up the superuser, then automatically close:
+
+        docker run -i -t --name orangeforum-volume \
+            --volumes orangeforum:/opt/orangeforum \
+            $(whoami)/orangeforum orangeforum -createsuperuser
+
+Then, run orangeforum as a docker daemon, using the volume from the other docker
+container:
+
+        docker run -i -t -d -e args="" \
+            --name orangeforum \
+            --volumes-from orangeforum-volume \
+            -p 127.0.0.0:9123:9123 \
+            $(whoami)/orangeforum
+
+If you want, you can check if it's running, for instance
+
+        docker logs orangeforum
+
 Commands
 --------
 
@@ -72,3 +99,11 @@ Commands
 - `-changepasswd`: Change password of a user.
 - `-deletesessions`: Drop all sessions and log out all users.
 
+optionally, you can pass commands to the docker container by setting the
+environment variable args when running the container, for instance
+
+        docker run -i -t -d \
+            -e args="-deletesessions" \
+            --volumes-from orangeforum-volume \
+            --name orangeforum \
+            $(whoami)/orangeforum
