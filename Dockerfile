@@ -2,7 +2,7 @@ FROM alpine:3.8
 ENV args=args
 # Setup distro and user
 RUN apk update && apk upgrade
-RUN apk add go git ca-certificates musl-dev sqlite3
+RUN apk add go git ca-certificates musl-dev sqlite
 RUN mkdir -p /opt/orangeforum
 RUN adduser -h /opt/orangeforum -g 'orangeforum,,,,' -D orangeforum
 
