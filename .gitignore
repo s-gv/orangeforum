@@ -12,3 +12,4 @@ orangeforum
 *.JPEG
 bin
 Makefile
+.go
