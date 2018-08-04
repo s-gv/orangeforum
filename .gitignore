@@ -10,3 +10,6 @@ orangeforum
 *.JPG
 *.PNG
 *.JPEG
+bin
+Makefile
+.go
