@@ -1,10 +1,10 @@
-FROM alpine:3.8
+FROM ubuntu:bionic
 ENV args=""
 # Setup distro and user
-RUN apk update && apk upgrade
-RUN apk add go git ca-certificates musl-dev sqlite
+RUN apt-get update && apt-get upgrade -y
+RUN apt-get install -y golang git ca-certificates gcc sqlite make
 RUN mkdir -p /opt/orangeforum
-RUN adduser -h /opt/orangeforum -g 'orangeforum,,,,' -D orangeforum
+RUN adduser --home /opt/orangeforum --gecos 'orangeforum,,,,' --disabled-password orangeforum
 
 # Build orangeforum from source
 COPY . /usr/src/orangeforum
@@ -15,7 +15,7 @@ RUN go build
 RUN cp orangeforum /usr/bin/orangeforum
 
 # Cleanup build and dependencies
-RUN apk del go git musl-dev
+RUN apt-get purge golang git
 
 # Setup and run orangeforum
 USER orangeforum

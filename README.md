@@ -64,17 +64,22 @@ arguments passed to -addr will be canceled out.
 
 ### Docker
 
-To build the an image for running orangeforum within docker from source, first
-clone this git repository and change to it's directory. Then run:
+To use from Docker, you can pull from dockerhub with:
+
+        docker pull s-gv/orangeforum
+
+Alternatively, to build the an image for running orangeforum within docker from
+source, first clone this git repository and change to it's directory. Then run:
 
         docker build -t $(whoami)/orangeforum .
+        #(If you've building locally, replace s-gv with $(whoami) in the following docker run commands)
 
 To use within docker, you can run by creating a data container interactively to
 set up the superuser, then automatically close:
 
         docker run -i -t --name orangeforum-volume \
             --volumes orangeforum:/opt/orangeforum \
-            $(whoami)/orangeforum orangeforum -createsuperuser
+            s-gv/orangeforum orangeforum -createsuperuser
 
 Then, run orangeforum as a docker daemon, using the volume from the other docker
 container:
@@ -82,8 +87,8 @@ container:
         docker run -i -t -d -e args="" \
             --name orangeforum \
             --volumes-from orangeforum-volume \
-            -p 127.0.0.0:9123:9123 \
-            $(whoami)/orangeforum
+            -p 127.0.0.1:9123:9123 \
+            s-gv/orangeforum
 
 If you want, you can check if it's running, for instance
 
@@ -106,4 +111,4 @@ environment variable args when running the container, for instance
             -e args="-deletesessions" \
             --volumes-from orangeforum-volume \
             --name orangeforum \
-            $(whoami)/orangeforum
+            s-gv/orangeforum
