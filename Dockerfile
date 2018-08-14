@@ -15,7 +15,7 @@ RUN go build
 RUN cp orangeforum /usr/bin/orangeforum
 
 # Cleanup build and dependencies
-RUN apt-get purge golang git
+RUN apt-get purge -y golang git
 
 # Setup and run orangeforum
 USER orangeforum
