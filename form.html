@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Form page</title>
+    </head>
+    <body>
+        <form method="POST">
+            {{ .csrfField }}
+            <input type="text" name="name">
+            <input type="submit" value="Send">
+        </form>
+        Hi {{ .name }}
+    </body>
+</html>
