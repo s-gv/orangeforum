@@ -62,9 +62,6 @@ func main() {
 
 	formTmpl := template.Must(template.New("form").Parse(formTmplStr))
 
-	sessionManager := scs.New()
-	sessionManager.Lifetime = 24 * time.Hour
-
 	id := uuid.New()
 	fmt.Println(id.String())
 
@@ -73,14 +70,26 @@ func main() {
 
 	// For debugging/example purposes, we generate and print
 	// a sample jwt token with claims `user_id:123` here:
-	_, tokenString, _ := tokenAuth.Encode(map[string]interface{}{"user_id": 123, "exp": time.Now()})
+	_, tokenString, _ := tokenAuth.Encode(map[string]interface{}{"user_id": 123, "exp": time.Now().Add(365 * 24 * time.Hour)})
 	fmt.Printf("DEBUG: a sample jwt is %s\n\n", tokenString)
 
 	r := chi.NewRouter()
 
+	// Base middleware stack
+	r.Use(middleware.RequestID)
+	r.Use(middleware.RealIP)
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
+
+	csrfMiddleware := csrf.Protect([]byte("32-byte-long-auth-key"), csrf.Secure(false))
+	r.Use(csrfMiddleware)
+
+	sessionManager := scs.New()
+	sessionManager.Lifetime = 24 * time.Hour
+	r.Use(sessionManager.LoadAndSave)
+
 	// Protected routes
 	r.Group(func(r chi.Router) {
-		r.Use(middleware.Logger)
 		// Seek, verify and validate JWT tokens
 		r.Use(jwtauth.Verifier(tokenAuth))
 
@@ -96,14 +105,8 @@ func main() {
 		})
 	})
 
-	csrfMiddleware := csrf.Protect([]byte("32-byte-long-auth-key"), csrf.Secure(false))
-
 	// Public routes
 	r.Group(func(r chi.Router) {
-		r.Use(middleware.Logger)
-		r.Use(csrfMiddleware)
-		r.Use(sessionManager.LoadAndSave)
-
 		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte("welcome anonymous"))
 		})
