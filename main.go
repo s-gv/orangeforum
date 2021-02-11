@@ -27,19 +27,20 @@ import (
 var formTmplStr string
 
 type User struct {
-	Name  string
+	Name  uuid.UUID
 	Email string
 }
 
 func ins(db *sqlx.DB) {
-	name := "sagar"
 	email := "sagar@example.com"
 
 	tx, _ := db.Begin()
 	for i := 0; i < 10; i++ {
-		db.Exec("INSERT INTO users(name, email) VALUES($1, $2);", name, email)
+		name := uuid.New()
+		db.MustExec("INSERT INTO users(name, email) VALUES($1, $2);", name, email)
 
-		_, err := db.Exec("INSERT INTO users(name, email) VALUES($1, $2);", name, email)
+		name2 := uuid.New()
+		_, err := db.Exec("INSERT INTO users(name, email) VALUES($1, $2);", name2, email)
 		if err != nil {
 			panic(err)
 		}
@@ -47,6 +48,9 @@ func ins(db *sqlx.DB) {
 		var users []User
 		db.Select(&users, "SELECT name, email FROM users LIMIT 10;")
 		println(len(users))
+		if len(users) > 0 {
+			println(users[0].Name.String(), name.String())
+		}
 	}
 	tx.Commit()
 }
@@ -55,7 +59,7 @@ func main() {
 	db := sqlx.MustConnect("sqlite3", "orangeforum.db?_journal_mode=WAL")
 
 	db.MustExec(`CREATE TABLE users (
-		name text,
+		name UUID PRIMARY KEY,
 		email text);`)
 
 	ins(db)
@@ -109,6 +113,10 @@ func main() {
 	r.Group(func(r chi.Router) {
 		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte("welcome anonymous"))
+		})
+
+		r.Get("/bad", func(w http.ResponseWriter, r *http.Request) {
+			http.Error(w, "Bad reqeust sample", http.StatusBadRequest)
 		})
 
 		r.Get("/signin", func(w http.ResponseWriter, r *http.Request) {
