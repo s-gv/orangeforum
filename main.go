@@ -5,6 +5,7 @@
 package main
 
 import (
+	"database/sql"
 	_ "embed"
 	"fmt"
 	"html/template"
@@ -27,29 +28,38 @@ import (
 var formTmplStr string
 
 type User struct {
-	Name  uuid.UUID
-	Email string
+	ID         uuid.UUID    `db:"id"`
+	Email      string       `db:"email"`
+	CreatedAt  time.Time    `db:"created_at"`
+	UpdatedAt  time.Time    `db:"updated_at"`
+	ArchivedAt sql.NullTime `db:"archived_at"`
 }
 
 func ins(db *sqlx.DB) {
 	email := "sagar@example.com"
 
 	tx, _ := db.Begin()
-	for i := 0; i < 10; i++ {
-		name := uuid.New()
-		db.MustExec("INSERT INTO users(name, email) VALUES($1, $2);", name, email)
+	for i := 0; i < 1; i++ {
+		id := uuid.New()
+		t := time.Now().UTC()
+		db.MustExec("INSERT INTO users(id, email, archived_at) VALUES($1, $2, $3);", id, email, t)
+		db.MustExec("UPDATE users SET email = $1;", email)
 
-		name2 := uuid.New()
-		_, err := db.Exec("INSERT INTO users(name, email) VALUES($1, $2);", name2, email)
+		time.Sleep(2 * time.Second)
+
+		id2 := uuid.New()
+		_, err := db.Exec("INSERT INTO users(id, email) VALUES($1, $2);", id2, email)
 		if err != nil {
 			panic(err)
 		}
 
 		var users []User
-		db.Select(&users, "SELECT name, email FROM users LIMIT 10;")
+		db.Select(&users, "SELECT id, email, created_at, updated_at, archived_at FROM users ORDER BY datetime(created_at) ASC LIMIT 10;")
 		println(len(users))
-		if len(users) > 0 {
-			println(users[0].Name.String(), name.String())
+		if len(users) > 1 {
+			println(users[0].ID.String(), id.String())
+			println(users[0].CreatedAt.String(), users[0].UpdatedAt.String(), users[0].ArchivedAt.Time.String())
+			println(users[1].CreatedAt.String(), users[1].UpdatedAt.String(), users[1].ArchivedAt.Time.String())
 		}
 	}
 	tx.Commit()
@@ -58,9 +68,7 @@ func ins(db *sqlx.DB) {
 func main() {
 	db := sqlx.MustConnect("sqlite3", "orangeforum.db?_journal_mode=WAL")
 
-	db.MustExec(`CREATE TABLE users (
-		name UUID PRIMARY KEY,
-		email text);`)
+	migrationSqlite0001(db)
 
 	ins(db)
 
