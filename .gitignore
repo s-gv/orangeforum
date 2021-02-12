@@ -1,0 +1,12 @@
+*~
+*.swp*
+*.tmp*
+.idea
+orangeforum
+*.db*
+*.jpg
+*.png
+*.jpeg
+*.JPG
+*.PNG
+*.JPEG
