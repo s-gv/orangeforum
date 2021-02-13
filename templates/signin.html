@@ -1,0 +1,24 @@
+{{ define "title" }}
+Signin
+{{ end }}
+
+{{ define "body" }}
+<form method="POST">
+    {{ .csrfField }}
+    <input type="text" name="username" placeholder="Username">
+    <input type="password" name="password" placeholder="Password">
+    <input type="hidden" name="next" value="{{ .Next }}">
+    <input type="submit" name="submit" value="Signin">
+</form>
+{{ if .ErrMsg }}
+<p style="color:red;">{{ .ErrMsg }}</p>
+{{ end }}
+<p>
+    Want to sign in with a <a href="/auth/otsignin?next={{ .Next }}">one time link?</a>
+</p>
+<p>
+    Don't have an account? <a href="/auth/signup?next={{ .Next }}">Sign up!</a>
+</p>
+
+{{ .Var }}
+{{ end }}
