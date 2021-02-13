@@ -19,7 +19,7 @@ func migrateSqlite0001(db *sqlx.DB) {
 		is_superadmin BOOL NOT NULL DEFAULT false,
 		is_email_notifications_disabled BOOL NOT NULL DEFAULT false,
 		onetime_login_token VARCHAR(250) NOT NULL DEFAULT '',
-		onetime_login_at DATETIME NOT NULL DEFAULT (datetime(0, 'unixepoch')),
+		onetime_login_token_at DATETIME NOT NULL DEFAULT (datetime(0, 'unixepoch')),
 		reset_token VARCHAR(250) NOT NULL DEFAULT '',
 		reset_at DATETIME NOT NULL DEFAULT (datetime(0, 'unixepoch')),
 		logout_at DATETIME NOT NULL DEFAULT (datetime(0, 'unixepoch')),
@@ -34,7 +34,7 @@ func migrateSqlite0001(db *sqlx.DB) {
 		END;
 	`)
 	db.MustExec(`CREATE UNIQUE INDEX users_username_index on users(username);`)
-	db.MustExec(`CREATE UNIQUE INDEX users_email_index on users(email);`)
+	db.MustExec(`CREATE INDEX users_email_index on users(email);`)
 	db.MustExec(`CREATE INDEX users_otp_token_index on users(onetime_login_token);`)
 	db.MustExec(`CREATE INDEX users_reset_token_index on users(reset_token);`)
 	db.MustExec(`CREATE INDEX users_created_index on users(created_at);`)

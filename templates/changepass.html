@@ -1,0 +1,12 @@
+{{ define "body" }}
+<form method="POST">
+    {{ .csrfField }}
+    <input type="password" name="old_password" placeholder="Current Password">
+    <input type="password" name="password" placeholder="New Password">
+    <input type="password" name="password2" placeholder="New Password (again)">
+    <input type="submit" name="submit" value="Change password">
+</form>
+{{ if .ErrMsg }}
+<p style="color:red;">{{ .ErrMsg }}</p>
+{{ end }}
+{{ end }}

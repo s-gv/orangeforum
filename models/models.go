@@ -4,7 +4,6 @@
 
 package models
 
-func Migrate() error {
-	migrateSqlite0001(DB)
-	return nil
-}
+import "github.com/jmoiron/sqlx"
+
+var DB *sqlx.DB
