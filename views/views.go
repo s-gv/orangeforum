@@ -19,6 +19,9 @@ import (
 
 var tokenAuth *jwtauth.JWTAuth
 
+// SecretKey must be 32 byte long.
+var SecretKey string
+
 func GetRouter() *chi.Mux {
 	r := chi.NewRouter()
 
@@ -29,14 +32,14 @@ func GetRouter() *chi.Mux {
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.Timeout(30 * time.Second))
 
-	csrfMiddleware := csrf.Protect([]byte("32-byte-long-auth-key"), csrf.Secure(false))
+	csrfMiddleware := csrf.Protect([]byte(SecretKey), csrf.Secure(false))
 	r.Use(csrfMiddleware)
 
 	sessionManager := scs.New()
 	sessionManager.Lifetime = 24 * time.Hour
 	r.Use(sessionManager.LoadAndSave)
 
-	tokenAuth = jwtauth.New("HS256", []byte("secret1"), nil)
+	tokenAuth = jwtauth.New("HS256", []byte(SecretKey), nil)
 
 	// Auth routes
 	r.Route("/auth", func(r chi.Router) {

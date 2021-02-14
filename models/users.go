@@ -32,7 +32,7 @@ func CreateUser(id uuid.UUID, username string, email string, passwd string) erro
 func GetUserByID(id uuid.UUID) *User {
 	user := User{}
 	err := DB.Get(&user, "SELECT id, username, passwd_hash, email, logout_at FROM users WHERE id=$1;", id)
-	if err == sql.ErrNoRows {
+	if err != nil {
 		return nil
 	}
 	return &user
@@ -47,7 +47,7 @@ func GetUsersByEmail(email string) *[]User {
 func GetUserByPasswd(username, passwd string) *User {
 	user := User{}
 	err := DB.Get(&user, "SELECT id, username, passwd_hash, email, logout_at FROM users WHERE username=$1;", username)
-	if err == sql.ErrNoRows {
+	if err != nil {
 		return nil
 	}
 	if !checkPasswordHash(passwd, user.PasswdHash) {
