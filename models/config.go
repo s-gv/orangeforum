@@ -4,6 +4,8 @@
 
 package models
 
+import "database/sql"
+
 const (
 	ForumName = "forum_name"
 
@@ -14,10 +16,6 @@ const (
 	DefaultFromMail = "default_from_mail"
 )
 
-func CreateConfigValue(key string, val string) {
-	DB.Exec("INSERT INTO configs(name, val) VALUES($1, $2);", key, val)
-}
-
 func GetConfigValue(key string) string {
 	var val string
 	err := DB.Get(&val, "SELECT val FROM configs WHERE name=$1;", key)
@@ -27,6 +25,12 @@ func GetConfigValue(key string) string {
 	return val
 }
 
-func UpdateConfigValue(key string, val string) {
-	DB.Exec("UPDATE configs SET val = $1 WHERE name=$2;", val, key)
+func SetConfigValue(key string, val string) {
+	var dummy string
+	err := DB.Get(&dummy, "SELECT val FROM configs WHERE name=$1;", key)
+	if err == sql.ErrNoRows {
+		DB.Exec("INSERT INTO configs(name, val) VALUES($1, $2);", key, val)
+	} else {
+		DB.Exec("UPDATE configs SET val = $1 WHERE name=$2;", val, key)
+	}
 }

@@ -29,7 +29,7 @@ func main() {
 
 	views.SecretKey = os.Getenv("SECRET_KEY") // Ex: "s6JM1e8JTAphtKNR2y27XA8kkAaXOSYB" // 32 byte long
 	if len(views.SecretKey) != 32 {
-		glog.Errorf("Invalid Secret Key")
+		glog.Errorf("Invalid Secret Key. Using randomly generated key. This will invalidate any active sessions.")
 
 		var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 		b := make([]rune, 32)
