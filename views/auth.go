@@ -159,7 +159,12 @@ func postAuthOneTimeSignIn(w http.ResponseWriter, r *http.Request) {
 			errMsg = "A one time sign-in link has been sent to your email"
 			token := models.UpdateUserOneTimeLoginTokenByID(user.ID)
 			link := "http://" + r.Host + "/auth/otsignin/" + token + "?next=" + next
-			glog.Infof("Send email to %s with link %s", user.Email, link)
+
+			forumName := models.GetConfigValue(models.ForumName)
+			subject := forumName + " sign-in link"
+			body := "Someone (hopefully you) requested a sign-in link for " + forumName + ".\r\n" +
+				"If you want to sign-in, visit " + link + "\r\n\r\nIf not, just ignore this message."
+			sendMail(user.Email, subject, body)
 		}
 	}
 
