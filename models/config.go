@@ -14,11 +14,19 @@ const (
 	DefaultFromMail = "default_from_mail"
 )
 
+func CreateConfigValue(key string, val string) {
+	DB.Exec("INSERT INTO configs(name, val) VALUES($1, $2);", key, val)
+}
+
 func GetConfigValue(key string) string {
 	var val string
-	err := DB.Get(&val, "SELECT value FROM config WHERE key=$1;", key)
+	err := DB.Get(&val, "SELECT val FROM configs WHERE name=$1;", key)
 	if err != nil {
 		return ""
 	}
 	return val
+}
+
+func UpdateConfigValue(key string, val string) {
+	DB.Exec("UPDATE configs SET val = $1 WHERE name=$2;", val, key)
 }
