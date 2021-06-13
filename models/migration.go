@@ -5,6 +5,6 @@
 package models
 
 func Migrate() error {
-	migrateSqlite0001(DB)
+	migrate001(DB)
 	return nil
 }
