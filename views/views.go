@@ -15,6 +15,7 @@ import (
 	"github.com/go-chi/jwtauth"
 	"github.com/gorilla/csrf"
 	"github.com/s-gv/orangeforum/models"
+	"github.com/s-gv/orangeforum/orangemiddleware"
 )
 
 var tokenAuth *jwtauth.JWTAuth
@@ -24,6 +25,14 @@ var SecretKey string
 
 func forumRouter() *chi.Mux {
 	r := chi.NewRouter()
+
+	// A good base middleware stack
+	r.Use(middleware.RequestID)
+	r.Use(middleware.RealIP)
+	r.Use(orangemiddleware.IpFilter)
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
+	r.Use(middleware.Timeout(30 * time.Second))
 
 	csrfMiddleware := csrf.Protect([]byte(SecretKey), csrf.Secure(false))
 	r.Use(csrfMiddleware)
