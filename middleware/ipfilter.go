@@ -1,4 +1,4 @@
-package orangemiddleware
+package middleware
 
 import (
 	"net"
@@ -11,18 +11,18 @@ func IpFilter(handler http.Handler) http.Handler {
 		// go-chi's middleware/realip.go already parses for RealIp and xForwardedFor, further sets RemoteAddr to xForwardedFor ip if available.
 		ipAddress, _, splitHostPortError := net.SplitHostPort(r.RemoteAddr)
 		if splitHostPortError != nil {
-			w.WriteHeader(http.StatusUnauthorized)
+			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 			return
 		}
 
 		parsedIp := net.ParseIP(ipAddress)
 		if parsedIp == nil {
-			w.WriteHeader(http.StatusUnauthorized)
+			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 			return
 		}
 
 		if checkIfIpIsBlocked(parsedIp.String()) {
-			w.WriteHeader(http.StatusUnauthorized)
+			http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
 			return
 		}
 		handler.ServeHTTP(w, r)
