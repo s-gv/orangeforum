@@ -78,4 +78,11 @@ func migrate001(db *sqlx.DB) {
 
 	// Add some config data
 	db.MustExec(`INSERT INTO configs(name, val) VALUES('` + DBVersion + `', '1');`)
+	db.MustExec(`CREATE TABLE bannedips (
+		id									SERIAL PRIMARY KEY,
+		domain_id							INTEGER NOT NULL REFERENCES domains(domain_id) ON DELETE CASCADE,
+		ip									INET NOT NULL,
+		created_at							TIMESTAMPTZ NOT NULL DEFAULT current_timestamp
+	);`)
+	db.MustExec(`CREATE INDEX ip_address_idx ON bannedips USING gist(ip inet_ops)`)
 }

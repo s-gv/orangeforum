@@ -1,9 +1,11 @@
 package middleware
 
 import (
+	"database/sql"
 	"net"
 	"net/http"
-	"sort"
+
+	"github.com/s-gv/orangeforum/models"
 )
 
 func IpFilter(handler http.Handler) http.Handler {
@@ -21,7 +23,14 @@ func IpFilter(handler http.Handler) http.Handler {
 			return
 		}
 
-		if checkIfIpIsBlocked(parsedIp.String()) {
+		isIpBanned, ipFilterCheckError := checkIfIpAddressIsBanned(parsedIp.String())
+
+		if ipFilterCheckError != nil {
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+
+		if isIpBanned {
 			http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
 			return
 		}
@@ -29,18 +38,30 @@ func IpFilter(handler http.Handler) http.Handler {
 	})
 }
 
-func checkIfIpIsBlocked(ipAddress string) bool {
-	ipAddreses := getMockIpAddresses()
-	return findIpAddress(ipAddreses, ipAddress)
+func checkIfIpAddressIsBanned(ipAddress string) (bool, error) {
+	queriedIpFromDB, readError := getIpAddressFromDB(ipAddress)
+
+	if readError != nil {
+		return false, readError
+	}
+
+	return queriedIpFromDB != "", nil
 }
 
-//TO-DO look for a better algorithm
-func findIpAddress(ipAddresses []string, ipAddress string) bool {
-	sort.Strings(ipAddresses)
-	searchResIndex := sort.SearchStrings(ipAddresses, ipAddress)
-	return searchResIndex < len(ipAddresses) && ipAddresses[searchResIndex] == ipAddress
-}
+func getIpAddressFromDB(ipAddressToBeQueried string) (string, error) {
+	row := models.DB.QueryRow(`
+								SELECT host(ip)
+								FROM bannedips
+								WHERE ip = $1`, ipAddressToBeQueried)
 
-func getMockIpAddresses() []string {
-	return []string{"192.168.1.120", "192.167.1.2", "0.0.0.0", "56.78.123.45"}
+	var bannedIp string
+	err := row.Scan(&bannedIp)
+
+	if err == sql.ErrNoRows {
+		return "", nil
+	} else if err != nil {
+		return "", err
+	}
+
+	return bannedIp, nil
 }
