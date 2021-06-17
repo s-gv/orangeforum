@@ -29,6 +29,12 @@ func CreateUser(id uuid.UUID, username string, email string, passwd string) erro
 	return err
 }
 
+func CreateSuperUser(username string, passwd string) error {
+	passwdHash := hashPassword(passwd)
+	_, err := DB.Exec(`INSERT INTO users(username, passwd_hash) VALUES($1, $2);`, username, passwdHash)
+	return err
+}
+
 func GetUserByID(id uuid.UUID) *User {
 	user := User{}
 	err := DB.Get(&user, "SELECT id, username, passwd_hash, email, logout_at FROM users WHERE id=$1;", id)

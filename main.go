@@ -6,6 +6,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"math/rand"
 	"net/http"
 	"os"
@@ -21,11 +22,25 @@ import (
 
 func main() {
 	rand.Seed(time.Now().UnixNano())
+
+	createSuperUser := flag.Bool("createsuperuser", false, "Create superuser (interactive)")
+
 	flag.Parse()
 
 	db := sqlx.MustConnect("pgx", "postgres://dbuser:dbpass@localhost:5432/testdb")
 	models.DB = db
-	models.Migrate()
+	//models.Migrate()
+
+	if *createSuperUser {
+		fmt.Printf("Creating superuser...\n")
+		userName, pass := getCreds()
+		if userName != "" && pass != "" {
+			if err := models.CreateSuperUser(userName, pass); err != nil {
+				fmt.Printf("Error creating superuser: %s\n", err)
+			}
+		}
+		return
+	}
 
 	views.SecretKey = os.Getenv("SECRET_KEY") // Ex: "s6JM1e8JTAphtKNR2y27XA8kkAaXOSYB" // 32 byte long
 	if len(views.SecretKey) != 32 {

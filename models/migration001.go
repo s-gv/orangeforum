@@ -46,8 +46,8 @@ func migrate001(db *sqlx.DB) {
 
 	db.MustExec(`CREATE TABLE users(
 		user_id 							SERIAL PRIMARY KEY,
-		domain_id 							INTEGER NOT NULL REFERENCES domains(domain_id) ON DELETE CASCADE,
-		email 								VARCHAR(250) NOT NULL UNIQUE DEFAULT '',
+		domain_id 							INTEGER REFERENCES domains(domain_id) ON DELETE CASCADE,
+		email 								VARCHAR(250) DEFAULT '',
 		username 							VARCHAR(32) NOT NULL UNIQUE,
 		passwd_hash 						VARCHAR(250) NOT NULL,
 		about 								TEXT NOT NULL DEFAULT '',
@@ -71,10 +71,10 @@ func migrate001(db *sqlx.DB) {
 		updated_at 							TIMESTAMPTZ NOT NULL DEFAULT current_timestamp
 	);`)
 	db.MustExec(`CREATE TRIGGER update_timestamp BEFORE UPDATE ON users FOR EACH ROW EXECUTE PROCEDURE update_modified_timestamp();`)
-	db.MustExec(`CREATE UNIQUE INDEX users_username_index 	ON users(username);`)
-	db.MustExec(`CREATE UNIQUE INDEX users_email_index 		ON users(email);`)
-	db.MustExec(`CREATE INDEX users_otp_token_index 		ON users(onetime_login_token);`)
-	db.MustExec(`CREATE INDEX users_reset_token_index 		ON users(reset_token);`)
-	db.MustExec(`CREATE INDEX users_created_index 			ON users(created_at);`)
+	db.MustExec(`CREATE UNIQUE INDEX users_domain_username_index 	ON users(domain_id, username);`)
+	db.MustExec(`CREATE INDEX users_domain_email_index		 		ON users(domain_id, email);`)
+	db.MustExec(`CREATE INDEX users_otp_token_index 				ON users(onetime_login_token);`)
+	db.MustExec(`CREATE INDEX users_reset_token_index 				ON users(reset_token);`)
+	db.MustExec(`CREATE INDEX users_created_index 					ON users(created_at);`)
 
 }
