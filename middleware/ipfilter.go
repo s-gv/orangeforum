@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"database/sql"
 	"net"
 	"net/http"
 
@@ -39,29 +38,11 @@ func IpFilter(handler http.Handler) http.Handler {
 }
 
 func checkIfIpAddressIsBanned(ipAddress string) (bool, error) {
-	queriedIpFromDB, readError := getIpAddressFromDB(ipAddress)
+	queriedIpFromDB, readError := models.GetIpAddressFromBannedIpsTable(ipAddress)
 
 	if readError != nil {
 		return false, readError
 	}
 
 	return queriedIpFromDB != "", nil
-}
-
-func getIpAddressFromDB(ipAddressToBeQueried string) (string, error) {
-	row := models.DB.QueryRow(`
-								SELECT host(ip)
-								FROM bannedips
-								WHERE ip = $1`, ipAddressToBeQueried)
-
-	var bannedIp string
-	err := row.Scan(&bannedIp)
-
-	if err == sql.ErrNoRows {
-		return "", nil
-	} else if err != nil {
-		return "", err
-	}
-
-	return bannedIp, nil
 }
