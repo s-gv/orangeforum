@@ -55,6 +55,7 @@ func authenticate(id uuid.UUID, w http.ResponseWriter) error {
 func mustAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token, claims, err := jwtauth.FromContext(r.Context())
+		basePath, _ := r.Context().Value(BasePath).(string)
 
 		if err == nil && token != nil && jwt.Validate(token) == nil {
 			if uid, ok := claims["user_id"].(string); ok {
@@ -81,9 +82,9 @@ func mustAuth(next http.Handler) http.Handler {
 			HttpOnly: true,
 		})
 		if r.Method == "GET" {
-			http.Redirect(w, r, "/auth/signin?next="+r.URL.Path, http.StatusSeeOther)
+			http.Redirect(w, r, basePath+"/auth/signin?next="+r.URL.Path, http.StatusSeeOther)
 		} else {
-			http.Redirect(w, r, "/", http.StatusSeeOther)
+			http.Redirect(w, r, basePath+"/", http.StatusSeeOther)
 		}
 	})
 }
