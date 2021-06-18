@@ -27,15 +27,16 @@ func main() {
 
 	port := flag.String("port", "9123", "Port to listen on")
 	shouldMigrate := flag.Bool("migrate", false, "Migrate DB")
+	createDomain := flag.Bool("createdomain", false, "Create domain (interactive)")
 	createSuperUser := flag.Bool("createsuperuser", false, "Create superuser (interactive)")
-	createUser := flag.Bool("createuser", false, "Create user. Optional arguments: <domain> <username> <password> <email>")
-	changePasswd := flag.Bool("changepasswd", false, "Change password")
+	createUser := flag.Bool("createuser", false, "Create user (interactive)")
+	changePasswd := flag.Bool("changepasswd", false, "Change password (interactive)")
 
 	flag.Parse()
 
 	if dsn == "" {
 		dsn = "postgres://dbuser:dbpass@localhost:5432/testdb"
-		glog.Infof("Environment variable ORANGEFORUM_DSN not set. Using default dsn: %s", dsn)
+		glog.Warningf("Environment variable ORANGEFORUM_DSN not set. Using default dsn: %s\n", dsn)
 	}
 
 	db := sqlx.MustConnect("pgx", dsn)
@@ -55,6 +56,11 @@ func main() {
 		return
 	}
 
+	if *createDomain {
+		commandCreateDomain()
+		return
+	}
+
 	if *createSuperUser {
 		commandCreateSuperUser()
 		return
@@ -71,7 +77,7 @@ func main() {
 	}
 
 	if len(secretKey) != 32 {
-		glog.Errorf("Secret key in environment variable SECRET_KEY does not have length 32. Using randomly generated key. This will invalidate any active sessions.")
+		glog.Warningf("Secret key in environment variable SECRET_KEY does not have length 32. Using randomly generated key. This will invalidate any active sessions.")
 
 		var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 		b := make([]rune, 32)
