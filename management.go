@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"syscall"
 
+	"github.com/s-gv/orangeforum/models"
 	"golang.org/x/crypto/ssh/terminal"
 )
 
@@ -43,4 +44,21 @@ func getCreds() (string, string) {
 	}
 
 	return userName, pass
+}
+
+func commandCreateSuperUser() {
+	fmt.Printf("Creating superuser...\n")
+	userName, pass := getCreds()
+	if userName != "" && pass != "" {
+		if err := models.CreateSuperUser(userName, pass); err != nil {
+			fmt.Printf("Error creating superuser: %s\n", err)
+		}
+	}
+}
+
+func commandCreateUser() {
+}
+
+func commandChangePasswd() {
+
 }

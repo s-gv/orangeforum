@@ -4,7 +4,33 @@
 
 package models
 
+import (
+	"errors"
+)
+
+const CurrentDBVersion = 1
+
 func Migrate() error {
-	migrate001(DB)
+	iver := GetDBVersion()
+	if iver > CurrentDBVersion {
+		return errors.New("Database schema version newer than this binary. Get the latest version of OrangeForum.")
+	}
+	if iver == CurrentDBVersion {
+		return errors.New("Database schema is already up-to-date.")
+	}
+	if iver < 1 {
+		migrate001(DB)
+	}
+	return nil
+}
+
+func IsMigrationNeeded() error {
+	iver := GetDBVersion()
+	if iver < CurrentDBVersion {
+		return errors.New("Database migration needed.")
+	}
+	if iver > CurrentDBVersion {
+		return errors.New("Database schema version newer than this binary. Get the latest version of OrangeForum.")
+	}
 	return nil
 }

@@ -77,4 +77,6 @@ func migrate001(db *sqlx.DB) {
 	db.MustExec(`CREATE INDEX users_reset_token_index 				ON users(reset_token);`)
 	db.MustExec(`CREATE INDEX users_created_index 					ON users(created_at);`)
 
+	// Add some config data
+	db.MustExec(`INSERT INTO configs(name, val) VALUES('` + DBVersion + `', '1');`)
 }
