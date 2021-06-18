@@ -6,6 +6,7 @@ package models
 
 import (
 	"database/sql"
+	"errors"
 	"time"
 
 	"github.com/golang/glog"
@@ -21,17 +22,35 @@ type User struct {
 	LoggedOutAt time.Time `db:"logout_at"`
 }
 
-func CreateUser(id uuid.UUID, username string, email string, passwd string) error {
+func createUser(domainName string, email string, userName string, passwd string, isSuperUser bool) error {
+	domainID := GetDomainIDByName(domainName)
+	if domainID == nil {
+		return errors.New("Invalid domain")
+	}
 	passwdHash := hashPassword(passwd)
-	_, err := DB.Exec(`INSERT INTO users(id, username, passwd_hash, email) VALUES($1, $2, $3, $4);`,
-		id, username, passwdHash, email,
+	_, err := DB.Exec(`INSERT INTO users(domain_id, email, username, passwd_hash) VALUES($1, $2, $3, $4);`,
+		domainID, email, userName, passwdHash,
 	)
 	return err
 }
 
-func CreateSuperUser(username string, passwd string) error {
+func CreateUser(domainName string, email string, userName string, passwd string) error {
+	return createUser(domainName, email, userName, passwd, false)
+}
+
+func CreateSuperUser(domainName string, email string, userName string, passwd string) error {
+	return createUser(domainName, email, userName, passwd, true)
+}
+
+func ChangePasswd(domainName string, email string, passwd string) error {
+	domainID := GetDomainIDByName(domainName)
+	if domainID == nil {
+		return errors.New("Invalid domain")
+	}
 	passwdHash := hashPassword(passwd)
-	_, err := DB.Exec(`INSERT INTO users(username, passwd_hash) VALUES($1, $2);`, username, passwdHash)
+	_, err := DB.Exec(`UPDATE users SET passwd_hash = $1 WHERE domain_id = $2 AND email = $3;`,
+		passwdHash, domainID, email,
+	)
 	return err
 }
 

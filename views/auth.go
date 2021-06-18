@@ -220,7 +220,7 @@ func postAuthSignUp(w http.ResponseWriter, r *http.Request) {
 		if !strings.Contains(email, "@") {
 			email = ""
 		}
-		err := models.CreateUser(newUserID, username, email, passwd)
+		err := models.CreateUser("", email, "", passwd)
 		if err != nil {
 			glog.Errorf("Error creating user: %s", err.Error())
 			errMsg = "Error during signup."
