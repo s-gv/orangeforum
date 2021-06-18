@@ -4,10 +4,14 @@
 
 package models
 
-import "database/sql"
+import (
+	"database/sql"
+	"strconv"
+)
 
 const (
 	ForumName = "forum_name"
+	DBVersion = "db_version"
 
 	SMTPHost        = "smtp_host"
 	SMTPUser        = "smtp_user"
@@ -15,6 +19,15 @@ const (
 	SMTPPass        = "smtp_pass"
 	DefaultFromMail = "default_from_mail"
 )
+
+func GetDBVersion() int {
+	ver := GetConfigValue(DBVersion)
+	iver, err := strconv.Atoi(ver)
+	if err != nil {
+		return -1
+	}
+	return iver
+}
 
 func GetConfigValue(key string) string {
 	var val string
