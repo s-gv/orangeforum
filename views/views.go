@@ -22,15 +22,8 @@ var tokenAuth *jwtauth.JWTAuth
 // SecretKey must be 32 byte long.
 var SecretKey string
 
-func GetRouter() *chi.Mux {
+func forumRouter() *chi.Mux {
 	r := chi.NewRouter()
-
-	// A good base middleware stack
-	r.Use(middleware.RequestID)
-	r.Use(middleware.RealIP)
-	r.Use(middleware.Logger)
-	r.Use(middleware.Recoverer)
-	r.Use(middleware.Timeout(30 * time.Second))
 
 	csrfMiddleware := csrf.Protect([]byte(SecretKey), csrf.Secure(false))
 	r.Use(csrfMiddleware)
@@ -84,7 +77,8 @@ func GetRouter() *chi.Mux {
 			if u, ok := r.Context().Value(CtxUserKey).(*models.User); ok {
 				user = u
 			}
-			w.Write([]byte(fmt.Sprintf("public area. hi %v", user)))
+			domainID, _ := r.Context().Value(DomainID).(string)
+			w.Write([]byte(fmt.Sprintf("public area. hi %v. domain_id %v", user, domainID)))
 		})
 	})
 
@@ -96,6 +90,31 @@ func GetRouter() *chi.Mux {
 			user := r.Context().Value(CtxUserKey).(*models.User)
 			w.Write([]byte(fmt.Sprintf("protected area. hi %v", user)))
 		})
+	})
+
+	return r
+}
+
+func GetRouter() *chi.Mux {
+	r := chi.NewRouter()
+
+	// A good base middleware stack
+	r.Use(middleware.RequestID)
+	r.Use(middleware.RealIP)
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
+	r.Use(middleware.Timeout(30 * time.Second))
+
+	fr := forumRouter()
+
+	r.Route("/domains/{domainName}", func(r chi.Router) {
+		r.Use(DomainCtx)
+		r.Mount("/", fr)
+	})
+
+	r.Route("/", func(r chi.Router) {
+		r.Use(HostCtx)
+		r.Mount("/", fr)
 	})
 
 	return r
