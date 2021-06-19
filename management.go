@@ -15,10 +15,16 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 )
 
-func getCreds() (string, string, string, string) {
+func getCreds() (int, string, string, string) {
 	var domainName string
 	fmt.Printf("Domain name: ")
 	fmt.Scanf("%s\n", &domainName)
+
+	domainID := models.GetDomainIDByName(domainName)
+	if domainID == nil {
+		fmt.Printf("[ERROR] Invalid domain\n")
+		return -1, "", "", ""
+	}
 
 	var email string
 	fmt.Printf("E-mail: ")
@@ -26,7 +32,7 @@ func getCreds() (string, string, string, string) {
 
 	if strings.Contains(email, " ") || !strings.Contains(email, "@") {
 		fmt.Printf("[ERROR] Invalid email\n")
-		return "", "", "", ""
+		return -1, "", "", ""
 	}
 
 	userName := strings.Split(email, "@")[0] + strconv.Itoa(rand.Intn(100000000))
@@ -36,11 +42,11 @@ func getCreds() (string, string, string, string) {
 	fmt.Printf("\n")
 	if err != nil {
 		fmt.Printf("[ERROR] %s\n", err)
-		return "", "", "", ""
+		return -1, "", "", ""
 	}
 	if len(password) < 8 {
 		fmt.Printf("[ERROR] Password should have at least 8 characters.\n")
-		return "", "", "", ""
+		return -1, "", "", ""
 	}
 
 	fmt.Printf("Password (again): ")
@@ -54,17 +60,17 @@ func getCreds() (string, string, string, string) {
 	pass2 := string(password2)
 	if pass != pass2 {
 		fmt.Printf("[ERROR] The two psasswords do not match.\n")
-		return "", "", "", ""
+		return -1, "", "", ""
 	}
 
-	return domainName, email, userName, pass
+	return *domainID, email, userName, pass
 }
 
 func commandCreateSuperUser() {
 	fmt.Printf("Creating superuser...\n")
-	domainName, email, userName, passwd := getCreds()
+	domainID, email, userName, passwd := getCreds()
 	if userName != "" && passwd != "" {
-		if err := models.CreateSuperUser(domainName, email, userName, passwd); err != nil {
+		if err := models.CreateSuperUser(domainID, email, userName, passwd); err != nil {
 			fmt.Printf("Error creating superuser: %s\n", err)
 		}
 	}
@@ -72,9 +78,9 @@ func commandCreateSuperUser() {
 
 func commandCreateUser() {
 	fmt.Printf("Creating user...\n")
-	domainName, email, userName, passwd := getCreds()
+	domainID, email, userName, passwd := getCreds()
 	if userName != "" && passwd != "" {
-		if err := models.CreateUser(domainName, email, userName, passwd); err != nil {
+		if err := models.CreateUser(domainID, email, userName, passwd); err != nil {
 			fmt.Printf("Error creating superuser: %s\n", err)
 		}
 	}
@@ -82,9 +88,9 @@ func commandCreateUser() {
 
 func commandChangePasswd() {
 	fmt.Printf("Enter new credentials...\n")
-	domainName, email, _, passwd := getCreds()
+	domainID, email, _, passwd := getCreds()
 	if passwd != "" {
-		if err := models.ChangePasswd(domainName, email, passwd); err != nil {
+		if err := models.ChangePasswd(domainID, email, passwd); err != nil {
 			fmt.Printf("Error changing password: %s\n", err)
 		}
 	}

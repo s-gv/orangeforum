@@ -6,7 +6,6 @@ package models
 
 import (
 	"database/sql"
-	"errors"
 	"time"
 
 	"github.com/golang/glog"
@@ -15,18 +14,33 @@ import (
 )
 
 type User struct {
-	ID          uuid.UUID `db:"id"`
-	Username    string
-	PasswdHash  string `db:"passwd_hash"`
-	Email       string
-	LoggedOutAt time.Time `db:"logout_at"`
+	UserID                      int          `db:"user_id"`
+	DomainID                    int          `db:"domain_id"`
+	Email                       string       `db:"email"`
+	UserName                    string       `db:"username"`
+	PasswdHash                  string       `db:"passwd_hash"`
+	About                       string       `db:"about"`
+	IsSuperAdmin                bool         `db:"is_superadmin"`
+	IsTopicAutoSub              bool         `db:"is_topic_autosubscribe"`
+	IsCommentAutoSub            bool         `db:"is_comment_autosubscribe"`
+	IsEmailNotificationDisabled bool         `db:"is_email_notifications_disabled"`
+	NumTopics                   int          `db:"num_topics"`
+	NumComments                 int          `db:"num_comments"`
+	NumActivity                 int          `db:"num_activity"`
+	OnetimeLoginToken           string       `db:"onetime_login_token"`
+	OnetimeLoginTokenAt         sql.NullTime `db:"onetime_login_token_at"`
+	ResetToken                  string       `db:"reset_token"`
+	LastIP                      string       `db:"last_ip"`
+	ActivityAt                  sql.NullTime `db:"activity_at"`
+	ResetAt                     sql.NullTime `db:"reset_at"`
+	LogoutAt                    sql.NullTime `db:"logout_at"`
+	BannedAt                    sql.NullTime `db:"banned_at"`
+	ArchivedAt                  sql.NullTime `db:"archived_at"`
+	CreatedAt                   sql.NullTime `db:"created_at"`
+	UpdatedAt                   sql.NullTime `db:"updated_at"`
 }
 
-func createUser(domainName string, email string, userName string, passwd string, isSuperUser bool) error {
-	domainID := GetDomainIDByName(domainName)
-	if domainID == nil {
-		return errors.New("Invalid domain")
-	}
+func createUser(domainID int, email string, userName string, passwd string, isSuperUser bool) error {
 	passwdHash := hashPassword(passwd)
 	_, err := DB.Exec(`INSERT INTO users(domain_id, email, username, passwd_hash) VALUES($1, $2, $3, $4);`,
 		domainID, email, userName, passwdHash,
@@ -34,19 +48,15 @@ func createUser(domainName string, email string, userName string, passwd string,
 	return err
 }
 
-func CreateUser(domainName string, email string, userName string, passwd string) error {
-	return createUser(domainName, email, userName, passwd, false)
+func CreateUser(domainID int, email string, userName string, passwd string) error {
+	return createUser(domainID, email, userName, passwd, false)
 }
 
-func CreateSuperUser(domainName string, email string, userName string, passwd string) error {
-	return createUser(domainName, email, userName, passwd, true)
+func CreateSuperUser(domainID int, email string, userName string, passwd string) error {
+	return createUser(domainID, email, userName, passwd, true)
 }
 
-func ChangePasswd(domainName string, email string, passwd string) error {
-	domainID := GetDomainIDByName(domainName)
-	if domainID == nil {
-		return errors.New("Invalid domain")
-	}
+func ChangePasswd(domainID int, email string, passwd string) error {
 	passwdHash := hashPassword(passwd)
 	_, err := DB.Exec(`UPDATE users SET passwd_hash = $1 WHERE domain_id = $2 AND email = $3;`,
 		passwdHash, domainID, email,
@@ -54,25 +64,37 @@ func ChangePasswd(domainName string, email string, passwd string) error {
 	return err
 }
 
-func GetUserByID(id uuid.UUID) *User {
+func GetUserByID(userID int) *User {
 	user := User{}
-	err := DB.Get(&user, "SELECT id, username, passwd_hash, email, logout_at FROM users WHERE id=$1;", id)
+	err := DB.Get(&user, "SELECT * FROM users WHERE user_id=$1;", userID)
 	if err != nil {
+		if err != sql.ErrNoRows {
+			glog.Errorf("Error reading user by email: %s\n", err.Error())
+		}
 		return nil
 	}
 	return &user
 }
 
-func GetUsersByEmail(email string) *[]User {
-	users := []User{}
-	DB.Select(&users, "SELECT id, username, passwd_hash, email, logout_at FROM users WHERE email=$1;", email)
-	return &users
+func GetUserByEmail(domainID int, email string) *User {
+	user := User{}
+	err := DB.Get(&user, "SELECT * FROM users WHERE domain_id=$1 AND email=$2;", domainID, email)
+	if err != nil {
+		if err != sql.ErrNoRows {
+			glog.Errorf("Error reading user by email: %s\n", err.Error())
+		}
+		return nil
+	}
+	return &user
 }
 
-func GetUserByPasswd(username, passwd string) *User {
+func GetUserByPasswd(domainID int, email string, passwd string) *User {
 	user := User{}
-	err := DB.Get(&user, "SELECT id, username, passwd_hash, email, logout_at FROM users WHERE username=$1;", username)
+	err := DB.Get(&user, "SELECT * FROM users WHERE domain_id=$1 AND email=$2;", domainID, email)
 	if err != nil {
+		if err != sql.ErrNoRows {
+			glog.Errorf("Error getting user by passwd: %s", err.Error())
+		}
 		return nil
 	}
 	if !checkPasswordHash(passwd, user.PasswdHash) {
@@ -81,47 +103,42 @@ func GetUserByPasswd(username, passwd string) *User {
 	return &user
 }
 
-func GetUserByOneTimeToken(oneTimeToken string) *User {
+func GetUserByOneTimeToken(domainID int, oneTimeToken string) *User {
 	user := User{}
-	err := DB.Get(&user, "SELECT id, username, passwd_hash, email, logout_at FROM users WHERE onetime_login_token=$1;", oneTimeToken)
+	err := DB.Get(&user, "SELECT * FROM users WHERE domain_id=$1 AND onetime_login_token=$1;", domainID, oneTimeToken)
 	if err == sql.ErrNoRows {
 		return nil
 	}
-	var tokenTime time.Time
-	er := DB.Get(&tokenTime, "SELECT onetime_login_token_at FROM users WHERE id=$1;", user.ID)
-	if er == sql.ErrNoRows {
+	if !user.OnetimeLoginTokenAt.Valid || user.OnetimeLoginTokenAt.Time.Add(time.Hour).Before(time.Now()) {
 		return nil
 	}
-	if tokenTime.Add(time.Hour).Before(time.Now()) {
-		return nil
-	}
-	_, e := DB.Exec("UPDATE users SET onetime_login_token_at = (datetime(0, 'unixepoch')) WHERE id=$1;", user.ID)
+	_, e := DB.Exec("UPDATE users SET onetime_login_token_at = to_timestamp(0) WHERE user_id=$1;", user.UserID)
 	if e != nil {
 		glog.Errorf("Error resetting onetime sign-in token creation time: %s", e)
 	}
 	return &user
 }
 
-func UpdateUserPasswdByID(id uuid.UUID, passwd string) error {
+func UpdateUserPasswdByID(userID int, passwd string) error {
 	passwdHash := hashPassword(passwd)
-	_, err := DB.Exec(`UPDATE users SET passwd_hash = $1 WHERE id=$2;`, passwdHash, id)
+	_, err := DB.Exec(`UPDATE users SET passwd_hash = $1 WHERE user_id=$2;`, passwdHash, userID)
 	if err != nil {
 		glog.Errorf("Error updating password: %s", err.Error())
 	}
 	return err
 }
 
-func UpdateUserOneTimeLoginTokenByID(id uuid.UUID) string {
+func UpdateUserOneTimeLoginTokenByID(userID int) string {
 	token := uuid.New().String()
-	_, err := DB.Exec(`UPDATE users SET onetime_login_token = $1, onetime_login_token_at = current_timestamp WHERE id=$2;`, token, id)
+	_, err := DB.Exec(`UPDATE users SET onetime_login_token = $1, onetime_login_token_at = current_timestamp WHERE user_id=$2;`, token, userID)
 	if err != nil {
 		glog.Errorf("Error updating one-time signin token: %s", err.Error())
 	}
 	return token
 }
 
-func LogOutUserByID(id uuid.UUID) error {
-	_, err := DB.Exec(`UPDATE users SET logout_at = current_timestamp WHERE id=$1;`, id)
+func LogOutUserByID(userID int) error {
+	_, err := DB.Exec(`UPDATE users SET logout_at = current_timestamp WHERE user_id=$1;`, userID)
 	return err
 }
 
