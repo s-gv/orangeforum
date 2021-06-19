@@ -15,8 +15,8 @@ import (
 type contextKey string
 
 const (
-	BasePath = contextKey("base_path")
-	DomainID = contextKey("domain_id")
+	CtxBasePath = contextKey("base_path")
+	CtxDomainID = contextKey("domain_id")
 )
 
 func DomainCtx(next http.Handler) http.Handler {
@@ -32,8 +32,8 @@ func DomainCtx(next http.Handler) http.Handler {
 			http.Redirect(w, r, r.URL.Path[len(basePath):], http.StatusSeeOther)
 			return
 		}
-		ctx := context.WithValue(r.Context(), DomainID, *domainID)
-		ctx2 := context.WithValue(ctx, BasePath, "/domains/"+domainName)
+		ctx := context.WithValue(r.Context(), CtxDomainID, *domainID)
+		ctx2 := context.WithValue(ctx, CtxBasePath, "/domains/"+domainName)
 		next.ServeHTTP(w, r.WithContext(ctx2))
 	})
 }
@@ -46,8 +46,8 @@ func HostCtx(next http.Handler) http.Handler {
 			http.Error(w, http.StatusText(404), 404)
 			return
 		}
-		ctx := context.WithValue(r.Context(), DomainID, *domainID)
-		ctx2 := context.WithValue(ctx, BasePath, "")
+		ctx := context.WithValue(r.Context(), CtxDomainID, *domainID)
+		ctx2 := context.WithValue(ctx, CtxBasePath, "")
 		next.ServeHTTP(w, r.WithContext(ctx2))
 	})
 }

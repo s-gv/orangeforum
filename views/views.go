@@ -77,7 +77,7 @@ func forumRouter() *chi.Mux {
 			if u, ok := r.Context().Value(CtxUserKey).(*models.User); ok {
 				user = u
 			}
-			domainID, _ := r.Context().Value(DomainID).(string)
+			domainID, _ := r.Context().Value(CtxDomainID).(string)
 			w.Write([]byte(fmt.Sprintf("public area. hi %v. domain_id %v", user, domainID)))
 		})
 	})
