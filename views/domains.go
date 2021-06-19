@@ -19,6 +19,8 @@ const (
 	CtxDomainID = contextKey("domain_id")
 )
 
+const BasePathField = "BasePath"
+
 func DomainCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		domainName := chi.URLParam(r, "domainName")
@@ -50,4 +52,12 @@ func HostCtx(next http.Handler) http.Handler {
 		ctx2 := context.WithValue(ctx, CtxBasePath, "")
 		next.ServeHTTP(w, r.WithContext(ctx2))
 	})
+}
+
+func basePath(r *http.Request) string {
+	return r.Context().Value(CtxBasePath).(string)
+}
+
+func domainID(r *http.Request) int {
+	return r.Context().Value(CtxDomainID).(int)
 }

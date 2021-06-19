@@ -92,6 +92,13 @@ func forumRouter() *chi.Mux {
 		})
 	})
 
+	r.Route("/", func(r chi.Router) {
+		r.Use(jwtauth.Verifier(tokenAuth))
+		r.Use(canAuth)
+
+		r.Get("/", getIndex)
+	})
+
 	return r
 }
 

@@ -119,7 +119,7 @@ func getAuthSignIn(w http.ResponseWriter, r *http.Request) {
 	next := cleanNextURL(r.FormValue("next"))
 	templates.Signin.Execute(w, map[string]interface{}{
 		csrf.TemplateTag: csrf.TemplateField(r),
-		"BasePath":       basePath,
+		BasePathField:    basePath,
 		"Next":           next,
 	})
 }
@@ -140,7 +140,7 @@ func postAuthSignIn(w http.ResponseWriter, r *http.Request) {
 	}
 	templates.Signin.Execute(w, map[string]interface{}{
 		csrf.TemplateTag: csrf.TemplateField(r),
-		"BasePath":       basePath,
+		BasePathField:    basePath,
 		"Next":           next,
 		"ErrMsg":         "Invalid username / password",
 	})
@@ -151,7 +151,7 @@ func getAuthOneTimeSignIn(w http.ResponseWriter, r *http.Request) {
 	next := cleanNextURL(r.FormValue("next"))
 	templates.OneTimeSignin.Execute(w, map[string]interface{}{
 		csrf.TemplateTag: csrf.TemplateField(r),
-		"BasePath":       basePath,
+		BasePathField:    basePath,
 		"Next":           next,
 	})
 }
@@ -180,7 +180,7 @@ func postAuthOneTimeSignIn(w http.ResponseWriter, r *http.Request) {
 
 	templates.OneTimeSignin.Execute(w, map[string]interface{}{
 		csrf.TemplateTag: csrf.TemplateField(r),
-		"BasePath":       basePath,
+		BasePathField:    basePath,
 		"Next":           next,
 		"ErrMsg":         errMsg,
 	})
@@ -206,7 +206,7 @@ func getAuthSignUp(w http.ResponseWriter, r *http.Request) {
 	next := cleanNextURL(r.FormValue("next"))
 	templates.Signup.Execute(w, map[string]interface{}{
 		csrf.TemplateTag: csrf.TemplateField(r),
-		"BasePath":       basePath,
+		BasePathField:    basePath,
 		"Next":           next,
 	})
 }
@@ -263,7 +263,7 @@ func postAuthSignUp(w http.ResponseWriter, r *http.Request) {
 
 	templates.Signup.Execute(w, map[string]interface{}{
 		csrf.TemplateTag: csrf.TemplateField(r),
-		"BasePath":       basePath,
+		BasePathField:    basePath,
 		"ErrMsg":         errMsg,
 		"Next":           next,
 	})
@@ -273,7 +273,7 @@ func getAuthChangePass(w http.ResponseWriter, r *http.Request) {
 	basePath := r.Context().Value(CtxBasePath).(string)
 	templates.ChangePass.Execute(w, map[string]interface{}{
 		csrf.TemplateTag: csrf.TemplateField(r),
-		"BasePath":       basePath,
+		BasePathField:    basePath,
 	})
 }
 
@@ -309,7 +309,7 @@ func postAuthChangePass(w http.ResponseWriter, r *http.Request) {
 	}
 	templates.ChangePass.Execute(w, map[string]interface{}{
 		csrf.TemplateTag: csrf.TemplateField(r),
-		"BasePath":       basePath,
+		BasePathField:    basePath,
 		"ErrMsg":         errMsg,
 	})
 }
