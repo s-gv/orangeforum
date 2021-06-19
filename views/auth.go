@@ -6,36 +6,38 @@ package views
 
 import (
 	"context"
+	"math/rand"
 	"net/http"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/jwtauth"
 	"github.com/golang/glog"
-	"github.com/google/uuid"
 	"github.com/gorilla/csrf"
 	"github.com/lestrrat-go/jwx/jwt"
 	"github.com/s-gv/orangeforum/models"
 	"github.com/s-gv/orangeforum/templates"
 )
 
-const CtxUserKey string = "user"
+const CtxUserKey = contextKey("user")
 
 var userNameReg *regexp.Regexp
 var nextURLReg *regexp.Regexp
+var emailReg *regexp.Regexp
 
 func cleanNextURL(next string) string {
-	if next == "" || strings.Contains(next, ":") || next[0] != '/' || nextURLReg.ReplaceAllString(next, "") != next {
+	if next == "" || next[0] != '/' {
 		return "/"
 	}
 	return next
 }
 
-func authenticate(id uuid.UUID, w http.ResponseWriter) error {
+func authenticate(id int, w http.ResponseWriter) error {
 	_, tokenString, err := tokenAuth.Encode(map[string]interface{}{
-		"user_id": id.String(),
+		"user_id": strconv.Itoa(id),
 		"iat":     time.Now(),
 		"exp":     time.Now().Add(365 * 24 * time.Hour),
 	})
@@ -59,16 +61,14 @@ func mustAuth(next http.Handler) http.Handler {
 
 		if err == nil && token != nil && jwt.Validate(token) == nil {
 			if uid, ok := claims["user_id"].(string); ok {
-				userID, er := uuid.Parse(uid)
-				if er == nil {
-					if iat, ok := claims["iat"].(time.Time); ok {
-						user := models.GetUserByID(userID)
-						if user != nil && user.LoggedOutAt.Before(iat) {
-							ctx := context.WithValue(r.Context(), CtxUserKey, user)
-							// Token is authenticated, pass it through
-							next.ServeHTTP(w, r.WithContext(ctx))
-							return
-						}
+				if iat, ok := claims["iat"].(time.Time); ok {
+					userID, _ := strconv.Atoi(uid)
+					user := models.GetUserByID(userID)
+					if user != nil && user.LogoutAt.Time.Before(iat) {
+						ctx := context.WithValue(r.Context(), CtxUserKey, user)
+						// Token is authenticated, pass it through
+						next.ServeHTTP(w, r.WithContext(ctx))
+						return
 					}
 				}
 			}
@@ -95,16 +95,14 @@ func canAuth(next http.Handler) http.Handler {
 
 		if err == nil && token != nil && jwt.Validate(token) == nil {
 			if uid, ok := claims["user_id"].(string); ok {
-				userID, er := uuid.Parse(uid)
-				if er == nil {
-					if iat, ok := claims["iat"].(time.Time); ok {
-						user := models.GetUserByID(userID)
-						if user != nil && user.LoggedOutAt.Before(iat) {
-							ctx := context.WithValue(r.Context(), CtxUserKey, user)
-							// Token is authenticated, pass it through
-							next.ServeHTTP(w, r.WithContext(ctx))
-							return
-						}
+				if iat, ok := claims["iat"].(time.Time); ok {
+					userID, _ := strconv.Atoi(uid)
+					user := models.GetUserByID(userID)
+					if user != nil && user.LogoutAt.Time.Before(iat) {
+						ctx := context.WithValue(r.Context(), CtxUserKey, user)
+						// Token is authenticated, pass it through
+						next.ServeHTTP(w, r.WithContext(ctx))
+						return
 					}
 				}
 			}
@@ -115,20 +113,24 @@ func canAuth(next http.Handler) http.Handler {
 }
 
 func getAuthSignIn(w http.ResponseWriter, r *http.Request) {
+	basePath := r.Context().Value(BasePath).(string)
 	next := cleanNextURL(r.FormValue("next"))
 	templates.Signin.Execute(w, map[string]interface{}{
 		csrf.TemplateTag: csrf.TemplateField(r),
+		"BasePath":       basePath,
 		"Next":           next,
 	})
 }
 
 func postAuthSignIn(w http.ResponseWriter, r *http.Request) {
+	domainID := r.Context().Value(DomainID).(int)
+	basePath := r.Context().Value(BasePath).(string)
 	next := cleanNextURL(r.FormValue("next"))
-	username := r.PostFormValue("username")
+	email := r.PostFormValue("email")
 	passwd := r.PostFormValue("password")
-	user := models.GetUserByPasswd(username, passwd)
+	user := models.GetUserByPasswd(domainID, email, passwd)
 	if user != nil {
-		err := authenticate(user.ID, w)
+		err := authenticate(user.UserID, w)
 		if err != nil {
 			glog.Errorf("Error authenticating: %s", err.Error())
 		}
@@ -136,52 +138,59 @@ func postAuthSignIn(w http.ResponseWriter, r *http.Request) {
 	}
 	templates.Signin.Execute(w, map[string]interface{}{
 		csrf.TemplateTag: csrf.TemplateField(r),
+		"BasePath":       basePath,
 		"Next":           next,
 		"ErrMsg":         "Invalid username / password",
 	})
 }
 
 func getAuthOneTimeSignIn(w http.ResponseWriter, r *http.Request) {
+	basePath := r.Context().Value(BasePath).(string)
 	next := cleanNextURL(r.FormValue("next"))
 	templates.OneTimeSignin.Execute(w, map[string]interface{}{
 		csrf.TemplateTag: csrf.TemplateField(r),
+		"BasePath":       basePath,
 		"Next":           next,
 	})
 }
 
 func postAuthOneTimeSignIn(w http.ResponseWriter, r *http.Request) {
+	domainID := r.Context().Value(DomainID).(int)
+	basePath := r.Context().Value(BasePath).(string)
 	next := cleanNextURL(r.PostFormValue("next"))
 	email := r.PostFormValue("email")
 	errMsg := "E-mail not found"
 
-	users := models.GetUsersByEmail(email)
-	for _, user := range *users {
-		if len(user.Email) > 0 {
-			errMsg = "A one time sign-in link has been sent to your email"
-			token := models.UpdateUserOneTimeLoginTokenByID(user.ID)
-			link := "http://" + r.Host + "/auth/otsignin/" + token + "?next=" + next
+	user := models.GetUserByEmail(domainID, email)
+	if user != nil {
+		println(user.Email)
+		errMsg = "A one time sign-in link has been sent to your email"
+		token := models.UpdateUserOneTimeLoginTokenByID(user.UserID)
+		link := "http://" + r.Host + basePath + "/auth/otsignin/" + token + "?next=" + next
 
-			forumName := models.GetConfigValue(models.ForumName)
-			subject := forumName + " sign-in link"
-			body := "Someone (hopefully you) requested a sign-in link for " + forumName + ".\r\n" +
-				"If you want to sign-in, visit " + link + "\r\n\r\nIf not, just ignore this message."
-			sendMail(user.Email, subject, body)
-		}
+		// domain := models.GetDomainByID(domainID) // TODO
+		forumName := "Orange Forum" // TODO
+		subject := forumName + " sign-in link"
+		body := "Someone (hopefully you) requested a sign-in link for " + forumName + ".\r\n" +
+			"If you want to sign-in, visit " + link + "\r\n\r\nIf not, just ignore this message."
+		sendMail(user.Email, subject, body)
 	}
 
 	templates.OneTimeSignin.Execute(w, map[string]interface{}{
 		csrf.TemplateTag: csrf.TemplateField(r),
+		"BasePath":       basePath,
 		"Next":           next,
 		"ErrMsg":         errMsg,
 	})
 }
 
 func getAuthOneTimeSignInDone(w http.ResponseWriter, r *http.Request) {
+	domainID := r.Context().Value(DomainID).(int)
 	next := cleanNextURL(r.FormValue("next"))
 	token := chi.URLParam(r, "token")
-	user := models.GetUserByOneTimeToken(token)
+	user := models.GetUserByOneTimeToken(domainID, token)
 	if user != nil {
-		if err := authenticate(user.ID, w); err == nil {
+		if err := authenticate(user.UserID, w); err == nil {
 			http.Redirect(w, r, next, http.StatusSeeOther)
 			return
 		}
@@ -190,38 +199,49 @@ func getAuthOneTimeSignInDone(w http.ResponseWriter, r *http.Request) {
 }
 
 func getAuthSignUp(w http.ResponseWriter, r *http.Request) {
+	basePath := r.Context().Value(BasePath).(string)
 	next := cleanNextURL(r.FormValue("next"))
 	templates.Signup.Execute(w, map[string]interface{}{
 		csrf.TemplateTag: csrf.TemplateField(r),
+		"BasePath":       basePath,
 		"Next":           next,
 	})
 }
 
 func postAuthSignUp(w http.ResponseWriter, r *http.Request) {
-	username := r.PostFormValue("username")
+	domainID := r.Context().Value(DomainID).(int)
+	basePath := r.Context().Value(BasePath).(string)
+	next := cleanNextURL(r.FormValue("next"))
+
+	email := r.PostFormValue("email")
 	passwd := r.PostFormValue("password")
 	passwd2 := r.PostFormValue("password2")
-	email := r.PostFormValue("email")
-	next := cleanNextURL(r.FormValue("next"))
-	newUserID := uuid.New()
+
+	email = strings.Trim(email, " ")
 
 	errMsg := ""
-	if len(username) < 2 {
-		errMsg = "Username should have at least 2 characters"
-	} else if userNameReg.ReplaceAllString(username, "") != username {
-		errMsg = "Username should not have non-alphanumeric characters"
+	if !strings.Contains(email, "@") {
+		errMsg = "Invalid email"
+	}
+	if len(email) < 3 {
+		errMsg = "Email should have at least 3 characters"
+	} else if emailReg.ReplaceAllString(email, "") != email {
+		errMsg = "Email should not have non-alphanumeric characters"
 	} else if len(passwd) < 6 {
 		errMsg = "Password should have at least 6 characters"
 	} else if passwd != passwd2 {
 		errMsg = "Passwords do not match"
 	}
 
+	existingUser := models.GetUserByEmail(domainID, email)
+	if existingUser != nil {
+		errMsg = "E-mail already registered"
+	}
+
 	if errMsg == "" {
-		email = strings.Trim(email, " ")
-		if !strings.Contains(email, "@") {
-			email = ""
-		}
-		err := models.CreateUser("", email, "", passwd)
+		userName := strings.Split(email, "@")[0] + strconv.Itoa(rand.Intn(100000000))
+
+		err := models.CreateUser(domainID, email, userName, passwd)
 		if err != nil {
 			glog.Errorf("Error creating user: %s", err.Error())
 			errMsg = "Error during signup."
@@ -229,8 +249,9 @@ func postAuthSignUp(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if errMsg == "" {
-		glog.Infof("Created user: %s", username)
-		err := authenticate(newUserID, w)
+		glog.Infof("Created user: %s for domainID: %d", email, domainID)
+		user := models.GetUserByEmail(domainID, email)
+		err := authenticate(user.UserID, w)
 		if err != nil {
 			glog.Errorf("Error authenticating: %s", err.Error())
 		}
@@ -239,18 +260,24 @@ func postAuthSignUp(w http.ResponseWriter, r *http.Request) {
 
 	templates.Signup.Execute(w, map[string]interface{}{
 		csrf.TemplateTag: csrf.TemplateField(r),
+		"BasePath":       basePath,
 		"ErrMsg":         errMsg,
 		"Next":           next,
 	})
 }
 
 func getAuthChangePass(w http.ResponseWriter, r *http.Request) {
+	basePath := r.Context().Value(BasePath).(string)
 	templates.ChangePass.Execute(w, map[string]interface{}{
 		csrf.TemplateTag: csrf.TemplateField(r),
+		"BasePath":       basePath,
 	})
 }
 
 func postAuthChangePass(w http.ResponseWriter, r *http.Request) {
+	domainID := r.Context().Value(DomainID).(int)
+	basePath := r.Context().Value(BasePath).(string)
+
 	user := r.Context().Value(CtxUserKey).(*models.User)
 	oldPasswd := r.PostFormValue("old_password")
 	passwd := r.PostFormValue("password")
@@ -263,13 +290,13 @@ func postAuthChangePass(w http.ResponseWriter, r *http.Request) {
 		errMsg = "New passwords do not match"
 	}
 
-	oldUser := models.GetUserByPasswd(user.Username, oldPasswd)
-	if oldUser == nil || oldUser.ID != user.ID {
+	oldUser := models.GetUserByPasswd(domainID, user.Email, oldPasswd)
+	if oldUser == nil || oldUser.UserID != user.UserID {
 		errMsg = "Old password incorrect"
 	}
 
 	if errMsg == "" {
-		err := models.UpdateUserPasswdByID(user.ID, passwd)
+		err := models.UpdateUserPasswdByID(user.UserID, passwd)
 		if err == nil {
 			errMsg = "Changed password successfully"
 		} else {
@@ -279,20 +306,24 @@ func postAuthChangePass(w http.ResponseWriter, r *http.Request) {
 	}
 	templates.ChangePass.Execute(w, map[string]interface{}{
 		csrf.TemplateTag: csrf.TemplateField(r),
+		"BasePath":       basePath,
 		"ErrMsg":         errMsg,
 	})
 }
 
 func getAuthLogout(w http.ResponseWriter, r *http.Request) {
+	basePath := r.Context().Value(BasePath).(string)
+
 	http.SetCookie(w, &http.Cookie{Name: "jwt", Value: "", Path: "/", Expires: time.Now().Add(-300 * time.Hour), HttpOnly: true})
 	http.SetCookie(w, &http.Cookie{Name: "csrftoken", Value: "", Path: "/", Expires: time.Now().Add(-300 * time.Hour)})
 	if user, ok := r.Context().Value(CtxUserKey).(*models.User); ok {
-		models.LogOutUserByID(user.ID)
+		models.LogOutUserByID(user.UserID)
 	}
-	http.Redirect(w, r, "/", http.StatusSeeOther)
+	http.Redirect(w, r, basePath+"/", http.StatusSeeOther)
 }
 
 func init() {
-	userNameReg, _ = regexp.Compile("[^a-zA-Z0-9]+")
-	nextURLReg, _ = regexp.Compile("[^a-zA-Z0-9-/]+")
+	userNameReg = regexp.MustCompile("[^a-zA-Z0-9]+")
+	emailReg = regexp.MustCompile("[^a-zA-Z0-9@\\.-]+")
+	nextURLReg = regexp.MustCompile("[^a-zA-Z0-9-/]+")
 }

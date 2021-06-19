@@ -43,8 +43,8 @@ func GetDomainByName(domainName string) *Domain {
 	return &domain
 }
 
-func GetDomainIDByName(domainName string) *string {
-	var domainID string
+func GetDomainIDByName(domainName string) *int {
+	var domainID int
 	err := DB.Get(&domainID, `SELECT domain_id FROM domains WHERE domain_name = $1;`, domainName)
 	if err == sql.ErrNoRows {
 		return nil

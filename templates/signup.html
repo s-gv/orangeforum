@@ -1,10 +1,9 @@
 {{ define "body" }}
 <form method="POST">
     {{ .csrfField }}
-    <input type="text" name="username" placeholder="Username">
+    <input type="email" name="email" placeholder="E=mail">
     <input type="password" name="password" placeholder="Password">
     <input type="password" name="password2" placeholder="Password (again)">
-    <input type="email" name="email" placeholder="E-mail (optional)">
     <input type="hidden" name="next" value="{{ .Next }}">
     <input type="submit" name="submit" value="Signup">
 </form>
@@ -12,6 +11,6 @@
 <p style="color:red;">{{ .ErrMsg }}</p>
 {{ end }}
 <p>
-    Already have an account? <a href="/auth/signin?next={{ .Next }}">Signin!</a>
+    Already have an account? <a href="{{ .BasePath }}/auth/signin?next={{ .Next }}">Signin!</a>
 </p>
 {{ end }}
