@@ -56,9 +56,9 @@ func authenticate(id int, basePath string, w http.ResponseWriter) error {
 
 func mustAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		domainID := r.Context().Value(CtxDomainID).(int)
+		domainID := r.Context().Value(ctxDomainID).(int)
 		token, claims, err := jwtauth.FromContext(r.Context())
-		basePath, _ := r.Context().Value(CtxBasePath).(string)
+		basePath, _ := r.Context().Value(ctxBasePath).(string)
 
 		if err == nil && token != nil && jwt.Validate(token) == nil {
 			if uid, ok := claims["user_id"].(string); ok {
@@ -92,7 +92,7 @@ func mustAuth(next http.Handler) http.Handler {
 
 func canAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		domainID := r.Context().Value(CtxDomainID).(int)
+		domainID := r.Context().Value(ctxDomainID).(int)
 		token, claims, err := jwtauth.FromContext(r.Context())
 
 		if err == nil && token != nil && jwt.Validate(token) == nil {
@@ -115,7 +115,7 @@ func canAuth(next http.Handler) http.Handler {
 }
 
 func getAuthSignIn(w http.ResponseWriter, r *http.Request) {
-	basePath := r.Context().Value(CtxBasePath).(string)
+	basePath := r.Context().Value(ctxBasePath).(string)
 	next := cleanNextURL(r.FormValue("next"))
 	templates.Signin.Execute(w, map[string]interface{}{
 		csrf.TemplateTag: csrf.TemplateField(r),
@@ -125,8 +125,8 @@ func getAuthSignIn(w http.ResponseWriter, r *http.Request) {
 }
 
 func postAuthSignIn(w http.ResponseWriter, r *http.Request) {
-	domainID := r.Context().Value(CtxDomainID).(int)
-	basePath := r.Context().Value(CtxBasePath).(string)
+	domainID := r.Context().Value(ctxDomainID).(int)
+	basePath := r.Context().Value(ctxBasePath).(string)
 	next := cleanNextURL(r.FormValue("next"))
 	email := r.PostFormValue("email")
 	passwd := r.PostFormValue("password")
@@ -147,7 +147,7 @@ func postAuthSignIn(w http.ResponseWriter, r *http.Request) {
 }
 
 func getAuthOneTimeSignIn(w http.ResponseWriter, r *http.Request) {
-	basePath := r.Context().Value(CtxBasePath).(string)
+	basePath := r.Context().Value(ctxBasePath).(string)
 	next := cleanNextURL(r.FormValue("next"))
 	templates.OneTimeSignin.Execute(w, map[string]interface{}{
 		csrf.TemplateTag: csrf.TemplateField(r),
@@ -157,8 +157,8 @@ func getAuthOneTimeSignIn(w http.ResponseWriter, r *http.Request) {
 }
 
 func postAuthOneTimeSignIn(w http.ResponseWriter, r *http.Request) {
-	domainID := r.Context().Value(CtxDomainID).(int)
-	basePath := r.Context().Value(CtxBasePath).(string)
+	domainID := r.Context().Value(ctxDomainID).(int)
+	basePath := r.Context().Value(ctxBasePath).(string)
 	next := cleanNextURL(r.PostFormValue("next"))
 	email := r.PostFormValue("email")
 	errMsg := "E-mail not found"
@@ -187,8 +187,8 @@ func postAuthOneTimeSignIn(w http.ResponseWriter, r *http.Request) {
 }
 
 func getAuthOneTimeSignInDone(w http.ResponseWriter, r *http.Request) {
-	domainID := r.Context().Value(CtxDomainID).(int)
-	basePath := r.Context().Value(CtxBasePath).(string)
+	domainID := r.Context().Value(ctxDomainID).(int)
+	basePath := r.Context().Value(ctxBasePath).(string)
 	next := cleanNextURL(r.FormValue("next"))
 	token := chi.URLParam(r, "token")
 	user := models.GetUserByOneTimeToken(domainID, token)
@@ -202,7 +202,7 @@ func getAuthOneTimeSignInDone(w http.ResponseWriter, r *http.Request) {
 }
 
 func getAuthSignUp(w http.ResponseWriter, r *http.Request) {
-	basePath := r.Context().Value(CtxBasePath).(string)
+	basePath := r.Context().Value(ctxBasePath).(string)
 	next := cleanNextURL(r.FormValue("next"))
 	templates.Signup.Execute(w, map[string]interface{}{
 		csrf.TemplateTag: csrf.TemplateField(r),
@@ -212,8 +212,8 @@ func getAuthSignUp(w http.ResponseWriter, r *http.Request) {
 }
 
 func postAuthSignUp(w http.ResponseWriter, r *http.Request) {
-	domainID := r.Context().Value(CtxDomainID).(int)
-	basePath := r.Context().Value(CtxBasePath).(string)
+	domainID := r.Context().Value(ctxDomainID).(int)
+	basePath := r.Context().Value(ctxBasePath).(string)
 	next := cleanNextURL(r.FormValue("next"))
 
 	email := r.PostFormValue("email")
@@ -270,7 +270,7 @@ func postAuthSignUp(w http.ResponseWriter, r *http.Request) {
 }
 
 func getAuthChangePass(w http.ResponseWriter, r *http.Request) {
-	basePath := r.Context().Value(CtxBasePath).(string)
+	basePath := r.Context().Value(ctxBasePath).(string)
 	templates.ChangePass.Execute(w, map[string]interface{}{
 		csrf.TemplateTag: csrf.TemplateField(r),
 		BasePathField:    basePath,
@@ -278,8 +278,8 @@ func getAuthChangePass(w http.ResponseWriter, r *http.Request) {
 }
 
 func postAuthChangePass(w http.ResponseWriter, r *http.Request) {
-	domainID := r.Context().Value(CtxDomainID).(int)
-	basePath := r.Context().Value(CtxBasePath).(string)
+	domainID := r.Context().Value(ctxDomainID).(int)
+	basePath := r.Context().Value(ctxBasePath).(string)
 
 	user := r.Context().Value(CtxUserKey).(*models.User)
 	oldPasswd := r.PostFormValue("old_password")
@@ -315,7 +315,7 @@ func postAuthChangePass(w http.ResponseWriter, r *http.Request) {
 }
 
 func getAuthLogout(w http.ResponseWriter, r *http.Request) {
-	basePath := r.Context().Value(CtxBasePath).(string)
+	basePath := r.Context().Value(ctxBasePath).(string)
 
 	http.SetCookie(w, &http.Cookie{Name: "jwt", Value: "", Path: basePath + "/", Expires: time.Now().Add(-300 * time.Hour), HttpOnly: true})
 	http.SetCookie(w, &http.Cookie{Name: "csrftoken", Value: "", Path: basePath + "/", Expires: time.Now().Add(-300 * time.Hour)})

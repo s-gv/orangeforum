@@ -15,13 +15,13 @@ import (
 type contextKey string
 
 const (
-	CtxBasePath = contextKey("base_path")
-	CtxDomainID = contextKey("domain_id")
+	ctxBasePath = contextKey("base_path")
+	ctxDomainID = contextKey("domain_id")
 )
 
 const BasePathField = "BasePath"
 
-func DomainCtx(next http.Handler) http.Handler {
+func domainCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		domainName := chi.URLParam(r, "domainName")
 		domainID := models.GetDomainIDByName(domainName)
@@ -34,13 +34,13 @@ func DomainCtx(next http.Handler) http.Handler {
 			http.Redirect(w, r, r.URL.Path[len(basePath):], http.StatusSeeOther)
 			return
 		}
-		ctx := context.WithValue(r.Context(), CtxDomainID, *domainID)
-		ctx2 := context.WithValue(ctx, CtxBasePath, "/domains/"+domainName)
+		ctx := context.WithValue(r.Context(), ctxDomainID, *domainID)
+		ctx2 := context.WithValue(ctx, ctxBasePath, "/domains/"+domainName)
 		next.ServeHTTP(w, r.WithContext(ctx2))
 	})
 }
 
-func HostCtx(next http.Handler) http.Handler {
+func hostCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		domainName := r.Host
 		domainID := models.GetDomainIDByName(domainName)
@@ -48,16 +48,16 @@ func HostCtx(next http.Handler) http.Handler {
 			http.Error(w, http.StatusText(404), 404)
 			return
 		}
-		ctx := context.WithValue(r.Context(), CtxDomainID, *domainID)
-		ctx2 := context.WithValue(ctx, CtxBasePath, "")
+		ctx := context.WithValue(r.Context(), ctxDomainID, *domainID)
+		ctx2 := context.WithValue(ctx, ctxBasePath, "")
 		next.ServeHTTP(w, r.WithContext(ctx2))
 	})
 }
 
 func basePath(r *http.Request) string {
-	return r.Context().Value(CtxBasePath).(string)
+	return r.Context().Value(ctxBasePath).(string)
 }
 
 func domainID(r *http.Request) int {
-	return r.Context().Value(CtxDomainID).(int)
+	return r.Context().Value(ctxDomainID).(int)
 }
