@@ -7,3 +7,5 @@ package models
 import "github.com/jmoiron/sqlx"
 
 var DB *sqlx.DB
+
+var BannedIpAddresses []string

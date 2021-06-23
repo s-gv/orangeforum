@@ -23,3 +23,29 @@ func GetIpAddressFromBannedIpsTable(ipAddressToBeQueried string) (string, error)
 
 	return bannedIp, nil
 }
+
+func GetAllIpAddressesFromBannedIpsTable() ([]string, error) {
+	rows, err := DB.Query(`
+								SELECT host(ip)
+								FROM bannedips`)
+
+	if err != nil {
+		log.Fatal(err)
+		return nil, err
+	}
+
+	defer rows.Close()
+	ipAddressList := make([]string, 0)
+
+	for rows.Next() {
+		var ipAddress string
+		scanRowErr := rows.Scan(&ipAddress)
+		if scanRowErr != nil {
+			log.Fatal(scanRowErr)
+			return nil, scanRowErr
+		}
+		ipAddressList = append(ipAddressList, ipAddress)
+	}
+
+	return ipAddressList, nil
+}

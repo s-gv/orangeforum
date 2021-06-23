@@ -41,6 +41,8 @@ func main() {
 
 	db := sqlx.MustConnect("pgx", dsn)
 	models.DB = db
+	models.Migrate()
+	models.InitializeModelsFromDB()
 
 	if *shouldMigrate {
 		err := models.Migrate()
