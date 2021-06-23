@@ -1,6 +1,10 @@
 package models
 
-import "github.com/golang/glog"
+import (
+	"fmt"
+
+	"github.com/golang/glog"
+)
 
 func InitializeModelsFromDB() {
 	initializeBannedIpListModelFromDB()
@@ -13,5 +17,7 @@ func initializeBannedIpListModelFromDB() {
 		return
 	}
 
-	BannedIpAddresses = ipAddressList
+	BannedIpsGroupedByDomain = ipAddressList
+
+	fmt.Println(BannedIpsGroupedByDomain)
 }

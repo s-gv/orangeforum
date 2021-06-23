@@ -24,9 +24,9 @@ func GetIpAddressFromBannedIpsTable(ipAddressToBeQueried string) (string, error)
 	return bannedIp, nil
 }
 
-func GetAllIpAddressesFromBannedIpsTable() ([]string, error) {
+func GetAllIpAddressesFromBannedIpsTable() (map[int][]string, error) {
 	rows, err := DB.Query(`
-								SELECT host(ip)
+								SELECT domain_id, host(ip)
 								FROM bannedips`)
 
 	if err != nil {
@@ -35,17 +35,19 @@ func GetAllIpAddressesFromBannedIpsTable() ([]string, error) {
 	}
 
 	defer rows.Close()
-	ipAddressList := make([]string, 0)
+	bannedIpAddressesBasedOnDomain := make(map[int][]string)
 
 	for rows.Next() {
+		var domainId int
 		var ipAddress string
-		scanRowErr := rows.Scan(&ipAddress)
+		scanRowErr := rows.Scan(&domainId, &ipAddress)
 		if scanRowErr != nil {
 			log.Fatal(scanRowErr)
 			return nil, scanRowErr
 		}
-		ipAddressList = append(ipAddressList, ipAddress)
+
+		bannedIpAddressesBasedOnDomain[domainId] = append(bannedIpAddressesBasedOnDomain[domainId], ipAddress)
 	}
 
-	return ipAddressList, nil
+	return bannedIpAddressesBasedOnDomain, nil
 }
