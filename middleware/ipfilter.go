@@ -7,8 +7,17 @@ import (
 	"github.com/s-gv/orangeforum/models"
 )
 
+//TODO: Duplicate definition of domain id key, need to finalize a common place if needed
+type contextKey string
+
+const (
+	ctxDomainID = contextKey("domain_id")
+)
+
 func IpFilter(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		domainID := r.Context().Value(ctxDomainID).(int)
+
 		// go-chi's middleware/realip.go already parses for RealIp and xForwardedFor, further sets RemoteAddr to xForwardedFor ip if available.
 		ipAddress, _, splitHostPortError := net.SplitHostPort(r.RemoteAddr)
 		if splitHostPortError != nil {
@@ -22,7 +31,7 @@ func IpFilter(handler http.Handler) http.Handler {
 			return
 		}
 
-		isIpBanned, ipFilterCheckError := checkIfIpAddressIsBanned(parsedIp.String())
+		isIpBanned, ipFilterCheckError := checkIfIpAddressIsBanned(domainID, parsedIp.String())
 
 		if ipFilterCheckError != nil {
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -37,12 +46,12 @@ func IpFilter(handler http.Handler) http.Handler {
 	})
 }
 
-func checkIfIpAddressIsBanned(ipAddress string) (bool, error) {
-	queriedIpFromDB, readError := models.GetIpAddressFromBannedIpsTable(ipAddress)
+func checkIfIpAddressIsBanned(domainId int, ipAddress string) (bool, error) {
+	ipv4AddressTrieRoot := models.BannedIpv4AddressTriesPerDomain[domainId]
 
-	if readError != nil {
-		return false, readError
+	if ipv4AddressTrieRoot == nil {
+		return false, nil
 	}
 
-	return queriedIpFromDB != "", nil
+	return ipv4AddressTrieRoot.SearchIpv4AddressInTrie(ipAddress)
 }

@@ -10,16 +10,14 @@ var DB *sqlx.DB
 
 var BannedIpsGroupedByDomain map[int][]string
 
-/*
-On startup :
-	1.Get all banned ip addresses per domain
-	2.Populate models DS , map<domainId, [] bannedIps>
-	3.for each of element in map
-		construct trie of banned ip addresses
+type ipv4AddressTrieNode struct {
+	addresOctet byte
+	children    map[byte]*ipv4AddressTrieNode
+	octectIndex int
+}
 
-On ip filter http handler
-	1.Find domain id from the request
-	2.Find ip address from the trie
-	3.If found send forbidden status
-	else continue
-*/
+type ipv4AddressTrie struct {
+	root *ipv4AddressTrieNode
+}
+
+var BannedIpv4AddressTriesPerDomain map[int]*ipv4AddressTrie

@@ -42,7 +42,7 @@ func main() {
 	db := sqlx.MustConnect("pgx", dsn)
 	models.DB = db
 	models.Migrate()
-	models.InitializeModelsFromDB()
+	models.InitializeBannedIpsModelFromDB()
 
 	if *shouldMigrate {
 		err := models.Migrate()
