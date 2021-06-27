@@ -15,17 +15,17 @@ func InitializeBannedIpsModelFromDB() {
 		return
 	}
 
-	BannedIpv4AddressTriesPerDomain, err = createIpv4BannedAddresTriePerDomain(BannedIpsGroupedByDomain)
+	BannedIpv4AddressTriesPerDomain, err = CreateIpv4BannedAddressTriePerDomain(BannedIpsGroupedByDomain)
 	if err != nil {
 		glog.Errorf("Failed to create trie model for banned ipv4 addresses")
 		return
 	}
 }
 
-func createIpv4BannedAddresTriePerDomain(bannedIpsByDomain map[int][]string) (map[int]*ipv4AddressTrie, error) {
+func CreateIpv4BannedAddressTriePerDomain(bannedIpsByDomain map[int][]string) (map[int]*ipv4AddressTrie, error) {
 	bannedIpsPerDomainMap := make(map[int]*ipv4AddressTrie)
 	for domainId, ipAddressList := range bannedIpsByDomain {
-		ipv4AddressTrieRootNode := createNewIpv4AddresTrie()
+		ipv4AddressTrieRootNode := createNewIpv4AddressTrie()
 		err := addIpv4AddressesToTrieFromIpList(ipv4AddressTrieRootNode, ipAddressList)
 		if err != nil {
 			return nil, err
@@ -35,7 +35,7 @@ func createIpv4BannedAddresTriePerDomain(bannedIpsByDomain map[int][]string) (ma
 	return bannedIpsPerDomainMap, nil
 }
 
-func createNewIpv4AddresTrie() *ipv4AddressTrie {
+func createNewIpv4AddressTrie() *ipv4AddressTrie {
 	return &ipv4AddressTrie{
 		root: &ipv4AddressTrieNode{
 			addresOctet: 0,
@@ -57,7 +57,7 @@ func addIpv4AddressesToTrieFromIpList(root *ipv4AddressTrie, ipv4AddressList []s
 
 func (t *ipv4AddressTrie) insertIpv4AddressToTrie(ipv4Address string) error {
 	cur := t.root
-	addressIndex := 1
+	addressIndex := 0
 	addressSegments := strings.Split(ipv4Address, ".")
 	for _, segment := range addressSegments {
 		octet, err := strconv.Atoi(segment)
