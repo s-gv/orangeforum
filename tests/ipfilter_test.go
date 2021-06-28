@@ -105,6 +105,25 @@ func Test_Trie_Based_IpAddress_Search_For_EmptyIpAddress(t *testing.T) {
 	}
 }
 
+func Test_Trie_Based_IpAddress_Search_For_Invalid_Address_Octet(t *testing.T) {
+
+	ipList1 := []string{"192.555.0.1"}
+	domainId1 := 1
+	bannedIpsByDomain := map[int][]string{
+		domainId1: ipList1,
+	}
+
+	bannedIpv4AddressTriesPerDomain, err := models.CreateIpv4BannedAddressTriePerDomain(bannedIpsByDomain)
+	if err != nil {
+		t.Logf("Failed to create trie model for banned ipv4 addresses as expected : %s", err.Error())
+	}
+
+	trieToBeSearched := bannedIpv4AddressTriesPerDomain[domainId1]
+	if trieToBeSearched == nil {
+		t.Logf("Failed to create trie for the specified domain %d as expected", domainId1)
+	}
+}
+
 func Tes_Trie_Based_IpAddress_Search_For_InvalidInput(t *testing.T) {
 
 	ipList1 := []string{"axyz"}

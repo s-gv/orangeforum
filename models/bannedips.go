@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -59,11 +60,11 @@ func (t *ipv4AddressTrie) insertIpv4AddressToTrie(ipv4Address string) error {
 	addressIndex := 0
 	addressSegments := strings.Split(ipv4Address, ".")
 	for _, segment := range addressSegments {
-		octet, err := strconv.Atoi(segment)
+		curAddressOctet, err := getIpv4AddressOctet(segment)
 		if err != nil {
 			return err
 		}
-		curAddressOctet := byte(octet)
+
 		if cur.children[curAddressOctet] == nil {
 			addressIndex++
 			cur.children[curAddressOctet] = &ipv4AddressTrieNode{
@@ -99,15 +100,26 @@ func (t *ipv4AddressTrie) traverseAllNodesInTheIpv4Address(ipv4Address string) (
 	cur := t.root
 	addressSegments := strings.Split(ipv4Address, ".")
 	for _, segment := range addressSegments {
-		octet, err := strconv.Atoi(segment)
+		curAddressOctet, err := getIpv4AddressOctet(segment)
 		if err != nil {
 			return nil, err
 		}
-		curAddressOctet := byte(octet)
+
 		if cur.children[curAddressOctet] == nil {
 			return nil, nil
 		}
 		cur = cur.children[curAddressOctet]
 	}
 	return cur, nil
+}
+
+func getIpv4AddressOctet(addressSegment string) (byte, error) {
+	addressOctet, err := strconv.Atoi(addressSegment)
+	if err != nil {
+		return 0, err
+	}
+	if addressOctet < 0 || addressOctet > 255 {
+		return 0, fmt.Errorf("error ipv4 address octet %d exceeds expected range ", addressOctet)
+	}
+	return byte(addressOctet), nil
 }
