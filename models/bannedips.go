@@ -1,7 +1,6 @@
 package models
 
 import (
-	"log"
 	"strconv"
 	"strings"
 
@@ -62,7 +61,7 @@ func (t *ipv4AddressTrie) insertIpv4AddressToTrie(ipv4Address string) error {
 	for _, segment := range addressSegments {
 		octet, err := strconv.Atoi(segment)
 		if err != nil {
-			log.Fatal(err)
+			glog.Error(err)
 			return err
 		}
 		curAddressOctet := byte(octet)
@@ -103,7 +102,7 @@ func (t *ipv4AddressTrie) traverseAllNodesInTheIpv4Address(ipv4Address string) (
 	for _, segment := range addressSegments {
 		octet, err := strconv.Atoi(segment)
 		if err != nil {
-			log.Fatal(err)
+			glog.Error(err)
 			return nil, err
 		}
 		curAddressOctet := byte(octet)
