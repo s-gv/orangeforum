@@ -33,17 +33,14 @@ func Test_Trie_Based_IpAddress_Search(t *testing.T) {
 	addressToBeSearched := "45.56.78.145"
 	found, err := trieToBeSearched.SearchIpv4AddressInTrie(addressToBeSearched)
 	if err != nil {
-		t.Errorf("Error while searching for ip %s in the trie", addressToBeSearched)
-		t.Error(err)
+		t.Errorf("Error while searching for ip %s in the trie : %s", addressToBeSearched, err.Error())
 	}
 
 	if found == false {
 		t.Errorf("Ipv4 addresss %s Not found", addressToBeSearched)
 	}
 
-	if found == true {
-		t.Logf("Ipv4 address %s found", addressToBeSearched)
-	}
+	t.Logf("Ipv4 address %s found", addressToBeSearched)
 }
 
 func Test_Trie_Based_IpAddress_Search_For_Non_Existent_Ip_Address(t *testing.T) {
@@ -73,17 +70,14 @@ func Test_Trie_Based_IpAddress_Search_For_Non_Existent_Ip_Address(t *testing.T) 
 	addressToBeSearched := "45.56.78.145"
 	found, err := trieToBeSearched.SearchIpv4AddressInTrie(addressToBeSearched)
 	if err != nil {
-		t.Errorf("Error while searching for ip %s in the trie", addressToBeSearched)
-		t.Error(err)
+		t.Errorf("Error while searching for ip %s in the trie : %s", addressToBeSearched, err.Error())
 	}
 
 	if found == true {
 		t.Errorf("Ipv4 address %s found, while it was not expected", addressToBeSearched)
 	}
 
-	if found == false {
-		t.Logf("Ipv4 addresss %s Not found as expected", addressToBeSearched)
-	}
+	t.Logf("Ipv4 addresss %s Not found as expected", addressToBeSearched)
 }
 
 func Test_Trie_Based_IpAddress_Search_For_EmptyIpAddress(t *testing.T) {
@@ -96,7 +90,7 @@ func Test_Trie_Based_IpAddress_Search_For_EmptyIpAddress(t *testing.T) {
 
 	bannedIpv4AddressTriesPerDomain, err := models.CreateIpv4BannedAddressTriePerDomain(bannedIpsByDomain)
 	if err != nil {
-		t.Log("Failed to create trie model for banned ipv4 addresses as expected")
+		t.Logf("Failed to create trie model for banned ipv4 addresses as expected : %s", err.Error())
 	}
 
 	trieToBeSearched := bannedIpv4AddressTriesPerDomain[domainId1]
@@ -134,7 +128,7 @@ func Tes_Trie_Based_IpAddress_Search_For_InvalidInput(t *testing.T) {
 
 	bannedIpv4AddressTriesPerDomain, err := models.CreateIpv4BannedAddressTriePerDomain(bannedIpsByDomain)
 	if err != nil {
-		t.Log("Failed to create trie model for banned ipv4 addresses as expected")
+		t.Logf("Failed to create trie model for banned ipv4 addresses as expected : %s", err.Error())
 	}
 
 	trieToBeSearched := bannedIpv4AddressTriesPerDomain[domainId1]
@@ -156,7 +150,7 @@ func Test_Trie_Based_IpAddress_Search_For_Valid_And_InvalidInputs(t *testing.T) 
 
 	bannedIpv4AddressTriesPerDomain, err := models.CreateIpv4BannedAddressTriePerDomain(bannedIpsByDomain)
 	if err != nil {
-		t.Log("Failed to create trie model for banned ipv4 addresses as expected")
+		t.Logf("Failed to create trie model for banned ipv4 addresses as expected : %s", err.Error())
 	}
 
 	invalidTrieToBeSearched := bannedIpv4AddressTriesPerDomain[domainId1]
@@ -192,17 +186,14 @@ func Test_Trie_Based_IpAddress_Search_Using_Prefix(t *testing.T) {
 	addressPrefixToBeSearched := "192.168"
 	found, err := trieToBeSearched.SearchIpv4AddressPrefixInTrie(addressPrefixToBeSearched)
 	if err != nil {
-		t.Errorf("Error while searching for ip %s in the trie", addressPrefixToBeSearched)
-		t.Error(err)
+		t.Errorf("Error while searching for ip %s in the trie : %s", addressPrefixToBeSearched, err.Error())
 	}
 
 	if found == false {
 		t.Errorf("Ipv4 addresss prefix %s Not found", addressPrefixToBeSearched)
 	}
 
-	if found == true {
-		t.Logf("Ipv4 address prefix %s found", addressPrefixToBeSearched)
-	}
+	t.Logf("Ipv4 address prefix %s found", addressPrefixToBeSearched)
 }
 
 func Test_Trie_Based_IpAddress_Search_Using_Non_Existent_Prefix(t *testing.T) {
@@ -227,15 +218,12 @@ func Test_Trie_Based_IpAddress_Search_Using_Non_Existent_Prefix(t *testing.T) {
 	addressPrefixToBeSearched := "192.169"
 	found, err := trieToBeSearched.SearchIpv4AddressPrefixInTrie(addressPrefixToBeSearched)
 	if err != nil {
-		t.Errorf("Error while searching for ip %s in the trie", addressPrefixToBeSearched)
-		t.Error(err)
-	}
-
-	if found == false {
-		t.Logf("Ipv4 addresss prefix %s Not found as expected", addressPrefixToBeSearched)
+		t.Errorf("Error while searching for ip %s in the trie : %s", addressPrefixToBeSearched, err.Error())
 	}
 
 	if found == true {
 		t.Errorf("Ipv4 address prefix %s found", addressPrefixToBeSearched)
 	}
+
+	t.Logf("Ipv4 addresss prefix %s Not found as expected", addressPrefixToBeSearched)
 }
