@@ -4,6 +4,7 @@ import (
 	"net"
 	"net/http"
 
+	"github.com/golang/glog"
 	"github.com/s-gv/orangeforum/models"
 )
 
@@ -34,6 +35,7 @@ func IpFilter(handler http.Handler) http.Handler {
 		isIpBanned, ipFilterCheckError := checkIfIpAddressIsBanned(domainID, parsedIp.String())
 
 		if ipFilterCheckError != nil {
+			glog.Errorf("Error while searching for banned ip : %s", ipFilterCheckError.Error())
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			return
 		}

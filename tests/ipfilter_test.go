@@ -46,7 +46,7 @@ func Test_Trie_Based_IpAddress_Search(t *testing.T) {
 	}
 }
 
-func Test_Trie_Based_IpAddress_Search_For_NON_Existent_IP_ADDRESS(t *testing.T) {
+func Test_Trie_Based_IpAddress_Search_For_Non_Existent_Ip_Address(t *testing.T) {
 
 	ipList1 := []string{"192.168.1.0", "19.23.5.67"}
 	ipList2 := []string{"10.23.56.234"}

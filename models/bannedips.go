@@ -16,7 +16,7 @@ func InitializeBannedIpsModelFromDB() {
 
 	BannedIpv4AddressTriesPerDomain, err = CreateIpv4BannedAddressTriePerDomain(BannedIpsGroupedByDomain)
 	if err != nil {
-		glog.Errorf("Failed to create trie model for banned ipv4 addresses")
+		glog.Errorf("Failed to create trie model for banned ipv4 addresses : %s", err.Error())
 		return
 	}
 }
@@ -61,7 +61,6 @@ func (t *ipv4AddressTrie) insertIpv4AddressToTrie(ipv4Address string) error {
 	for _, segment := range addressSegments {
 		octet, err := strconv.Atoi(segment)
 		if err != nil {
-			glog.Error(err)
 			return err
 		}
 		curAddressOctet := byte(octet)
@@ -102,7 +101,6 @@ func (t *ipv4AddressTrie) traverseAllNodesInTheIpv4Address(ipv4Address string) (
 	for _, segment := range addressSegments {
 		octet, err := strconv.Atoi(segment)
 		if err != nil {
-			glog.Error(err)
 			return nil, err
 		}
 		curAddressOctet := byte(octet)
