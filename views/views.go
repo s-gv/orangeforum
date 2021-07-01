@@ -77,8 +77,8 @@ func forumRouter() *chi.Mux {
 			if u, ok := r.Context().Value(CtxUserKey).(*models.User); ok {
 				user = u
 			}
-			domainID, _ := r.Context().Value(ctxDomainID).(string)
-			w.Write([]byte(fmt.Sprintf("public area. hi %v. domain_id %v", user, domainID)))
+			domain, _ := r.Context().Value(ctxDomain).(*models.Domain)
+			w.Write([]byte(fmt.Sprintf("public area. hi %v. domain_id: %v, domain name: %v", user, domain.DomainID, domain.DomainName)))
 		})
 	})
 
@@ -88,7 +88,8 @@ func forumRouter() *chi.Mux {
 
 		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 			user := r.Context().Value(CtxUserKey).(*models.User)
-			w.Write([]byte(fmt.Sprintf("protected area. hi %v", user)))
+			domain, _ := r.Context().Value(ctxDomain).(*models.Domain)
+			w.Write([]byte(fmt.Sprintf("protected area. \nuser: %v\ndomain: %v", user, domain)))
 		})
 	})
 

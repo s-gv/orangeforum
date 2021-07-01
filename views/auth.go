@@ -56,7 +56,7 @@ func authenticate(id int, basePath string, w http.ResponseWriter) error {
 
 func mustAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		domainID := r.Context().Value(ctxDomainID).(int)
+		domainID := r.Context().Value(ctxDomain).(*models.Domain).DomainID
 		token, claims, err := jwtauth.FromContext(r.Context())
 		basePath, _ := r.Context().Value(ctxBasePath).(string)
 
@@ -92,7 +92,7 @@ func mustAuth(next http.Handler) http.Handler {
 
 func canAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		domainID := r.Context().Value(ctxDomainID).(int)
+		domainID := r.Context().Value(ctxDomain).(*models.Domain).DomainID
 		token, claims, err := jwtauth.FromContext(r.Context())
 
 		if err == nil && token != nil && jwt.Validate(token) == nil {
@@ -125,7 +125,7 @@ func getAuthSignIn(w http.ResponseWriter, r *http.Request) {
 }
 
 func postAuthSignIn(w http.ResponseWriter, r *http.Request) {
-	domainID := r.Context().Value(ctxDomainID).(int)
+	domainID := r.Context().Value(ctxDomain).(*models.Domain).DomainID
 	basePath := r.Context().Value(ctxBasePath).(string)
 	next := cleanNextURL(r.FormValue("next"))
 	email := r.PostFormValue("email")
@@ -157,7 +157,7 @@ func getAuthOneTimeSignIn(w http.ResponseWriter, r *http.Request) {
 }
 
 func postAuthOneTimeSignIn(w http.ResponseWriter, r *http.Request) {
-	domainID := r.Context().Value(ctxDomainID).(int)
+	domainID := r.Context().Value(ctxDomain).(*models.Domain).DomainID
 	basePath := r.Context().Value(ctxBasePath).(string)
 	next := cleanNextURL(r.PostFormValue("next"))
 	email := r.PostFormValue("email")
@@ -187,7 +187,7 @@ func postAuthOneTimeSignIn(w http.ResponseWriter, r *http.Request) {
 }
 
 func getAuthOneTimeSignInDone(w http.ResponseWriter, r *http.Request) {
-	domainID := r.Context().Value(ctxDomainID).(int)
+	domainID := r.Context().Value(ctxDomain).(*models.Domain).DomainID
 	basePath := r.Context().Value(ctxBasePath).(string)
 	next := cleanNextURL(r.FormValue("next"))
 	token := chi.URLParam(r, "token")
@@ -212,7 +212,7 @@ func getAuthSignUp(w http.ResponseWriter, r *http.Request) {
 }
 
 func postAuthSignUp(w http.ResponseWriter, r *http.Request) {
-	domainID := r.Context().Value(ctxDomainID).(int)
+	domainID := r.Context().Value(ctxDomain).(*models.Domain).DomainID
 	basePath := r.Context().Value(ctxBasePath).(string)
 	next := cleanNextURL(r.FormValue("next"))
 
@@ -278,7 +278,7 @@ func getAuthChangePass(w http.ResponseWriter, r *http.Request) {
 }
 
 func postAuthChangePass(w http.ResponseWriter, r *http.Request) {
-	domainID := r.Context().Value(ctxDomainID).(int)
+	domainID := r.Context().Value(ctxDomain).(*models.Domain).DomainID
 	basePath := r.Context().Value(ctxBasePath).(string)
 
 	user := r.Context().Value(CtxUserKey).(*models.User)

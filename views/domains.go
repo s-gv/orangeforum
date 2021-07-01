@@ -16,7 +16,7 @@ type contextKey string
 
 const (
 	ctxBasePath = contextKey("base_path")
-	ctxDomainID = contextKey("domain_id")
+	ctxDomain   = contextKey("domain")
 )
 
 const BasePathField = "BasePath"
@@ -24,8 +24,8 @@ const BasePathField = "BasePath"
 func domainCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		domainName := chi.URLParam(r, "domainName")
-		domainID := models.GetDomainIDByName(domainName)
-		if domainID == nil {
+		domain := models.GetDomainByName(domainName)
+		if domain == nil {
 			http.Error(w, http.StatusText(404), 404)
 			return
 		}
@@ -34,7 +34,7 @@ func domainCtx(next http.Handler) http.Handler {
 			http.Redirect(w, r, r.URL.Path[len(basePath):], http.StatusSeeOther)
 			return
 		}
-		ctx := context.WithValue(r.Context(), ctxDomainID, *domainID)
+		ctx := context.WithValue(r.Context(), ctxDomain, domain)
 		ctx2 := context.WithValue(ctx, ctxBasePath, "/domains/"+domainName)
 		next.ServeHTTP(w, r.WithContext(ctx2))
 	})
@@ -43,12 +43,12 @@ func domainCtx(next http.Handler) http.Handler {
 func hostCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		domainName := r.Host
-		domainID := models.GetDomainIDByName(domainName)
-		if domainID == nil {
+		domain := models.GetDomainByName(domainName)
+		if domain == nil {
 			http.Error(w, http.StatusText(404), 404)
 			return
 		}
-		ctx := context.WithValue(r.Context(), ctxDomainID, *domainID)
+		ctx := context.WithValue(r.Context(), ctxDomain, domain)
 		ctx2 := context.WithValue(ctx, ctxBasePath, "")
 		next.ServeHTTP(w, r.WithContext(ctx2))
 	})
@@ -59,5 +59,5 @@ func basePath(r *http.Request) string {
 }
 
 func domainID(r *http.Request) int {
-	return r.Context().Value(ctxDomainID).(int)
+	return r.Context().Value(ctxDomain).(int)
 }
