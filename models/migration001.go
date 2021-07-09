@@ -81,8 +81,7 @@ func migrate001(db *sqlx.DB) {
 	db.MustExec(`CREATE TABLE bannedips (
 		id									SERIAL PRIMARY KEY,
 		domain_id							INTEGER NOT NULL REFERENCES domains(domain_id) ON DELETE CASCADE,
-		ip									INET NOT NULL,
+		ip									VARCHAR(50) NOT NULL,
 		created_at							TIMESTAMPTZ NOT NULL DEFAULT current_timestamp
 	);`)
-	db.MustExec(`CREATE INDEX ip_address_idx ON bannedips USING gist(ip inet_ops)`)
 }

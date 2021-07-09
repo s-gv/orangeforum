@@ -71,8 +71,6 @@ INSERT INTO configs(name, val) VALUES('` + DBVersion + `', '1');
 CREATE TABLE bannedips (
 		id									SERIAL PRIMARY KEY,
 		domain_id							INTEGER NOT NULL REFERENCES domains(domain_id) ON DELETE CASCADE,
-		ip									INET NOT NULL,
+		ip									VARCHAR(50) NOT NULL,
 		created_at							TIMESTAMPTZ NOT NULL DEFAULT current_timestamp
 	);
-
-CREATE INDEX ip_address_idx ON bannedips USING gist(ip inet_ops);

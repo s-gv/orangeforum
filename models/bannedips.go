@@ -8,6 +8,8 @@ import (
 	"github.com/golang/glog"
 )
 
+const IPV4_ADDRESS_OCTETS = 4
+
 func InitializeBannedIpsModelFromDB() {
 	BannedIpsGroupedByDomain, err := GetAllIpAddressesFromBannedIpsTable()
 	if err != nil {
@@ -38,9 +40,10 @@ func CreateIpv4BannedAddressTriePerDomain(bannedIpsByDomain map[int][]string) (m
 func createNewIpv4AddressTrie() *ipv4AddressTrie {
 	return &ipv4AddressTrie{
 		root: &ipv4AddressTrieNode{
-			addresOctet: 0,
-			children:    make(map[byte]*ipv4AddressTrieNode),
-			octectIndex: 0,
+			addresOctet:        0,
+			children:           make(map[byte]*ipv4AddressTrieNode),
+			octectIndex:        0,
+			isLastAddressOctet: false,
 		},
 	}
 }
@@ -58,13 +61,13 @@ func addIpv4AddressesToTrieFromIpList(root *ipv4AddressTrie, ipv4AddressList []s
 func (t *ipv4AddressTrie) insertIpv4AddressToTrie(ipv4Address string) error {
 	cur := t.root
 	addressIndex := 0
-	addressSegments := strings.Split(ipv4Address, ".")
-	for _, segment := range addressSegments {
-		curAddressOctet, err := getIpv4AddressOctet(segment)
-		if err != nil {
-			return err
-		}
 
+	addressOctets, parseError := parseIpv4Addresses(ipv4Address)
+	if parseError != nil || addressOctets == nil {
+		return parseError
+	}
+
+	for _, curAddressOctet := range addressOctets {
 		if cur.children[curAddressOctet] == nil {
 			addressIndex++
 			cur.children[curAddressOctet] = &ipv4AddressTrieNode{
@@ -76,21 +79,25 @@ func (t *ipv4AddressTrie) insertIpv4AddressToTrie(ipv4Address string) error {
 
 		cur = cur.children[curAddressOctet]
 	}
+
+	cur.isLastAddressOctet = true
 	return nil
 }
 
 func (t *ipv4AddressTrie) SearchIpv4AddressInTrie(ipv4Address string) (bool, error) {
 	node, err := t.traverseAllNodesInTheIpv4Address(ipv4Address)
 	if err != nil {
+		glog.Error(err.Error())
 		return false, err
 	}
 
-	return (node != nil && node.octectIndex == 4), nil
+	return (node != nil && node.isLastAddressOctet && node.octectIndex <= IPV4_ADDRESS_OCTETS), nil
 }
 
 func (t *ipv4AddressTrie) SearchIpv4AddressPrefixInTrie(ipv4AddressPrefix string) (bool, error) {
 	node, err := t.traverseAllNodesInTheIpv4Address(ipv4AddressPrefix)
 	if err != nil {
+		glog.Error(err.Error())
 		return false, err
 	}
 	return node != nil, nil
@@ -98,28 +105,66 @@ func (t *ipv4AddressTrie) SearchIpv4AddressPrefixInTrie(ipv4AddressPrefix string
 
 func (t *ipv4AddressTrie) traverseAllNodesInTheIpv4Address(ipv4Address string) (*ipv4AddressTrieNode, error) {
 	cur := t.root
+	addressOctets, parseError := parseIpv4Addresses(ipv4Address)
+	if parseError != nil || addressOctets == nil {
+		return nil, parseError
+	}
+
+	for _, curAddressOctet := range addressOctets {
+		if cur.children[curAddressOctet] == nil {
+			return nil, nil
+		}
+
+		cur = cur.children[curAddressOctet]
+	}
+
+	return cur, nil
+}
+
+func parseIpv4Addresses(ipv4Address string) ([]byte, error) {
+	ipv4AddressOctets := make([]byte, 0)
 	addressSegments := strings.Split(ipv4Address, ".")
-	for _, segment := range addressSegments {
-		curAddressOctet, err := getIpv4AddressOctet(segment)
+
+	if len(addressSegments) > IPV4_ADDRESS_OCTETS {
+		return nil, fmt.Errorf("error ipv4 address %s is invalid", ipv4Address)
+	}
+
+	for idx, segment := range addressSegments {
+		if segment == "*" {
+			wildCardValidationError := validateWildCardsInIpv4Address(addressSegments[idx:])
+			if wildCardValidationError != nil {
+				return nil, wildCardValidationError
+			}
+
+			// wild card validation successful no further entries are possible
+			//Also, handle ipv4 address that has only wildcards(i.e there are no prior valid entries)
+			if len(ipv4AddressOctets) == 0 {
+				return nil, fmt.Errorf("error ipv4 address %s is invalid", ipv4Address)
+			}
+
+			return ipv4AddressOctets, nil
+		}
+
+		addressOctet, err := strconv.Atoi(segment)
 		if err != nil {
 			return nil, err
 		}
 
-		if cur.children[curAddressOctet] == nil {
-			return nil, nil
+		if addressOctet < 0 || addressOctet > 255 {
+			return nil, fmt.Errorf("error ipv4 address octet %d exceeds expected range ", addressOctet)
 		}
-		cur = cur.children[curAddressOctet]
+
+		ipv4AddressOctets = append(ipv4AddressOctets, byte(addressOctet))
 	}
-	return cur, nil
+	return ipv4AddressOctets, nil
 }
 
-func getIpv4AddressOctet(addressSegment string) (byte, error) {
-	addressOctet, err := strconv.Atoi(addressSegment)
-	if err != nil {
-		return 0, err
+func validateWildCardsInIpv4Address(addressSegmentsToBeValidated []string) error {
+	//check if the rest of address segments do not contain characters other than "*"
+	for _, segment := range addressSegmentsToBeValidated {
+		if segment != "*" {
+			return fmt.Errorf("error ipv4 address octet %s is invalid ", segment)
+		}
 	}
-	if addressOctet < 0 || addressOctet > 255 {
-		return 0, fmt.Errorf("error ipv4 address octet %d exceeds expected range ", addressOctet)
-	}
-	return byte(addressOctet), nil
+	return nil
 }

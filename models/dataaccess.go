@@ -26,7 +26,7 @@ func GetIpAddressFromBannedIpsTable(ipAddressToBeQueried string) (string, error)
 
 func GetAllIpAddressesFromBannedIpsTable() (map[int][]string, error) {
 	rows, err := DB.Query(`
-								SELECT domain_id, host(ip)
+								SELECT domain_id, ip
 								FROM bannedips`)
 
 	if err != nil {
