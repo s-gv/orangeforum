@@ -68,3 +68,26 @@ func GetDomainIDByName(domainName string) *int {
 	}
 	return &domainID
 }
+
+func UpdateDomainByID(
+	domainID int,
+	forumName string,
+	isRegularSignupEnabled bool,
+	isReadOnly bool,
+	signupToken string,
+) {
+	_, err := DB.Exec(`
+	UPDATE domains
+	SET
+		forum_name = $2,
+		is_regular_signup_enabled = $3,
+		is_readonly = $4,
+		signup_token = $5
+	WHERE 
+		domain_id = $1;`,
+		domainID, forumName, isRegularSignupEnabled, isReadOnly, signupToken,
+	)
+	if err != nil {
+		glog.Errorf("Error updating domain ID:%d -- %s", domainID, err.Error())
+	}
+}

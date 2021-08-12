@@ -1,0 +1,27 @@
+{{ define "title" }}
+Admin
+{{ end }}
+
+{{ define "body" }}
+<form method="POST">
+    {{ .csrfField }}
+    <input type="text" name="forum_name" placeholder="Forum Name" minlength="3" maxlength="30" value="{{ .Domain.ForumName }}">
+
+    <input type="checkbox" id="is_regular_signup_enabled" name="is_regular_signup_enabled" value="1" {{ if .Domain.IsRegularSignupEnabled }}checked{{ end }}>
+    <label for="is_regular_signup_enabled">Enable public signup</label><br>
+
+    <input type="checkbox" id="is_readonly" name="is_readonly" value="1" {{ if .Domain.IsReadOnly }}checked{{ end }}>
+    <label for="is_readonly">Enable read-only mode</label><br>
+
+    {{ if not .Domain.IsRegularSignupEnabled }}
+    <input type="text" id="signup_token" name="signup_token" placeholder="Signup Token" minlength="3" maxlength="30" value="{{ .Domain.SignupToken }}">
+    <label for="signup_token">Special signup link that you can share: <a href="{{ .BasePath }}/auth/signup/{{ .Domain.SignupToken }}">http://{{ .Host }}{{ .BasePath }}/auth/signup/{{ .Domain.SignupToken }}</a></label><br>
+    {{ end }}
+
+    <input type="submit" name="submit" value="Update">
+</form>
+{{ if .ErrMsg }}
+<p style="color:red;">{{ .ErrMsg }}</p>
+{{ end }}
+
+{{ end }}

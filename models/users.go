@@ -42,8 +42,8 @@ type User struct {
 
 func createUser(domainID int, email string, userName string, passwd string, isSuperUser bool) error {
 	passwdHash := hashPassword(passwd)
-	_, err := DB.Exec(`INSERT INTO users(domain_id, email, username, passwd_hash) VALUES($1, $2, $3, $4);`,
-		domainID, email, userName, passwdHash,
+	_, err := DB.Exec(`INSERT INTO users(domain_id, email, username, passwd_hash, is_superadmin) VALUES($1, $2, $3, $4, $5);`,
+		domainID, email, userName, passwdHash, isSuperUser,
 	)
 	return err
 }
@@ -135,6 +135,13 @@ func UpdateUserOneTimeLoginTokenByID(userID int) string {
 		glog.Errorf("Error updating one-time signin token: %s", err.Error())
 	}
 	return token
+}
+
+func UpdateUserSuperUser(userID int, isSuperUser bool) {
+	_, err := DB.Exec(`UPDATE users SET is_superadmin = $1 WHERE user_id=$2;`, isSuperUser, userID)
+	if err != nil {
+		glog.Errorf("Error updating superuser status: %s", err.Error())
+	}
 }
 
 func LogOutUserByID(userID int) error {

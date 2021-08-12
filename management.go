@@ -108,3 +108,51 @@ func commandCreateDomain() {
 		fmt.Printf("Error creating domain: %s\n", err)
 	}
 }
+
+func commandMakeSuperUser() {
+	var domainName string
+	fmt.Printf("Domain name: ")
+	fmt.Scanf("%s\n", &domainName)
+
+	domain := models.GetDomainByName(domainName)
+	if domain == nil {
+		fmt.Printf("[ERROR] Invalid domain\n")
+		return
+	}
+
+	var email string
+	fmt.Printf("E-mail: ")
+	fmt.Scanf("%s\n", &email)
+
+	user := models.GetUserByEmail(domain.DomainID, email)
+	if user == nil {
+		fmt.Printf("[ERROR] Invalid user\n")
+		return
+	}
+
+	models.UpdateUserSuperUser(user.UserID, true)
+}
+
+func commandRemoveSuperUserPrivilege() {
+	var domainName string
+	fmt.Printf("Domain name: ")
+	fmt.Scanf("%s\n", &domainName)
+
+	domain := models.GetDomainByName(domainName)
+	if domain == nil {
+		fmt.Printf("[ERROR] Invalid domain\n")
+		return
+	}
+
+	var email string
+	fmt.Printf("E-mail: ")
+	fmt.Scanf("%s\n", &email)
+
+	user := models.GetUserByEmail(domain.DomainID, email)
+	if user == nil {
+		fmt.Printf("[ERROR] Invalid user\n")
+		return
+	}
+
+	models.UpdateUserSuperUser(user.UserID, false)
+}

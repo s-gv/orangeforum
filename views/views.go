@@ -100,6 +100,14 @@ func forumRouter() *chi.Mux {
 		r.Get("/", getIndex)
 	})
 
+	r.Route("/admin", func(r chi.Router) {
+		r.Use(jwtauth.Verifier(tokenAuth))
+		r.Use(mustAuth)
+
+		r.Get("/", getAdmin)
+		r.Post("/", postAdmin)
+	})
+
 	return r
 }
 

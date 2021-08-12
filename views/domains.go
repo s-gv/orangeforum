@@ -26,7 +26,7 @@ func domainCtx(next http.Handler) http.Handler {
 		domainName := chi.URLParam(r, "domainName")
 		domain := models.GetDomainByName(domainName)
 		if domain == nil {
-			http.Error(w, http.StatusText(404), 404)
+			http.Error(w, http.StatusText(404), http.StatusNotFound)
 			return
 		}
 		if domainName == r.Host {
@@ -45,7 +45,7 @@ func hostCtx(next http.Handler) http.Handler {
 		domainName := r.Host
 		domain := models.GetDomainByName(domainName)
 		if domain == nil {
-			http.Error(w, http.StatusText(404), 404)
+			http.Error(w, http.StatusText(404), http.StatusNotFound)
 			return
 		}
 		ctx := context.WithValue(r.Context(), ctxDomain, domain)
@@ -56,8 +56,4 @@ func hostCtx(next http.Handler) http.Handler {
 
 func basePath(r *http.Request) string {
 	return r.Context().Value(ctxBasePath).(string)
-}
-
-func domainID(r *http.Request) int {
-	return r.Context().Value(ctxDomain).(int)
 }

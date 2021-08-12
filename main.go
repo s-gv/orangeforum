@@ -31,6 +31,8 @@ func main() {
 	createSuperUser := flag.Bool("createsuperuser", false, "Create superuser (interactive)")
 	createUser := flag.Bool("createuser", false, "Create user (interactive)")
 	changePasswd := flag.Bool("changepasswd", false, "Change password (interactive)")
+	makeSuperUser := flag.Bool("makesuperuser", false, "Make user superuser")
+	removeSuperUserPrivilege := flag.Bool("removesuperuser", false, "Remove superuser privilege")
 
 	flag.Parse()
 
@@ -73,6 +75,16 @@ func main() {
 
 	if *createUser {
 		commandCreateUser()
+		return
+	}
+
+	if *makeSuperUser {
+		commandMakeSuperUser()
+		return
+	}
+
+	if *removeSuperUserPrivilege {
+		commandRemoveSuperUserPrivilege()
 		return
 	}
 
