@@ -64,7 +64,7 @@ func mustAuth(next http.Handler) http.Handler {
 				if iat, ok := claims["iat"].(time.Time); ok {
 					userID, _ := strconv.Atoi(uid)
 					user := models.GetUserByID(userID)
-					if user != nil && user.LogoutAt.Time.Before(iat) && user.DomainID == domainID {
+					if user != nil && user.LogoutAt.Time.Before(iat) && user.DomainID == domainID && !user.BannedAt.Valid {
 						ctx := context.WithValue(r.Context(), CtxUserKey, user)
 						// Token is authenticated, pass it through
 						next.ServeHTTP(w, r.WithContext(ctx))
@@ -130,7 +130,8 @@ func postAuthSignIn(w http.ResponseWriter, r *http.Request) {
 	email := r.PostFormValue("email")
 	passwd := r.PostFormValue("password")
 	user := models.GetUserByPasswd(domainID, email, passwd)
-	if user != nil {
+
+	if user != nil && !user.BannedAt.Valid {
 		err := authenticate(user.UserID, basePath, w)
 		if err != nil {
 			glog.Errorf("Error authenticating: %s", err.Error())
