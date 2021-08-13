@@ -211,7 +211,7 @@ func getAuthSignUp(w http.ResponseWriter, r *http.Request) {
 }
 
 func postAuthSignUp(w http.ResponseWriter, r *http.Request) {
-	domainID := r.Context().Value(ctxDomain).(*models.Domain).DomainID
+	domain := r.Context().Value(ctxDomain).(*models.Domain)
 	basePath := r.Context().Value(ctxBasePath).(string)
 	next := cleanNextURL(r.FormValue("next"), basePath)
 
@@ -235,15 +235,19 @@ func postAuthSignUp(w http.ResponseWriter, r *http.Request) {
 		errMsg = "Passwords do not match"
 	}
 
-	existingUser := models.GetUserByEmail(domainID, email)
+	existingUser := models.GetUserByEmail(domain.DomainID, email)
 	if existingUser != nil {
 		errMsg = "E-mail already registered"
+	}
+
+	if !domain.IsRegularSignupEnabled {
+		errMsg = "Signup disabled. Contact the admin."
 	}
 
 	if errMsg == "" {
 		displayName := strings.Split(email, "@")[0]
 
-		err := models.CreateUser(domainID, email, displayName, passwd)
+		err := models.CreateUser(domain.DomainID, email, displayName, passwd)
 		if err != nil {
 			glog.Errorf("Error creating user: %s", err.Error())
 			errMsg = "Error during signup."
@@ -251,8 +255,8 @@ func postAuthSignUp(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if errMsg == "" {
-		glog.Infof("Created user: %s for domainID: %d", email, domainID)
-		user := models.GetUserByEmail(domainID, email)
+		glog.Infof("Created user: %s for domainID: %d", email, domain.DomainID)
+		user := models.GetUserByEmail(domain.DomainID, email)
 		err := authenticate(user.UserID, basePath, w)
 		if err != nil {
 			glog.Errorf("Error authenticating: %s", err.Error())
