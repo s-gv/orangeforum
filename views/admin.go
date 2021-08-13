@@ -7,6 +7,7 @@ package views
 import (
 	"math/rand"
 	"net/http"
+	"strconv"
 
 	"github.com/gorilla/csrf"
 	"github.com/s-gv/orangeforum/models"
@@ -24,11 +25,15 @@ func getAdmin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	mods := models.GetSuperModsByDomainID(domain.DomainID)
+	println(len(mods), mods)
+
 	templates.Admin.Execute(w, map[string]interface{}{
 		csrf.TemplateTag: csrf.TemplateField(r),
 		BasePathField:    basePath,
 		"Domain":         domain,
 		"Host":           r.Host,
+		"Mods":           mods,
 	})
 }
 
@@ -83,11 +88,76 @@ func postAdmin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	mods := models.GetSuperModsByDomainID(domain.DomainID)
+
 	templates.Admin.Execute(w, map[string]interface{}{
 		csrf.TemplateTag: csrf.TemplateField(r),
 		BasePathField:    basePath,
 		"Domain":         domain,
 		"Host":           r.Host,
 		"ErrMsg":         errMsg,
+		"Mods":           mods,
 	})
+}
+
+func postCreateMod(w http.ResponseWriter, r *http.Request) {
+	basePath := r.Context().Value(ctxBasePath).(string)
+
+	user := r.Context().Value(CtxUserKey).(*models.User)
+	domain, _ := r.Context().Value(ctxDomain).(*models.Domain)
+
+	if !user.IsSuperAdmin {
+		http.Error(w, http.StatusText(403), http.StatusForbidden)
+		return
+	}
+
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Error parsing form.", http.StatusBadRequest)
+		return
+	}
+
+	modUserEmail := r.PostFormValue("mod_user_email")
+	modUser := models.GetUserByEmail(domain.DomainID, modUserEmail)
+
+	if modUser == nil {
+		http.Error(w, "Invalid user", http.StatusBadRequest)
+		return
+	}
+
+	models.UpdateUserSuperMod(modUser.UserID, true)
+
+	http.Redirect(w, r, basePath+"/admin", http.StatusSeeOther)
+}
+
+func postDeleteMod(w http.ResponseWriter, r *http.Request) {
+	basePath := r.Context().Value(ctxBasePath).(string)
+
+	user := r.Context().Value(CtxUserKey).(*models.User)
+	domain, _ := r.Context().Value(ctxDomain).(*models.Domain)
+
+	if !user.IsSuperAdmin {
+		http.Error(w, http.StatusText(403), http.StatusForbidden)
+		return
+	}
+
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Error parsing form.", http.StatusBadRequest)
+		return
+	}
+
+	modUserID, err := strconv.Atoi(r.PostFormValue("mod_user_id"))
+	if err != nil {
+		http.Error(w, "Error reading user ID.", http.StatusBadRequest)
+		return
+	}
+	modUser := models.GetUserByID(modUserID)
+
+	if modUser.DomainID != domain.DomainID {
+		http.Error(w, http.StatusText(403), http.StatusForbidden)
+		return
+	}
+
+	models.UpdateUserSuperMod(modUserID, false)
+
+	http.Redirect(w, r, basePath+"/admin", http.StatusSeeOther)
 }

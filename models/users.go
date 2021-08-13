@@ -120,6 +120,12 @@ func GetUserByOneTimeToken(domainID int, oneTimeToken string) *User {
 	return &user
 }
 
+func GetSuperModsByDomainID(domainID int) []User {
+	users := []User{}
+	DB.Select(&users, "SELECT * FROM users WHERE domain_id = $1 AND is_supermod = $2;", domainID, true)
+	return users
+}
+
 func UpdateUserPasswdByID(userID int, passwd string) error {
 	passwdHash := hashPassword(passwd)
 	_, err := DB.Exec(`UPDATE users SET passwd_hash = $1 WHERE user_id=$2;`, passwdHash, userID)
@@ -142,6 +148,13 @@ func UpdateUserSuperUser(userID int, isSuperUser bool) {
 	_, err := DB.Exec(`UPDATE users SET is_superadmin = $1 WHERE user_id=$2;`, isSuperUser, userID)
 	if err != nil {
 		glog.Errorf("Error updating superuser status: %s", err.Error())
+	}
+}
+
+func UpdateUserSuperMod(userID int, isSuperMod bool) {
+	_, err := DB.Exec(`UPDATE users SET is_supermod = $1 WHERE user_id=$2;`, isSuperMod, userID)
+	if err != nil {
+		glog.Errorf("Error updating supermod status: %s", err.Error())
 	}
 }
 

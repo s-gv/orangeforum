@@ -111,6 +111,9 @@ func forumRouter() *chi.Mux {
 
 		r.Get("/", getAdmin)
 		r.Post("/", postAdmin)
+
+		r.Post("/mods/create", postCreateMod)
+		r.Post("/mods/delete", postDeleteMod)
 	})
 
 	return r

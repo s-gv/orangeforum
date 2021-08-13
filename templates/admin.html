@@ -19,11 +19,28 @@ Admin
         <label for="signup_token">Shareable private signup link: <a href="{{ .BasePath }}/auth/signup/{{ .Domain.SignupToken }}">https://{{ .Host }}{{ .BasePath }}/auth/signup/{{ .Domain.SignupToken }}</a></label><br>
         {{ end }}
     {{ end }}
-
+    {{ if .ErrMsg }}
+    <p style="color:red;">{{ .ErrMsg }}</p>
+    {{ end }}
     <input type="submit" name="submit" value="Update">
 </form>
-{{ if .ErrMsg }}
-<p style="color:red;">{{ .ErrMsg }}</p>
+
+<h2>Mods</h2>
+
+{{ range .Mods }}
+<form method="POST" action="{{ $.BasePath }}/admin/mods/delete">
+    {{ $.csrfField }}
+    {{ .Email }} ({{ .DisplayName }})
+    <input type="hidden" name="mod_user_id" value="{{ .UserID }}">
+    <input type="submit" name="submit" value="Remove">
+</form>
 {{ end }}
+
+Add new mod
+<form method="POST" action="{{ .BasePath }}/admin/mods/create">
+    {{ .csrfField }}
+    <input type="email" name="mod_user_email" placeholder="Email">
+    <input type="submit" name="submit" value="Add">
+</form>
 
 {{ end }}
