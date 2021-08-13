@@ -1,0 +1,25 @@
+{{ define "title" }}
+Profile
+{{ end }}
+
+{{ define "body" }}
+{{ if .ShowForm }}
+<form method="POST">
+    {{ .csrfField }}
+    <input type="text" name="display_name" placeholder="Display Name" minlength="3" maxlength="30" value="{{ .ProfileUser.DisplayName }}">
+    <input type="email" name="email" placeholder="E-Mail" minlength="3" maxlength="100" value="{{ .ProfileUser.Email }}">
+    {{ if .ShowBan }}
+    <input type="checkbox" id="is_banned" name="is_banned" value="1" {{ if .ProfileUser.BannedAt.Valid }}checked{{ end }}>
+    <label for="is_banned">User banned</label><br>
+    {{ end }}
+    {{ if .ErrMsg }}
+    <p style="color:red;">{{ .ErrMsg }}</p>
+    {{ end }}
+    <input type="submit" name="submit" value="Update">
+</form>
+{{ else }}
+Display Name: {{ .ProfileUser.DisplayName }}
+About: {{ .ProfileUser.About }}
+{{ end }}
+
+{{ end }}

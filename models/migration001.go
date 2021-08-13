@@ -71,10 +71,26 @@ func migrate001(db *sqlx.DB) {
 		updated_at                          TIMESTAMPTZ NOT NULL DEFAULT current_timestamp
 	);`)
 	db.MustExec(`CREATE TRIGGER update_timestamp BEFORE UPDATE ON users FOR EACH ROW EXECUTE PROCEDURE update_modified_timestamp();`)
-	db.MustExec(`CREATE UNIQUE INDEX users_domain_email_index       ON users(domain_id, email);`)
-	db.MustExec(`CREATE INDEX users_otp_token_index                 ON users(onetime_login_token);`)
-	db.MustExec(`CREATE INDEX users_reset_token_index               ON users(reset_token);`)
-	db.MustExec(`CREATE INDEX users_created_index                   ON users(created_at);`)
+	db.MustExec(`CREATE UNIQUE INDEX users_domain_email_index  ON users(domain_id, email);`)
+	db.MustExec(`CREATE INDEX users_supermod_index             ON users(domain_id, is_supermod);`)
+	db.MustExec(`CREATE INDEX users_otp_token_index            ON users(onetime_login_token);`)
+	db.MustExec(`CREATE INDEX users_reset_token_index          ON users(reset_token);`)
+	db.MustExec(`CREATE INDEX users_created_index              ON users(created_at);`)
+
+	db.MustExec(`CREATE TABLE categories(
+		category_id                         SERIAL PRIMARY KEY,
+		domain_id                           INTEGER NOT NULL REFERENCES domains(domain_id) ON DELETE CASCADE,
+		name                                VARCHAR(250) NOT NULL,
+		description                         VARCHAR(250) NOT NULL,
+		is_private                          BOOL NOT NULL DEFAULT false,
+		is_readonly                         BOOL NOT NULL DEFAULT false,
+		is_restricted                       BOOL NOT NULL DEFAULT false,
+		archived_at                         TIMESTAMPTZ,
+		created_at                          TIMESTAMPTZ NOT NULL DEFAULT current_timestamp,
+		updated_at                          TIMESTAMPTZ NOT NULL DEFAULT current_timestamp
+	);`)
+	db.MustExec(`CREATE TRIGGER update_timestamp BEFORE UPDATE ON categories FOR EACH ROW EXECUTE PROCEDURE update_modified_timestamp();`)
+	db.MustExec(`CREATE INDEX categories_domain_index          ON categories(domain_id);`)
 
 	// Add some config data
 	db.MustExec(`INSERT INTO configs(name, val) VALUES('` + DBVersion + `', '1');`)

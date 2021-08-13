@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/go-chi/chi"
 	"github.com/gorilla/csrf"
 	"github.com/s-gv/orangeforum/models"
 	"github.com/s-gv/orangeforum/templates"
@@ -26,7 +27,7 @@ func getAdmin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	mods := models.GetSuperModsByDomainID(domain.DomainID)
-	println(len(mods), mods)
+	categories := models.GetCategoriesByDomainID(domain.DomainID)
 
 	templates.Admin.Execute(w, map[string]interface{}{
 		csrf.TemplateTag: csrf.TemplateField(r),
@@ -34,6 +35,7 @@ func getAdmin(w http.ResponseWriter, r *http.Request) {
 		"Domain":         domain,
 		"Host":           r.Host,
 		"Mods":           mods,
+		"Categories":     categories,
 	})
 }
 
@@ -89,6 +91,7 @@ func postAdmin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	mods := models.GetSuperModsByDomainID(domain.DomainID)
+	categories := models.GetCategoriesByDomainID(domain.DomainID)
 
 	templates.Admin.Execute(w, map[string]interface{}{
 		csrf.TemplateTag: csrf.TemplateField(r),
@@ -97,6 +100,7 @@ func postAdmin(w http.ResponseWriter, r *http.Request) {
 		"Host":           r.Host,
 		"ErrMsg":         errMsg,
 		"Mods":           mods,
+		"Categories":     categories,
 	})
 }
 
@@ -107,7 +111,7 @@ func postCreateMod(w http.ResponseWriter, r *http.Request) {
 	domain, _ := r.Context().Value(ctxDomain).(*models.Domain)
 
 	if !user.IsSuperAdmin {
-		http.Error(w, http.StatusText(403), http.StatusForbidden)
+		http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
 		return
 	}
 
@@ -136,7 +140,7 @@ func postDeleteMod(w http.ResponseWriter, r *http.Request) {
 	domain, _ := r.Context().Value(ctxDomain).(*models.Domain)
 
 	if !user.IsSuperAdmin {
-		http.Error(w, http.StatusText(403), http.StatusForbidden)
+		http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
 		return
 	}
 
@@ -153,11 +157,49 @@ func postDeleteMod(w http.ResponseWriter, r *http.Request) {
 	modUser := models.GetUserByID(modUserID)
 
 	if modUser.DomainID != domain.DomainID {
-		http.Error(w, http.StatusText(403), http.StatusForbidden)
+		http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
 		return
 	}
 
 	models.UpdateUserSuperMod(modUserID, false)
+
+	http.Redirect(w, r, basePath+"/admin", http.StatusSeeOther)
+}
+
+func postCategory(w http.ResponseWriter, r *http.Request) {
+	basePath := r.Context().Value(ctxBasePath).(string)
+
+	user := r.Context().Value(CtxUserKey).(*models.User)
+	domain, _ := r.Context().Value(ctxDomain).(*models.Domain)
+
+	if domain.DomainID != user.DomainID || !user.IsSuperAdmin {
+		http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
+		return
+	}
+
+	err := r.ParseForm()
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+
+	name := r.PostFormValue("name")
+	description := r.PostFormValue("description")
+	isPrivate := r.PostFormValue("is_private") == "1"
+	isReadOnly := r.PostFormValue("is_readonly") == "1"
+	isArchived := r.PostFormValue("is_archived") == "1"
+	categoryIDStr := chi.URLParam(r, "categoryID")
+
+	if categoryIDStr == "create" {
+		models.CreateCategory(domain.DomainID, name, description)
+	} else {
+		categoryID, err := strconv.Atoi(categoryIDStr)
+		if err != nil {
+			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			return
+		}
+		models.UpdateCategoryByID(categoryID, name, description, isPrivate, isReadOnly, isArchived)
+	}
 
 	http.Redirect(w, r, basePath+"/admin", http.StatusSeeOther)
 }

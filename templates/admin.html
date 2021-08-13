@@ -43,4 +43,33 @@ Add new mod
     <input type="submit" name="submit" value="Add">
 </form>
 
+<h2>Categories</h2>
+{{ range .Categories }}
+<form method="POST" action="{{ $.BasePath }}/admin/categories/{{ .CategoryID }}">
+    {{ $.csrfField }}
+    <input type="text" name="name" placeholder="Category Name" minlength="3" maxlength="30" value="{{ .Name }}">
+    <input type="text" name="description" placeholder="Description" maxlength="200" value="{{ .Description }}">
+
+    <input type="checkbox" id="is_readonly" name="is_readonly" value="1" {{ if .IsReadOnly }}checked{{ end }}>
+    <label for="is_readonly">Enable read-only mode</label><br>
+
+    <input type="checkbox" id="is_private" name="is_private" value="1" {{ if .IsPrivate }}checked{{ end }}>
+    <label for="is_private">Enable private mode</label><br>
+
+    <input type="checkbox" id="is_archived" name="is_archived" value="1" {{ if .ArchivedAt.Valid }}checked{{ end }}>
+    <label for="is_archived">Archived</label><br>
+
+    <input type="submit" name="submit" value="Update">
+</form>
+{{ end }}
+
+Add new category
+<form method="POST" action="{{ .BasePath }}/admin/categories/create">
+    {{ .csrfField }}
+    <input type="text" name="name" placeholder="Category Name" minlength="3" maxlength="30">
+    <input type="text" name="description" placeholder="Description" maxlength="200">
+    <input type="submit" name="submit" value="Add">
+</form>
+
+
 {{ end }}

@@ -114,6 +114,16 @@ func forumRouter() *chi.Mux {
 
 		r.Post("/mods/create", postCreateMod)
 		r.Post("/mods/delete", postDeleteMod)
+
+		r.Post("/categories/{categoryID}", postCategory)
+	})
+
+	r.Route("/users", func(r chi.Router) {
+		r.Use(jwtauth.Verifier(tokenAuth))
+		r.Use(mustAuth)
+
+		r.Get("/{userID}", getProfile)
+		r.Post("/{userID}", postProfile)
 	})
 
 	return r

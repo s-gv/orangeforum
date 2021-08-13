@@ -158,6 +158,18 @@ func UpdateUserSuperMod(userID int, isSuperMod bool) {
 	}
 }
 
+func UpdateUserByID(userID int, email string, displayName string, isBanned bool) {
+	println(isBanned)
+	var bannedAt interface{}
+	if isBanned {
+		bannedAt = time.Now()
+	}
+	_, err := DB.Exec(`UPDATE users SET email = $2, display_name = $3, banned_at = $4 WHERE user_id=$1;`, userID, email, displayName, bannedAt)
+	if err != nil {
+		glog.Errorf("Error updating user: %s", err.Error())
+	}
+}
+
 func LogOutUserByID(userID int) error {
 	_, err := DB.Exec(`UPDATE users SET logout_at = current_timestamp WHERE user_id=$1;`, userID)
 	return err

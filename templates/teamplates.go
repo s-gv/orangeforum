@@ -10,7 +10,7 @@ import (
 )
 
 var Signin, Signup, ChangePass, OneTimeSignin *template.Template // Auth related templates
-var Index, Admin *template.Template                              // Other templates
+var Index, Admin, Profile *template.Template                     // Other templates
 
 //go:embed base.html
 var baseTmplStr string
@@ -33,6 +33,9 @@ var indexTmplStr string
 //go:embed admin.html
 var adminTmplStr string
 
+//go:embed profile.html
+var profileTmplStr string
+
 func init() {
 	Signin = template.Must(template.Must(template.New("base").Parse(baseTmplStr)).Parse(signinTmplStr))
 	Signup = template.Must(template.Must(template.New("base").Parse(baseTmplStr)).Parse(signupTmplStr))
@@ -41,4 +44,5 @@ func init() {
 
 	Index = template.Must(template.Must(template.New("base").Parse(baseTmplStr)).Parse(indexTmplStr))
 	Admin = template.Must(template.Must(template.New("base").Parse(baseTmplStr)).Parse(adminTmplStr))
+	Profile = template.Must(template.Must(template.New("base").Parse(baseTmplStr)).Parse(profileTmplStr))
 }

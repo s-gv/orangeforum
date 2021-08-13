@@ -224,6 +224,19 @@ func getAuthSignUp(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func validateEmail(email string) string {
+	errMsg := ""
+	if !strings.Contains(email, "@") {
+		errMsg = "Invalid email"
+	}
+	if len(email) < 3 {
+		errMsg = "Email should have at least 3 characters"
+	} else if emailReg.ReplaceAllString(email, "") != email {
+		errMsg = "Email should not have non-alphanumeric characters"
+	}
+	return errMsg
+}
+
 func postAuthSignUp(w http.ResponseWriter, r *http.Request) {
 	domain := r.Context().Value(ctxDomain).(*models.Domain)
 	basePath := r.Context().Value(ctxBasePath).(string)
@@ -242,14 +255,10 @@ func postAuthSignUp(w http.ResponseWriter, r *http.Request) {
 	}
 
 	errMsg := ""
-	if !strings.Contains(email, "@") {
-		errMsg = "Invalid email"
-	}
-	if len(email) < 3 {
-		errMsg = "Email should have at least 3 characters"
-	} else if emailReg.ReplaceAllString(email, "") != email {
-		errMsg = "Email should not have non-alphanumeric characters"
-	} else if len(passwd) < 6 {
+
+	errMsg = validateEmail(email)
+
+	if len(passwd) < 6 {
 		errMsg = "Password should have at least 6 characters"
 	} else if passwd != passwd2 {
 		errMsg = "Passwords do not match"
