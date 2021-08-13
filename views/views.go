@@ -52,6 +52,11 @@ func forumRouter() *chi.Mux {
 			r.Post("/", postAuthSignUp)
 		})
 
+		r.Route("/signup/{signupToken:[A-Za-z0-9-]+}", func(r chi.Router) {
+			r.Get("/", getAuthSignUp)
+			r.Post("/", postAuthSignUp)
+		})
+
 		r.Route("/changepass", func(r chi.Router) {
 			r.Use(jwtauth.Verifier(tokenAuth))
 			r.Use(mustAuth)

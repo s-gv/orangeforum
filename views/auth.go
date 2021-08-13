@@ -201,8 +201,22 @@ func getAuthOneTimeSignInDone(w http.ResponseWriter, r *http.Request) {
 }
 
 func getAuthSignUp(w http.ResponseWriter, r *http.Request) {
+	domain := r.Context().Value(ctxDomain).(*models.Domain)
 	basePath := r.Context().Value(ctxBasePath).(string)
 	next := cleanNextURL(r.FormValue("next"), basePath)
+	signupToken := chi.URLParam(r, "signupToken")
+
+	if signupToken != "" && signupToken != domain.SignupToken {
+		http.Error(w, http.StatusText(404), http.StatusNotFound)
+		return
+	}
+
+	if !domain.IsRegularSignupEnabled {
+		if domain.SignupToken == "" || signupToken == "" || domain.SignupToken != signupToken {
+			http.Error(w, "Signup is disabled. Contact the admin.", http.StatusForbidden)
+			return
+		}
+	}
 	templates.Signup.Execute(w, map[string]interface{}{
 		csrf.TemplateTag: csrf.TemplateField(r),
 		BasePathField:    basePath,
@@ -214,12 +228,18 @@ func postAuthSignUp(w http.ResponseWriter, r *http.Request) {
 	domain := r.Context().Value(ctxDomain).(*models.Domain)
 	basePath := r.Context().Value(ctxBasePath).(string)
 	next := cleanNextURL(r.FormValue("next"), basePath)
+	signupToken := chi.URLParam(r, "signupToken")
 
 	email := r.PostFormValue("email")
 	passwd := r.PostFormValue("password")
 	passwd2 := r.PostFormValue("password2")
 
 	email = strings.Trim(email, " ")
+
+	if signupToken != "" && signupToken != domain.SignupToken {
+		http.Error(w, http.StatusText(404), http.StatusNotFound)
+		return
+	}
 
 	errMsg := ""
 	if !strings.Contains(email, "@") {
@@ -241,7 +261,10 @@ func postAuthSignUp(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !domain.IsRegularSignupEnabled {
-		errMsg = "Signup disabled. Contact the admin."
+		if domain.SignupToken == "" || signupToken == "" || domain.SignupToken != signupToken {
+			http.Error(w, "Signup is disabled. Contact the admin.", http.StatusForbidden)
+			return
+		}
 	}
 
 	if errMsg == "" {
