@@ -91,3 +91,10 @@ func UpdateDomainByID(
 		glog.Errorf("Error updating domain ID:%d -- %s", domainID, err.Error())
 	}
 }
+
+func DeleteDomainByID(domainID int) {
+	_, err := DB.Exec(`DELETE FROM domains WHERE domain_id = $1;`, domainID)
+	if err != nil {
+		glog.Errorf("Error deleting domain ID:%d -- %s", domainID, err.Error())
+	}
+}

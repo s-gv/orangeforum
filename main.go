@@ -33,6 +33,8 @@ func main() {
 	changePasswd := flag.Bool("changepasswd", false, "Change password (interactive)")
 	makeSuperUser := flag.Bool("makesuperuser", false, "Make user superuser")
 	removeSuperUserPrivilege := flag.Bool("removesuperuser", false, "Remove superuser privilege")
+	deleteDomain := flag.Bool("deletedomain", false, "Delete domain")
+	deleteUser := flag.Bool("deleteuser", false, "Delete user")
 
 	flag.Parse()
 
@@ -85,6 +87,16 @@ func main() {
 
 	if *removeSuperUserPrivilege {
 		commandRemoveSuperUserPrivilege()
+		return
+	}
+
+	if *deleteDomain {
+		commandDeleteDomain()
+		return
+	}
+
+	if *deleteUser {
+		commandDeleteUser()
 		return
 	}
 

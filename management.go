@@ -156,3 +156,41 @@ func commandRemoveSuperUserPrivilege() {
 
 	models.UpdateUserSuperUser(user.UserID, false)
 }
+
+func commandDeleteDomain() {
+	var domainName string
+	fmt.Printf("Domain name: ")
+	fmt.Scanf("%s\n", &domainName)
+
+	domain := models.GetDomainByName(domainName)
+	if domain == nil {
+		fmt.Printf("[ERROR] Invalid domain\n")
+		return
+	}
+
+	models.DeleteDomainByID(domain.DomainID)
+}
+
+func commandDeleteUser() {
+	var domainName string
+	fmt.Printf("Domain name: ")
+	fmt.Scanf("%s\n", &domainName)
+
+	domain := models.GetDomainByName(domainName)
+	if domain == nil {
+		fmt.Printf("[ERROR] Invalid domain\n")
+		return
+	}
+
+	var email string
+	fmt.Printf("E-mail: ")
+	fmt.Scanf("%s\n", &email)
+
+	user := models.GetUserByEmail(domain.DomainID, email)
+	if user == nil {
+		fmt.Printf("[ERROR] Invalid user\n")
+		return
+	}
+
+	models.DeleteUserByID(user.UserID)
+}

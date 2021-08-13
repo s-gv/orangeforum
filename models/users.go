@@ -149,6 +149,13 @@ func LogOutUserByID(userID int) error {
 	return err
 }
 
+func DeleteUserByID(userID int) {
+	_, err := DB.Exec(`DELETE FROM users WHERE user_id = $1;`, userID)
+	if err != nil {
+		glog.Errorf("Error deleting user: %s", err.Error())
+	}
+}
+
 func hashPassword(password string) string {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
