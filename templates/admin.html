@@ -16,7 +16,7 @@ Admin
     {{ if not .Domain.IsRegularSignupEnabled }}
     <input type="text" id="signup_token" name="signup_token" placeholder="Signup Token" minlength="3" maxlength="30" value="{{ .Domain.SignupToken }}">
         {{ if .Domain.SignupToken }}
-        <label for="signup_token">Shareable private signup link: <a href="{{ .BasePath }}/auth/signup/{{ .Domain.SignupToken }}">http://{{ .Host }}{{ .BasePath }}/auth/signup/{{ .Domain.SignupToken }}</a></label><br>
+        <label for="signup_token">Shareable private signup link: <a href="{{ .BasePath }}/auth/signup/{{ .Domain.SignupToken }}">https://{{ .Host }}{{ .BasePath }}/auth/signup/{{ .Domain.SignupToken }}</a></label><br>
         {{ end }}
     {{ end }}
 
