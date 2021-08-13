@@ -6,7 +6,6 @@ package views
 
 import (
 	"context"
-	"math/rand"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -28,9 +27,9 @@ var userNameReg *regexp.Regexp
 var nextURLReg *regexp.Regexp
 var emailReg *regexp.Regexp
 
-func cleanNextURL(next string) string {
+func cleanNextURL(next string, basePath string) string {
 	if next == "" || next[0] != '/' {
-		return "/"
+		return basePath
 	}
 	return next
 }
@@ -116,7 +115,7 @@ func canAuth(next http.Handler) http.Handler {
 
 func getAuthSignIn(w http.ResponseWriter, r *http.Request) {
 	basePath := r.Context().Value(ctxBasePath).(string)
-	next := cleanNextURL(r.FormValue("next"))
+	next := cleanNextURL(r.FormValue("next"), basePath)
 	templates.Signin.Execute(w, map[string]interface{}{
 		csrf.TemplateTag: csrf.TemplateField(r),
 		BasePathField:    basePath,
@@ -127,7 +126,7 @@ func getAuthSignIn(w http.ResponseWriter, r *http.Request) {
 func postAuthSignIn(w http.ResponseWriter, r *http.Request) {
 	domainID := r.Context().Value(ctxDomain).(*models.Domain).DomainID
 	basePath := r.Context().Value(ctxBasePath).(string)
-	next := cleanNextURL(r.FormValue("next"))
+	next := cleanNextURL(r.FormValue("next"), basePath)
 	email := r.PostFormValue("email")
 	passwd := r.PostFormValue("password")
 	user := models.GetUserByPasswd(domainID, email, passwd)
@@ -142,13 +141,13 @@ func postAuthSignIn(w http.ResponseWriter, r *http.Request) {
 		csrf.TemplateTag: csrf.TemplateField(r),
 		BasePathField:    basePath,
 		"Next":           next,
-		"ErrMsg":         "Invalid username / password",
+		"ErrMsg":         "Invalid email / password",
 	})
 }
 
 func getAuthOneTimeSignIn(w http.ResponseWriter, r *http.Request) {
 	basePath := r.Context().Value(ctxBasePath).(string)
-	next := cleanNextURL(r.FormValue("next"))
+	next := cleanNextURL(r.FormValue("next"), basePath)
 	templates.OneTimeSignin.Execute(w, map[string]interface{}{
 		csrf.TemplateTag: csrf.TemplateField(r),
 		BasePathField:    basePath,
@@ -159,7 +158,7 @@ func getAuthOneTimeSignIn(w http.ResponseWriter, r *http.Request) {
 func postAuthOneTimeSignIn(w http.ResponseWriter, r *http.Request) {
 	domainID := r.Context().Value(ctxDomain).(*models.Domain).DomainID
 	basePath := r.Context().Value(ctxBasePath).(string)
-	next := cleanNextURL(r.PostFormValue("next"))
+	next := cleanNextURL(r.PostFormValue("next"), basePath)
 	email := r.PostFormValue("email")
 	errMsg := "E-mail not found"
 
@@ -189,7 +188,7 @@ func postAuthOneTimeSignIn(w http.ResponseWriter, r *http.Request) {
 func getAuthOneTimeSignInDone(w http.ResponseWriter, r *http.Request) {
 	domainID := r.Context().Value(ctxDomain).(*models.Domain).DomainID
 	basePath := r.Context().Value(ctxBasePath).(string)
-	next := cleanNextURL(r.FormValue("next"))
+	next := cleanNextURL(r.FormValue("next"), basePath)
 	token := chi.URLParam(r, "token")
 	user := models.GetUserByOneTimeToken(domainID, token)
 	if user != nil {
@@ -203,7 +202,7 @@ func getAuthOneTimeSignInDone(w http.ResponseWriter, r *http.Request) {
 
 func getAuthSignUp(w http.ResponseWriter, r *http.Request) {
 	basePath := r.Context().Value(ctxBasePath).(string)
-	next := cleanNextURL(r.FormValue("next"))
+	next := cleanNextURL(r.FormValue("next"), basePath)
 	templates.Signup.Execute(w, map[string]interface{}{
 		csrf.TemplateTag: csrf.TemplateField(r),
 		BasePathField:    basePath,
@@ -214,7 +213,7 @@ func getAuthSignUp(w http.ResponseWriter, r *http.Request) {
 func postAuthSignUp(w http.ResponseWriter, r *http.Request) {
 	domainID := r.Context().Value(ctxDomain).(*models.Domain).DomainID
 	basePath := r.Context().Value(ctxBasePath).(string)
-	next := cleanNextURL(r.FormValue("next"))
+	next := cleanNextURL(r.FormValue("next"), basePath)
 
 	email := r.PostFormValue("email")
 	passwd := r.PostFormValue("password")
@@ -242,9 +241,9 @@ func postAuthSignUp(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if errMsg == "" {
-		userName := strings.Split(email, "@")[0] + strconv.Itoa(rand.Intn(100000000))
+		displayName := strings.Split(email, "@")[0]
 
-		err := models.CreateUser(domainID, email, userName, passwd)
+		err := models.CreateUser(domainID, email, displayName, passwd)
 		if err != nil {
 			glog.Errorf("Error creating user: %s", err.Error())
 			errMsg = "Error during signup."

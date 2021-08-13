@@ -17,10 +17,11 @@ type User struct {
 	UserID                      int          `db:"user_id"`
 	DomainID                    int          `db:"domain_id"`
 	Email                       string       `db:"email"`
-	UserName                    string       `db:"username"`
+	DisplayName                 string       `db:"display_name"`
 	PasswdHash                  string       `db:"passwd_hash"`
 	About                       string       `db:"about"`
 	IsSuperAdmin                bool         `db:"is_superadmin"`
+	IsSuperMod                  bool         `db:"is_supermod"`
 	IsTopicAutoSub              bool         `db:"is_topic_autosubscribe"`
 	IsCommentAutoSub            bool         `db:"is_comment_autosubscribe"`
 	IsEmailNotificationDisabled bool         `db:"is_email_notifications_disabled"`
@@ -40,20 +41,20 @@ type User struct {
 	UpdatedAt                   sql.NullTime `db:"updated_at"`
 }
 
-func createUser(domainID int, email string, userName string, passwd string, isSuperUser bool) error {
+func createUser(domainID int, email string, displayName string, passwd string, isSuperUser bool) error {
 	passwdHash := hashPassword(passwd)
-	_, err := DB.Exec(`INSERT INTO users(domain_id, email, username, passwd_hash, is_superadmin) VALUES($1, $2, $3, $4, $5);`,
-		domainID, email, userName, passwdHash, isSuperUser,
+	_, err := DB.Exec(`INSERT INTO users(domain_id, email, display_name, passwd_hash, is_superadmin) VALUES($1, $2, $3, $4, $5);`,
+		domainID, email, displayName, passwdHash, isSuperUser,
 	)
 	return err
 }
 
-func CreateUser(domainID int, email string, userName string, passwd string) error {
-	return createUser(domainID, email, userName, passwd, false)
+func CreateUser(domainID int, email string, displayName string, passwd string) error {
+	return createUser(domainID, email, displayName, passwd, false)
 }
 
-func CreateSuperUser(domainID int, email string, userName string, passwd string) error {
-	return createUser(domainID, email, userName, passwd, true)
+func CreateSuperUser(domainID int, email string, displayName string, passwd string) error {
+	return createUser(domainID, email, displayName, passwd, true)
 }
 
 func ChangePasswd(domainID int, email string, passwd string) error {
