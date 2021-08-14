@@ -1,3 +1,11 @@
 {{ define "body" }}
+
 Index Page!
+
+{{ if .User }}
+Hi {{ .User.DisplayName }}!
+{{ else }}
+Hi guest!
+{{ end }}
+
 {{ end }}

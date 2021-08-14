@@ -3,6 +3,13 @@ Admin
 {{ end }}
 
 {{ define "body" }}
+
+{{ if .User }}
+Hi {{ .User.DisplayName }}!
+{{ else }}
+Hi guest!
+{{ end }}
+
 <form method="POST">
     {{ .csrfField }}
     <input type="text" name="forum_name" placeholder="Forum Name" minlength="3" maxlength="30" value="{{ .Domain.ForumName }}">

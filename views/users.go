@@ -15,12 +15,12 @@ import (
 	"github.com/s-gv/orangeforum/templates"
 )
 
-const UserField = "User"
+const UserField string = "User"
 
 func getProfile(w http.ResponseWriter, r *http.Request) {
 	basePath := r.Context().Value(ctxBasePath).(string)
 
-	user := r.Context().Value(CtxUserKey).(*models.User)
+	user, _ := r.Context().Value(CtxUserKey).(*models.User)
 	domain, _ := r.Context().Value(ctxDomain).(*models.Domain)
 
 	profileUserID, err := strconv.Atoi(chi.URLParam(r, "userID"))
@@ -34,14 +34,14 @@ func getProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	showForm := (user.UserID == profileUser.UserID)
-	if domain.DomainID == user.DomainID {
+	showForm := (user != nil) && (user.UserID == profileUser.UserID)
+	if (user != nil) && (domain.DomainID == user.DomainID) {
 		if user.IsSuperAdmin || user.IsSuperMod {
 			showForm = true
 		}
 	}
 
-	showBan := (domain.DomainID == user.DomainID) && (user.IsSuperMod || user.IsSuperAdmin)
+	showBan := (user != nil) && (domain.DomainID == user.DomainID) && (user.IsSuperMod || user.IsSuperAdmin)
 
 	templates.Profile.Execute(w, map[string]interface{}{
 		csrf.TemplateTag: csrf.TemplateField(r),
@@ -56,8 +56,13 @@ func getProfile(w http.ResponseWriter, r *http.Request) {
 func postProfile(w http.ResponseWriter, r *http.Request) {
 	basePath := r.Context().Value(ctxBasePath).(string)
 
-	user := r.Context().Value(CtxUserKey).(*models.User)
+	user, _ := r.Context().Value(CtxUserKey).(*models.User)
 	domain, _ := r.Context().Value(ctxDomain).(*models.Domain)
+
+	if user == nil {
+		http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
+		return
+	}
 
 	profileUserID, err := strconv.Atoi(chi.URLParam(r, "userID"))
 	if err != nil {

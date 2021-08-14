@@ -3,6 +3,13 @@ Profile
 {{ end }}
 
 {{ define "body" }}
+
+{{ if .User }}
+Hi {{ .User.DisplayName }}!
+{{ else }}
+Hi guest!
+{{ end }}
+
 {{ if .ShowForm }}
 <form method="POST">
     {{ .csrfField }}

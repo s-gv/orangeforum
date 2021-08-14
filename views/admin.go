@@ -32,6 +32,7 @@ func getAdmin(w http.ResponseWriter, r *http.Request) {
 	templates.Admin.Execute(w, map[string]interface{}{
 		csrf.TemplateTag: csrf.TemplateField(r),
 		BasePathField:    basePath,
+		UserField:        user,
 		"Domain":         domain,
 		"Host":           r.Host,
 		"Mods":           mods,
@@ -96,6 +97,7 @@ func postAdmin(w http.ResponseWriter, r *http.Request) {
 	templates.Admin.Execute(w, map[string]interface{}{
 		csrf.TemplateTag: csrf.TemplateField(r),
 		BasePathField:    basePath,
+		UserField:        user,
 		"Domain":         domain,
 		"Host":           r.Host,
 		"ErrMsg":         errMsg,
