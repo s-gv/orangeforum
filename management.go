@@ -6,8 +6,6 @@ package main
 
 import (
 	"fmt"
-	"math/rand"
-	"strconv"
 	"strings"
 	"syscall"
 
@@ -35,7 +33,8 @@ func getCreds() (int, string, string, string) {
 		return -1, "", "", ""
 	}
 
-	userName := strings.Split(email, "@")[0] + strconv.Itoa(rand.Intn(100000000))
+	userName := strings.Split(email, "@")[0]
+	userName = strings.Title(strings.ToLower(userName))
 
 	fmt.Printf("Password: ")
 	password, err := terminal.ReadPassword(int(syscall.Stdin))
