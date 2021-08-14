@@ -109,8 +109,8 @@ func forumRouter() *chi.Mux {
 		r.Use(jwtauth.Verifier(tokenAuth))
 		r.Use(mustAuth)
 
-		r.Get("/", getAdmin)
-		r.Post("/", postAdmin)
+		r.Get("/", adminHandler)
+		r.Post("/", adminHandler)
 
 		r.Post("/mods/create", postCreateMod)
 		r.Post("/mods/delete", postDeleteMod)
@@ -122,8 +122,8 @@ func forumRouter() *chi.Mux {
 		r.Use(jwtauth.Verifier(tokenAuth))
 		r.Use(canAuth)
 
-		r.Get("/{userID}", getProfile)
-		r.Post("/{userID}", postProfile)
+		r.Get("/{userID}", profileHandler)
+		r.Post("/{userID}", profileHandler)
 	})
 
 	return r

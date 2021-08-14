@@ -7,6 +7,8 @@ package models
 import (
 	"database/sql"
 	"errors"
+	"math/rand"
+	"strconv"
 	"strings"
 
 	"github.com/golang/glog"
@@ -39,7 +41,8 @@ func CreateDomain(domainName string) error {
 	if strings.Contains(domainName, " ") {
 		return errors.New("Domain name should not have spaces")
 	}
-	_, err := DB.Exec(`INSERT INTO domains(domain_name) VALUES($1);`, domainName)
+	signupToken := strconv.Itoa(rand.Intn(10000000) + 3245714)
+	_, err := DB.Exec(`INSERT INTO domains(domain_name, signup_token) VALUES($1, $2);`, domainName, signupToken)
 	return err
 }
 
