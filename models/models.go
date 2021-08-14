@@ -7,3 +7,18 @@ package models
 import "github.com/jmoiron/sqlx"
 
 var DB *sqlx.DB
+
+var BannedIpsGroupedByDomain map[int][]string
+
+type ipv4AddressTrieNode struct {
+	addresOctet        byte
+	children           map[byte]*ipv4AddressTrieNode
+	octectIndex        int
+	isLastAddressOctet bool
+}
+
+type ipv4AddressTrie struct {
+	root *ipv4AddressTrieNode
+}
+
+var BannedIpv4AddressTriesPerDomain map[int]*ipv4AddressTrie
