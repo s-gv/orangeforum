@@ -10,6 +10,7 @@ import (
 	"math/rand"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/golang/glog"
 )
@@ -30,8 +31,8 @@ type Domain struct {
 	IsTopicAutoSub         bool         `db:"enable_topic_autosub"`
 	IsCommentAutoSub       bool         `db:"enable_comment_autosub"`
 	ArchivedAt             sql.NullTime `db:"archived_at"`
-	CreatedAt              sql.NullTime `db:"created_at"`
-	UpdatedAt              sql.NullTime `db:"updated_at"`
+	CreatedAt              time.Time    `db:"created_at"`
+	UpdatedAt              time.Time    `db:"updated_at"`
 }
 
 func CreateDomain(domainName string) error {

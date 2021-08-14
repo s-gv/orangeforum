@@ -32,13 +32,13 @@ type User struct {
 	OnetimeLoginTokenAt         sql.NullTime `db:"onetime_login_token_at"`
 	ResetToken                  string       `db:"reset_token"`
 	LastIP                      string       `db:"last_ip"`
-	ActivityAt                  sql.NullTime `db:"activity_at"`
-	ResetAt                     sql.NullTime `db:"reset_at"`
-	LogoutAt                    sql.NullTime `db:"logout_at"`
+	ActivityAt                  time.Time    `db:"activity_at"`
+	ResetAt                     time.Time    `db:"reset_at"`
+	LogoutAt                    time.Time    `db:"logout_at"`
 	BannedAt                    sql.NullTime `db:"banned_at"`
 	ArchivedAt                  sql.NullTime `db:"archived_at"`
-	CreatedAt                   sql.NullTime `db:"created_at"`
-	UpdatedAt                   sql.NullTime `db:"updated_at"`
+	CreatedAt                   time.Time    `db:"created_at"`
+	UpdatedAt                   time.Time    `db:"updated_at"`
 }
 
 func createUser(domainID int, email string, displayName string, passwd string, isSuperUser bool) error {

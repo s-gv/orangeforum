@@ -22,8 +22,8 @@ type Category struct {
 	IsReadOnly   bool         `db:"is_readonly"`
 	IsRestricted bool         `db:"is_restricted"`
 	ArchivedAt   sql.NullTime `db:"archived_at"`
-	CreatedAt    sql.NullTime `db:"created_at"`
-	UpdatedAt    sql.NullTime `db:"updated_at"`
+	CreatedAt    time.Time    `db:"created_at"`
+	UpdatedAt    time.Time    `db:"updated_at"`
 }
 
 func CreateCategory(domainID int, name string, description string) {

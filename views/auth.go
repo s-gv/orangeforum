@@ -64,7 +64,7 @@ func mustAuth(next http.Handler) http.Handler {
 				if iat, ok := claims["iat"].(time.Time); ok {
 					userID, _ := strconv.Atoi(uid)
 					user := models.GetUserByID(userID)
-					if user != nil && user.LogoutAt.Time.Before(iat) && user.DomainID == domainID && !user.BannedAt.Valid {
+					if user != nil && user.LogoutAt.Before(iat) && user.DomainID == domainID && !user.BannedAt.Valid {
 						ctx := context.WithValue(r.Context(), CtxUserKey, user)
 						// Token is authenticated, pass it through
 						next.ServeHTTP(w, r.WithContext(ctx))
@@ -99,7 +99,7 @@ func canAuth(next http.Handler) http.Handler {
 				if iat, ok := claims["iat"].(time.Time); ok {
 					userID, _ := strconv.Atoi(uid)
 					user := models.GetUserByID(userID)
-					if user != nil && user.LogoutAt.Time.Before(iat) && user.DomainID == domainID {
+					if user != nil && user.LogoutAt.Before(iat) && user.DomainID == domainID {
 						ctx := context.WithValue(r.Context(), CtxUserKey, user)
 						// Token is authenticated, pass it through
 						next.ServeHTTP(w, r.WithContext(ctx))

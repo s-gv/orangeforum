@@ -92,6 +92,69 @@ func migrate001(db *sqlx.DB) {
 	db.MustExec(`CREATE TRIGGER update_timestamp BEFORE UPDATE ON categories FOR EACH ROW EXECUTE PROCEDURE update_modified_timestamp();`)
 	db.MustExec(`CREATE INDEX categories_domain_index          ON categories(domain_id);`)
 
+	db.MustExec(`CREATE TABLE topics(
+		topic_id                            SERIAL PRIMARY KEY,
+		category_id                         INTEGER NOT NULL REFERENCES categories(category_id) ON DELETE CASCADE,
+		user_id                             INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+		title                               VARCHAR(250) NOT NULL,
+		content                             TEXT NOT NULL DEFAULT '',
+		is_sticky                           BOOL NOT NULL DEFAULT false,
+		is_readonly                         BOOL NOT NULL DEFAULT false,
+		num_comments                        INTEGER,
+		num_views                           INTEGER,
+		activity_at                         TIMESTAMPTZ NOT NULL DEFAULT current_timestamp,
+		archived_at                         TIMESTAMPTZ,
+		created_at                          TIMESTAMPTZ NOT NULL DEFAULT current_timestamp,
+		updated_at                          TIMESTAMPTZ NOT NULL DEFAULT current_timestamp
+	);`)
+	db.MustExec(`CREATE TRIGGER update_timestamp BEFORE UPDATE          ON topics FOR EACH ROW EXECUTE PROCEDURE update_modified_timestamp();`)
+	db.MustExec(`CREATE INDEX topics_category_sticky_activity_index     ON topics(category_id, is_sticky, activity_at);`)
+
+	db.MustExec(`CREATE TABLE comments(
+		comment_id                          SERIAL PRIMARY KEY,
+		topic_id                            INTEGER NOT NULL REFERENCES topics(topic_id) ON DELETE CASCADE,
+		user_id                             INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+		content                             TEXT NOT NULL DEFAULT '',
+		is_sticky                           BOOL NOT NULL DEFAULT false,
+		archived_at                         TIMESTAMPTZ,
+		created_at                          TIMESTAMPTZ NOT NULL DEFAULT current_timestamp,
+		updated_at                          TIMESTAMPTZ NOT NULL DEFAULT current_timestamp
+	);`)
+	db.MustExec(`CREATE TRIGGER update_timestamp BEFORE UPDATE          ON comments FOR EACH ROW EXECUTE PROCEDURE update_modified_timestamp();`)
+	db.MustExec(`CREATE INDEX comments_topic_sticky_created_index       ON comments(topic_id, is_sticky, created_at);`)
+
+	db.MustExec(`CREATE TABLE category_subs(
+		sub_id                              SERIAL PRIMARY KEY,
+		category_id                         INTEGER NOT NULL REFERENCES categories(category_id) ON DELETE CASCADE,
+		user_id                             INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+		unsub_token                         VARCHAR(64) NOT NULL DEFAULT '',
+		created_at                          TIMESTAMPTZ NOT NULL DEFAULT current_timestamp
+	);`)
+	db.MustExec(`CREATE INDEX catsubs_cat_index               ON category_subs(category_id);`)
+	db.MustExec(`CREATE INDEX catsubs_unsub_token_index       ON category_subs(unsub_token);`)
+
+	db.MustExec(`CREATE TABLE topic_subs(
+		sub_id                              SERIAL PRIMARY KEY,
+		topic_id                            INTEGER NOT NULL REFERENCES topics(topic_id) ON DELETE CASCADE,
+		user_id                             INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+		unsub_token                         VARCHAR(64) NOT NULL DEFAULT '',
+		created_at                          TIMESTAMPTZ NOT NULL DEFAULT current_timestamp
+	);`)
+	db.MustExec(`CREATE INDEX topicsubs_cat_index               ON topic_subs(topic_id);`)
+	db.MustExec(`CREATE INDEX topicsubs_unsub_token_index       ON topic_subs(unsub_token);`)
+
+	db.MustExec(`CREATE TABLE notes(
+		note_id                             SERIAL PRIMARY KEY,
+		domain_id                           INTEGER NOT NULL REFERENCES domains(domain_id) ON DELETE CASCADE,
+		name                                VARCHAR(64) NOT NULL DEFAULT '',
+		content                             TEXT NOT NULL DEFAULT '',
+		url                                 VARCHAR(64) NOT NULL DEFAULT '',
+		created_at                          TIMESTAMPTZ NOT NULL DEFAULT current_timestamp,
+		updated_at                          TIMESTAMPTZ NOT NULL DEFAULT current_timestamp
+	);`)
+	db.MustExec(`CREATE TRIGGER update_timestamp BEFORE UPDATE          ON notes FOR EACH ROW EXECUTE PROCEDURE update_modified_timestamp();`)
+	db.MustExec(`CREATE INDEX notes_domain_url_index                    ON notes(domain_id, url);`)
+
 	// Add some config data
 	db.MustExec(`INSERT INTO configs(name, val) VALUES('` + DBVersion + `', '1');`)
 }
