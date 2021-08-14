@@ -40,11 +40,15 @@ func authenticate(id int, basePath string, w http.ResponseWriter) error {
 		"iat":     time.Now(),
 		"exp":     time.Now().Add(365 * 24 * time.Hour),
 	})
+	path := "/"
+	if basePath != "" {
+		path = basePath
+	}
 	if err == nil {
 		cookie := http.Cookie{
 			Name:     "jwt",
 			Value:    tokenString,
-			Path:     basePath + "/",
+			Path:     path,
 			Expires:  time.Now().Add(365 * 24 * time.Hour),
 			HttpOnly: true,
 		}
