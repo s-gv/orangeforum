@@ -279,6 +279,7 @@ func postAuthSignUp(w http.ResponseWriter, r *http.Request) {
 
 	if errMsg == "" {
 		displayName := strings.Split(email, "@")[0]
+		displayName = strings.Title(strings.ToLower(displayName))
 
 		err := models.CreateUser(domain.DomainID, email, displayName, passwd)
 		if err != nil {
