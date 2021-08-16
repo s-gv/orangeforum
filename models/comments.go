@@ -22,10 +22,10 @@ type Comment struct {
 	UpdatedAt  time.Time    `db:"updated_at"`
 }
 
-func CreateComment(topicID int, userID int, content string) int {
+func CreateComment(topicID int, userID int, content string, isSticky bool) int {
 	var commentID int
-	err := DB.QueryRow("INSERT INTO comments(topic_id, user_id, content) VALUES($1, $2, $3) RETURNING comment_id;",
-		topicID, userID, content).Scan(&commentID)
+	err := DB.QueryRow("INSERT INTO comments(topic_id, user_id, content, is_sticky) VALUES($1, $2, $3, $4) RETURNING comment_id;",
+		topicID, userID, content, isSticky).Scan(&commentID)
 	if err != nil {
 		glog.Errorf("Error creating comment: %s\n", err.Error())
 		return -1
@@ -55,7 +55,7 @@ func GetCommentByID(commentID int) *Comment {
 
 func GetCommentsByTopicID(topicID int) []Comment {
 	var comments []Comment
-	err := DB.Select(&comments, "SELECT * FROM comments WHERE topic_id = $1 ORDER BY created_at;", topicID)
+	err := DB.Select(&comments, "SELECT * FROM comments WHERE topic_id = $1 ORDER BY is_sticky DESC, created_at;", topicID)
 	if err != nil {
 		if err != sql.ErrNoRows {
 			glog.Errorf("Error reading comments: %s\n", err.Error())
@@ -64,8 +64,8 @@ func GetCommentsByTopicID(topicID int) []Comment {
 	return comments
 }
 
-func UpdateCommentByID(commentID int, content string) {
-	_, err := DB.Exec("UPDATE comments SET content = $2 WHERE comment_id = $1;", commentID, content)
+func UpdateCommentByID(commentID int, content string, isSticky bool) {
+	_, err := DB.Exec("UPDATE comments SET content = $2, is_sticky = $3 WHERE comment_id = $1;", commentID, content, isSticky)
 	if err != nil {
 		glog.Errorf("Error updating comment: %s\n", err.Error())
 	}

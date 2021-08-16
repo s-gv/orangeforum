@@ -97,12 +97,19 @@ func editTopic(w http.ResponseWriter, r *http.Request) {
 		action := r.PostFormValue("action")
 		title := r.PostFormValue("title")
 		content := r.PostFormValue("content")
+		isSticky := r.PostFormValue("is_sticky") == "1"
+		if !(user.IsSuperAdmin || user.IsSuperMod) {
+			isSticky = false
+			if topic != nil {
+				isSticky = topic.IsSticky
+			}
+		}
 		if len(title) < 2 {
 			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 			return
 		}
 		if action == "Submit" {
-			newTopicID := models.CreateTopic(category.CategoryID, user.UserID, title, content)
+			newTopicID := models.CreateTopic(category.CategoryID, user.UserID, title, content, isSticky)
 			if newTopicID >= 0 {
 				http.Redirect(w, r, basePath+
 					"/categories/"+strconv.Itoa(category.CategoryID)+
@@ -111,7 +118,7 @@ func editTopic(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		} else if action == "Update" {
-			models.UpdateTopicByID(topic.TopicID, title, content)
+			models.UpdateTopicByID(topic.TopicID, title, content, isSticky)
 			http.Redirect(w, r, basePath+
 				"/categories/"+strconv.Itoa(category.CategoryID)+
 				"/topics/"+strconv.Itoa(topic.TopicID),

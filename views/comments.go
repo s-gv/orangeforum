@@ -67,8 +67,15 @@ func editComment(w http.ResponseWriter, r *http.Request) {
 		}
 		action := r.PostFormValue("action")
 		content := r.PostFormValue("content")
+		isSticky := r.PostFormValue("is_sticky") == "1"
+		if !(user.IsSuperAdmin || user.IsSuperMod) {
+			isSticky = false
+			if topic != nil {
+				isSticky = topic.IsSticky
+			}
+		}
 		if action == "Submit" {
-			newCommentID := models.CreateComment(topic.TopicID, user.UserID, content)
+			newCommentID := models.CreateComment(topic.TopicID, user.UserID, content, isSticky)
 			if newCommentID >= 0 {
 				http.Redirect(w, r, basePath+
 					"/categories/"+strconv.Itoa(category.CategoryID)+
@@ -78,7 +85,7 @@ func editComment(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		} else if action == "Update" {
-			models.UpdateCommentByID(comment.CommentID, content)
+			models.UpdateCommentByID(comment.CommentID, content, isSticky)
 			http.Redirect(w, r, basePath+
 				"/categories/"+strconv.Itoa(category.CategoryID)+
 				"/topics/"+strconv.Itoa(topic.TopicID)+

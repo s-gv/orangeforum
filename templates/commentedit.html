@@ -13,6 +13,11 @@ Hi guest!
 <form method="POST">
     {{ .csrfField }}
     <textarea id="content" name="content" placeholder="Content" rows="6" cols="50">{{ if .Comment }}{{ .Comment.Content }}{{ end }}</textarea>
+    <br>
+    {{ if or .User.IsSuperAdmin .User.IsSuperMod }}
+    <input type="checkbox" id="is_sticky" name="is_sticky" value="1" {{ if .Comment }}{{ if .Comment.IsSticky }}checked{{ end }}{{ end }}>
+    <label for="is_sticky">Sticky</label><br>
+    {{ end }}
     {{ if .Comment }}
     <input type="submit" name="action" value="Update">
     <input type="submit" name="action" value="Delete">

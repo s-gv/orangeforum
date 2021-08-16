@@ -14,7 +14,7 @@ Hi guest!
 {{ if .Topics }}
 <ul>
 {{ range .Topics }}
-    <li><a href="{{ $.BasePath }}/categories/{{ $.Category.CategoryID }}/topics/{{ .TopicID }}">{{ .Title }}</a></li>
+    <li><a href="{{ $.BasePath }}/categories/{{ $.Category.CategoryID }}/topics/{{ .TopicID }}">{{ if .IsSticky }}[sticky]{{ end }}{{ .Title }}</a></li>
 {{ end }}
 </ul>
 <a href="{{ .BasePath }}/categories/{{ .Category.CategoryID }}?before={{ .MoreDt }}">More</a>

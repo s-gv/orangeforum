@@ -15,6 +15,11 @@ Hi guest!
     <input type="text" name="title" placeholder="Title" minlength="3" maxlength="100" value="{{ if .Topic }}{{ .Topic.Title }}{{ end }}">
     <br>
     <textarea id="content" name="content" placeholder="Content" rows="6" cols="50">{{ if .Topic }}{{ .Topic.Content }}{{ end }}</textarea>
+    <br>
+    {{ if or .User.IsSuperAdmin .User.IsSuperMod }}
+    <input type="checkbox" id="is_sticky" name="is_sticky" value="1" {{ if .Topic }}{{ if .Topic.IsSticky }}checked{{ end }}{{ end }}>
+    <label for="is_sticky">Sticky</label><br>
+    {{ end }}
     {{ if .Topic }}
     <input type="submit" name="action" value="Update">
     <input type="submit" name="action" value="Delete">
