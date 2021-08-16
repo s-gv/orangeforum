@@ -11,13 +11,18 @@ Hi guest!
 {{ end }}
 
 <a href="{{ $.BasePath }}">Back to index</a>
-
+{{ if .Topics }}
 <ul>
 {{ range .Topics }}
     <li><a href="{{ $.BasePath }}/categories/{{ $.Category.CategoryID }}/topics/{{ .TopicID }}">{{ .Title }}</a></li>
 {{ end }}
 </ul>
-
+<a href="{{ .BasePath }}/categories/{{ .Category.CategoryID }}?before={{ .MoreDt }}">More</a>
+{{ else }}
+<p>No topics found</p>
+{{ end }}
+<br>
 <a href="{{ .BasePath }}/categories/{{ .Category.CategoryID }}/topics/new">New topic</a>
+
 
 {{ end }}

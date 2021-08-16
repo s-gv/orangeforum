@@ -7,6 +7,7 @@ package views
 import (
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/go-chi/chi"
 	"github.com/gorilla/csrf"
@@ -32,14 +33,25 @@ func getTopicList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	topics := models.GetTopicsByCategoryID(category.CategoryID)
+	beforeStr := r.URL.Query().Get("before")
+	before, err := strconv.ParseInt(beforeStr, 10, 64)
+	if err != nil {
+		before = time.Now().UnixNano()
+	}
 
+	topics := models.GetTopicsByCategoryID(category.CategoryID, time.Unix(0, before))
+
+	moreDt := time.Now()
+	if len(topics) > 0 {
+		moreDt = topics[len(topics)-1].ActivityAt
+	}
 	templates.TopicList.Execute(w, map[string]interface{}{
 		csrf.TemplateTag: csrf.TemplateField(r),
 		BasePathField:    basePath,
 		UserField:        user,
 		"Category":       category,
 		"Topics":         topics,
+		"MoreDt":         moreDt.UnixNano(),
 	})
 }
 

@@ -27,14 +27,14 @@ type Topic struct {
 	UpdatedAt   time.Time    `db:"updated_at"`
 }
 
-func GetTopicsByCategoryID(categoryID int) []Topic {
+func GetTopicsByCategoryID(categoryID int, before time.Time) []Topic {
 	var topics []Topic
 	err := DB.Select(&topics, `
 		SELECT * 
 		FROM topics 
-		WHERE category_id = $1
-		ORDER BY is_sticky, activity_at DESC LIMIT 20;`,
-		categoryID,
+		WHERE category_id = $1 AND activity_at < $2
+		ORDER BY is_sticky, activity_at DESC LIMIT 30;`,
+		categoryID, before,
 	)
 	if err != nil {
 		if err != sql.ErrNoRows {
