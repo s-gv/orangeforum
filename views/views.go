@@ -126,6 +126,42 @@ func forumRouter() *chi.Mux {
 		r.Post("/{userID}", profileHandler)
 	})
 
+	r.Route("/categories/{categoryID}", func(r chi.Router) {
+		r.Route("/", func(r chi.Router) {
+			r.Use(jwtauth.Verifier(tokenAuth))
+			r.Use(canAuth)
+
+			r.Get("/", getTopicList)
+			r.Get("/topics/{topicID}", getTopic)
+		})
+
+		r.Route("/topics", func(r chi.Router) {
+			r.Route("/new", func(r chi.Router) {
+				r.Use(jwtauth.Verifier(tokenAuth))
+				r.Use(mustAuth)
+
+				r.Get("/", editTopic)
+				r.Post("/", editTopic)
+			})
+
+			r.Route("/{topicID}/edit", func(r chi.Router) {
+				r.Use(jwtauth.Verifier(tokenAuth))
+				r.Use(mustAuth)
+
+				r.Get("/", editTopic)
+				r.Post("/", editTopic)
+			})
+
+			r.Route("/{topicID}", func(r chi.Router) {
+				r.Use(jwtauth.Verifier(tokenAuth))
+				r.Use(canAuth)
+
+				r.Get("/", getTopic)
+			})
+		})
+
+	})
+
 	return r
 }
 

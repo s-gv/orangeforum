@@ -35,6 +35,18 @@ func CreateCategory(domainID int, name string, description string) {
 	}
 }
 
+func GetCategoryByID(categoryID int) *Category {
+	var category Category
+	err := DB.Get(&category, "SELECT * FROM categories WHERE category_id = $1;", categoryID)
+	if err != nil {
+		if err != sql.ErrNoRows {
+			glog.Errorf("Error reading category: %s", err.Error())
+		}
+		return nil
+	}
+	return &category
+}
+
 func GetCategoriesByDomainID(domainID int) []Category {
 	categories := []Category{}
 	err := DB.Select(&categories, "SELECT * FROM categories WHERE domain_id = $1 ORDER BY name;", domainID)

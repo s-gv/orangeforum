@@ -8,4 +8,12 @@ Hi {{ .User.DisplayName }}!
 Hi guest!
 {{ end }}
 
+<ul>
+    {{ range .Categories }}
+    <li>
+        <a href="{{ $.BasePath }}/categories/{{ .CategoryID }}">{{ .Name }}</a>
+    </li>
+    {{ end }}
+</ul>
+
 {{ end }}
