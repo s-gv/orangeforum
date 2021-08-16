@@ -10,9 +10,11 @@ Hi guest!
 
 <ul>
     {{ range .Categories }}
+    {{ if not .ArchivedAt.Valid }}
     <li>
         <a href="{{ $.BasePath }}/categories/{{ .CategoryID }}">{{ .Name }}</a>
     </li>
+    {{ end }}
     {{ end }}
 </ul>
 

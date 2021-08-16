@@ -30,7 +30,7 @@ func editComment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	category := models.GetCategoryByID(categoryID)
-	if category == nil || category.DomainID != domain.DomainID {
+	if category == nil || category.DomainID != domain.DomainID || category.ArchivedAt.Valid {
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 		return
 	}
