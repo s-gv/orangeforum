@@ -1,0 +1,32 @@
+{{ define "title" }}
+Topic
+{{ end }}
+
+{{ define "body" }}
+
+{{ if .User }}
+Hi {{ .User.DisplayName }}!
+{{ else }}
+Hi guest!
+{{ end }}
+
+<a href="{{ $.BasePath }}/categories/{{ .Category.CategoryID }}">Back to category</a>
+
+<h2>{{ .Topic.Title }}</h2>
+<p>
+    {{ .Topic.Content }}
+</p>
+<a href="{{ $.BasePath }}/categories/{{ .Category.CategoryID }}/topics/{{ .Topic.TopicID }}/edit">Edit</a>
+
+<h3>Comments</h3>
+<ul>
+    {{ range .Comments }}
+    <li id="comment-{{ .CommentID }}">
+        {{ .Content }}
+        <a href="{{ $.BasePath }}/categories/{{ $.Category.CategoryID }}/topics/{{ $.Topic.TopicID }}/comments/{{ .CommentID }}/edit">Edit</a>
+    </li>
+    {{ end }}
+</ul>
+<a href="{{ .BasePath }}/categories/{{ .Category.CategoryID }}/topics/{{ .Topic.TopicID }}/comments/new">New comment</a>
+
+{{ end }}

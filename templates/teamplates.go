@@ -9,8 +9,8 @@ import (
 	"html/template"
 )
 
-var Signin, Signup, ChangePass, OneTimeSignin *template.Template          // Auth related templates
-var Index, Admin, Profile, TopicList, TopicEdit, Topic *template.Template // Other templates
+var Signin, Signup, ChangePass, OneTimeSignin *template.Template                       // Auth related templates
+var Index, Admin, Profile, TopicList, TopicEdit, Topic, CommentEdit *template.Template // Other templates
 
 //go:embed base.html
 var baseTmplStr string
@@ -45,6 +45,9 @@ var topicEditTmplStr string
 //go:embed topic.html
 var topicTmplStr string
 
+//go:embed commentedit.html
+var commentEditTmplStr string
+
 func init() {
 	Signin = template.Must(template.Must(template.New("base").Parse(baseTmplStr)).Parse(signinTmplStr))
 	Signup = template.Must(template.Must(template.New("base").Parse(baseTmplStr)).Parse(signupTmplStr))
@@ -58,4 +61,6 @@ func init() {
 	TopicList = template.Must(template.Must(template.New("base").Parse(baseTmplStr)).Parse(topicListTmplStr))
 	TopicEdit = template.Must(template.Must(template.New("base").Parse(baseTmplStr)).Parse(topicEditTmplStr))
 	Topic = template.Must(template.Must(template.New("base").Parse(baseTmplStr)).Parse(topicTmplStr))
+
+	CommentEdit = template.Must(template.Must(template.New("base").Parse(baseTmplStr)).Parse(commentEditTmplStr))
 }

@@ -1,0 +1,23 @@
+{{ define "title" }}
+Category
+{{ end }}
+
+{{ define "body" }}
+
+{{ if .User }}
+Hi {{ .User.DisplayName }}!
+{{ else }}
+Hi guest!
+{{ end }}
+
+<a href="{{ $.BasePath }}">Back to index</a>
+
+<ul>
+{{ range .Topics }}
+    <li><a href="{{ $.BasePath }}/categories/{{ $.Category.CategoryID }}/topics/{{ .TopicID }}">{{ .Title }}</a></li>
+{{ end }}
+</ul>
+
+<a href="{{ .BasePath }}/categories/{{ .Category.CategoryID }}/topics/new">New topic</a>
+
+{{ end }}

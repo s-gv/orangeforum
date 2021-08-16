@@ -52,7 +52,7 @@ func CreateTopic(categoryID int, userID int, title string, content string) int {
 		glog.Errorf("Error inserting row: %s\n", err.Error())
 		return -1
 	}
-	return int(id)
+	return id
 }
 
 func GetTopicByID(topicID int) *Topic {

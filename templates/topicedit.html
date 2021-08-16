@@ -1,0 +1,26 @@
+{{ define "title" }}
+Topic
+{{ end }}
+
+{{ define "body" }}
+
+{{ if .User }}
+Hi {{ .User.DisplayName }}!
+{{ else }}
+Hi guest!
+{{ end }}
+
+<form method="POST">
+    {{ .csrfField }}
+    <input type="text" name="title" placeholder="Title" minlength="3" maxlength="100" value="{{ if .Topic }}{{ .Topic.Title }}{{ end }}">
+    <br>
+    <textarea id="content" name="content" placeholder="Content" rows="6" cols="50">{{ if .Topic }}{{ .Topic.Content }}{{ end }}</textarea>
+    {{ if .Topic }}
+    <input type="submit" name="action" value="Update">
+    <input type="submit" name="action" value="Delete">
+    {{ else }}
+    <input type="submit" name="action" value="Submit">
+    {{ end }}
+</form>
+
+{{ end }}

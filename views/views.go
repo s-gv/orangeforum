@@ -152,6 +152,22 @@ func forumRouter() *chi.Mux {
 				r.Post("/", editTopic)
 			})
 
+			r.Route("/{topicID}/comments/new", func(r chi.Router) {
+				r.Use(jwtauth.Verifier(tokenAuth))
+				r.Use(mustAuth)
+
+				r.Get("/", editComment)
+				r.Post("/", editComment)
+			})
+
+			r.Route("/{topicID}/comments/{commentID}/edit", func(r chi.Router) {
+				r.Use(jwtauth.Verifier(tokenAuth))
+				r.Use(mustAuth)
+
+				r.Get("/", editComment)
+				r.Post("/", editComment)
+			})
+
 			r.Route("/{topicID}", func(r chi.Router) {
 				r.Use(jwtauth.Verifier(tokenAuth))
 				r.Use(canAuth)
