@@ -47,7 +47,7 @@ func GetCommentByID(commentID int) *Comment {
 
 func GetCommentsByTopicID(topicID int) []Comment {
 	var comments []Comment
-	err := DB.Select(&comments, "SELECT * FROM comments WHERE topic_id = $1;", topicID)
+	err := DB.Select(&comments, "SELECT * FROM comments WHERE topic_id = $1 ORDER BY created_at;", topicID)
 	if err != nil {
 		if err != sql.ErrNoRows {
 			glog.Errorf("Error reading comments: %s\n", err.Error())
