@@ -169,7 +169,6 @@ func postAuthOneTimeSignIn(w http.ResponseWriter, r *http.Request) {
 
 	user := models.GetUserByEmail(domainID, email)
 	if user != nil {
-		println(user.Email)
 		errMsg = "A one time sign-in link has been sent to your email"
 		token := models.UpdateUserOneTimeLoginTokenByID(user.UserID)
 		link := "http://" + r.Host + basePath + "/auth/otsignin/" + token + "?next=" + next

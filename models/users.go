@@ -159,7 +159,6 @@ func UpdateUserSuperMod(userID int, isSuperMod bool) {
 }
 
 func UpdateUserByID(userID int, email string, displayName string, isBanned bool) {
-	println(isBanned)
 	var bannedAt interface{}
 	if isBanned {
 		bannedAt = time.Now()
