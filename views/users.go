@@ -21,7 +21,7 @@ func profileHandler(w http.ResponseWriter, r *http.Request) {
 	basePath := r.Context().Value(ctxBasePath).(string)
 
 	user, _ := r.Context().Value(CtxUserKey).(*models.User)
-	domain, _ := r.Context().Value(ctxDomain).(*models.Domain)
+	domain := r.Context().Value(ctxDomain).(*models.Domain)
 
 	profileUserID, err := strconv.Atoi(chi.URLParam(r, "userID"))
 	if err != nil {
@@ -88,6 +88,7 @@ func profileHandler(w http.ResponseWriter, r *http.Request) {
 	templates.Profile.Execute(w, map[string]interface{}{
 		csrf.TemplateTag: csrf.TemplateField(r),
 		BasePathField:    basePath,
+		DomainField:      domain,
 		UserField:        user,
 		"ProfileUser":    profileUser,
 		"ShowForm":       showForm,

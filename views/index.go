@@ -13,14 +13,15 @@ import (
 )
 
 func getIndex(w http.ResponseWriter, r *http.Request) {
+	domain := r.Context().Value(ctxDomain).(*models.Domain)
 	user, _ := r.Context().Value(CtxUserKey).(*models.User)
-	domain, _ := r.Context().Value(ctxDomain).(*models.Domain)
 
 	categories := models.GetCategoriesByDomainID(domain.DomainID)
 
 	templates.Index.Execute(w, map[string]interface{}{
 		csrf.TemplateTag: csrf.TemplateField(r),
 		BasePathField:    basePath(r),
+		DomainField:      domain,
 		UserField:        user,
 		"Categories":     categories,
 	})

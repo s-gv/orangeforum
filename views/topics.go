@@ -19,7 +19,7 @@ func getTopicList(w http.ResponseWriter, r *http.Request) {
 	basePath := r.Context().Value(ctxBasePath).(string)
 
 	user, _ := r.Context().Value(CtxUserKey).(*models.User)
-	domain, _ := r.Context().Value(ctxDomain).(*models.Domain)
+	domain := r.Context().Value(ctxDomain).(*models.Domain)
 
 	categoryIDStr := chi.URLParam(r, "categoryID")
 	categoryID, err := strconv.Atoi(categoryIDStr)
@@ -48,6 +48,7 @@ func getTopicList(w http.ResponseWriter, r *http.Request) {
 	templates.TopicList.Execute(w, map[string]interface{}{
 		csrf.TemplateTag: csrf.TemplateField(r),
 		BasePathField:    basePath,
+		DomainField:      domain,
 		UserField:        user,
 		"Category":       category,
 		"Topics":         topics,
@@ -59,7 +60,7 @@ func editTopic(w http.ResponseWriter, r *http.Request) {
 	basePath := r.Context().Value(ctxBasePath).(string)
 
 	user, _ := r.Context().Value(CtxUserKey).(*models.User)
-	domain, _ := r.Context().Value(ctxDomain).(*models.Domain)
+	domain := r.Context().Value(ctxDomain).(*models.Domain)
 
 	topicIDStr := chi.URLParam(r, "topicID")
 	categoryIDStr := chi.URLParam(r, "categoryID")
@@ -136,6 +137,7 @@ func editTopic(w http.ResponseWriter, r *http.Request) {
 	templates.TopicEdit.Execute(w, map[string]interface{}{
 		csrf.TemplateTag: csrf.TemplateField(r),
 		BasePathField:    basePath,
+		DomainField:      domain,
 		UserField:        user,
 		"Category":       category,
 		"Topic":          topic,
@@ -146,7 +148,7 @@ func getTopic(w http.ResponseWriter, r *http.Request) {
 	basePath := r.Context().Value(ctxBasePath).(string)
 
 	user, _ := r.Context().Value(CtxUserKey).(*models.User)
-	domain, _ := r.Context().Value(ctxDomain).(*models.Domain)
+	domain := r.Context().Value(ctxDomain).(*models.Domain)
 
 	topicIDStr := chi.URLParam(r, "topicID")
 	categoryIDStr := chi.URLParam(r, "categoryID")
@@ -179,6 +181,7 @@ func getTopic(w http.ResponseWriter, r *http.Request) {
 		csrf.TemplateTag: csrf.TemplateField(r),
 		BasePathField:    basePath,
 		UserField:        user,
+		DomainField:      domain,
 		"Category":       category,
 		"Topic":          topic,
 		"Comments":       comments,

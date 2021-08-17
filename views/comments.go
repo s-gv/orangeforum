@@ -18,7 +18,7 @@ func editComment(w http.ResponseWriter, r *http.Request) {
 	basePath := r.Context().Value(ctxBasePath).(string)
 
 	user, _ := r.Context().Value(CtxUserKey).(*models.User)
-	domain, _ := r.Context().Value(ctxDomain).(*models.Domain)
+	domain := r.Context().Value(ctxDomain).(*models.Domain)
 
 	topicIDStr := chi.URLParam(r, "topicID")
 	categoryIDStr := chi.URLParam(r, "categoryID")
@@ -107,6 +107,7 @@ func editComment(w http.ResponseWriter, r *http.Request) {
 	templates.CommentEdit.Execute(w, map[string]interface{}{
 		csrf.TemplateTag: csrf.TemplateField(r),
 		BasePathField:    basePath,
+		DomainField:      domain,
 		UserField:        user,
 		"Category":       category,
 		"Topic":          topic,

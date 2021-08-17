@@ -119,21 +119,23 @@ func canAuth(next http.Handler) http.Handler {
 
 func getAuthSignIn(w http.ResponseWriter, r *http.Request) {
 	basePath := r.Context().Value(ctxBasePath).(string)
+	domain := r.Context().Value(ctxDomain).(*models.Domain)
 	next := cleanNextURL(r.FormValue("next"), basePath)
 	templates.Signin.Execute(w, map[string]interface{}{
 		csrf.TemplateTag: csrf.TemplateField(r),
 		BasePathField:    basePath,
+		DomainField:      domain,
 		"Next":           next,
 	})
 }
 
 func postAuthSignIn(w http.ResponseWriter, r *http.Request) {
-	domainID := r.Context().Value(ctxDomain).(*models.Domain).DomainID
+	domain := r.Context().Value(ctxDomain).(*models.Domain)
 	basePath := r.Context().Value(ctxBasePath).(string)
 	next := cleanNextURL(r.FormValue("next"), basePath)
 	email := r.PostFormValue("email")
 	passwd := r.PostFormValue("password")
-	user := models.GetUserByPasswd(domainID, email, passwd)
+	user := models.GetUserByPasswd(domain.DomainID, email, passwd)
 
 	if user != nil && !user.BannedAt.Valid {
 		err := authenticate(user.UserID, basePath, w)
@@ -145,6 +147,7 @@ func postAuthSignIn(w http.ResponseWriter, r *http.Request) {
 	templates.Signin.Execute(w, map[string]interface{}{
 		csrf.TemplateTag: csrf.TemplateField(r),
 		BasePathField:    basePath,
+		DomainField:      domain,
 		"Next":           next,
 		"ErrMsg":         "Invalid email / password",
 	})
@@ -152,22 +155,24 @@ func postAuthSignIn(w http.ResponseWriter, r *http.Request) {
 
 func getAuthOneTimeSignIn(w http.ResponseWriter, r *http.Request) {
 	basePath := r.Context().Value(ctxBasePath).(string)
+	domain := r.Context().Value(ctxDomain).(*models.Domain)
 	next := cleanNextURL(r.FormValue("next"), basePath)
 	templates.OneTimeSignin.Execute(w, map[string]interface{}{
 		csrf.TemplateTag: csrf.TemplateField(r),
 		BasePathField:    basePath,
+		DomainField:      domain,
 		"Next":           next,
 	})
 }
 
 func postAuthOneTimeSignIn(w http.ResponseWriter, r *http.Request) {
-	domainID := r.Context().Value(ctxDomain).(*models.Domain).DomainID
+	domain := r.Context().Value(ctxDomain).(*models.Domain)
 	basePath := r.Context().Value(ctxBasePath).(string)
 	next := cleanNextURL(r.PostFormValue("next"), basePath)
 	email := r.PostFormValue("email")
 	errMsg := "E-mail not found"
 
-	user := models.GetUserByEmail(domainID, email)
+	user := models.GetUserByEmail(domain.DomainID, email)
 	if user != nil {
 		errMsg = "A one time sign-in link has been sent to your email"
 		token := models.UpdateUserOneTimeLoginTokenByID(user.UserID)
@@ -184,6 +189,7 @@ func postAuthOneTimeSignIn(w http.ResponseWriter, r *http.Request) {
 	templates.OneTimeSignin.Execute(w, map[string]interface{}{
 		csrf.TemplateTag: csrf.TemplateField(r),
 		BasePathField:    basePath,
+		DomainField:      domain,
 		"Next":           next,
 		"ErrMsg":         errMsg,
 	})
@@ -224,6 +230,7 @@ func getAuthSignUp(w http.ResponseWriter, r *http.Request) {
 	templates.Signup.Execute(w, map[string]interface{}{
 		csrf.TemplateTag: csrf.TemplateField(r),
 		BasePathField:    basePath,
+		DomainField:      domain,
 		"Next":           next,
 	})
 }
@@ -304,6 +311,7 @@ func postAuthSignUp(w http.ResponseWriter, r *http.Request) {
 	templates.Signup.Execute(w, map[string]interface{}{
 		csrf.TemplateTag: csrf.TemplateField(r),
 		BasePathField:    basePath,
+		DomainField:      domain,
 		"ErrMsg":         errMsg,
 		"Next":           next,
 	})
@@ -311,14 +319,16 @@ func postAuthSignUp(w http.ResponseWriter, r *http.Request) {
 
 func getAuthChangePass(w http.ResponseWriter, r *http.Request) {
 	basePath := r.Context().Value(ctxBasePath).(string)
+	domain := r.Context().Value(ctxDomain).(*models.Domain)
 	templates.ChangePass.Execute(w, map[string]interface{}{
 		csrf.TemplateTag: csrf.TemplateField(r),
+		DomainField:      domain,
 		BasePathField:    basePath,
 	})
 }
 
 func postAuthChangePass(w http.ResponseWriter, r *http.Request) {
-	domainID := r.Context().Value(ctxDomain).(*models.Domain).DomainID
+	domain := r.Context().Value(ctxDomain).(*models.Domain)
 	basePath := r.Context().Value(ctxBasePath).(string)
 
 	user := r.Context().Value(CtxUserKey).(*models.User)
@@ -333,7 +343,7 @@ func postAuthChangePass(w http.ResponseWriter, r *http.Request) {
 		errMsg = "New passwords do not match"
 	}
 
-	oldUser := models.GetUserByPasswd(domainID, user.Email, oldPasswd)
+	oldUser := models.GetUserByPasswd(domain.DomainID, user.Email, oldPasswd)
 	if oldUser == nil || oldUser.UserID != user.UserID {
 		errMsg = "Old password incorrect"
 	}
@@ -350,6 +360,7 @@ func postAuthChangePass(w http.ResponseWriter, r *http.Request) {
 	templates.ChangePass.Execute(w, map[string]interface{}{
 		csrf.TemplateTag: csrf.TemplateField(r),
 		BasePathField:    basePath,
+		DomainField:      domain,
 		"ErrMsg":         errMsg,
 	})
 }

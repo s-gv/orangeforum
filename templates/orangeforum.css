@@ -1,4 +1,71 @@
 /* Copyright (c) 2021 Orange Forum authors. All rights reserved.
    Use of this source code is governed by a BSD-style license that can be
-   found in the LICENSE file. */
-   
+   found in the LICENSE file.
+*/
+
+* {
+   box-sizing: border-box;
+}
+
+body {
+   font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
+   -webkit-font-smoothing: antialiased;
+   text-rendering: optimizeLegibility;
+   line-height: 1.6;
+}
+
+a {
+   text-decoration: none;
+}
+a:link, .nav a, .nav a:visited {
+   color: #07C;
+}
+a:hover, a:active, .nav a:visited:active, .nav a:visited:hover {
+   color: #3af;
+}
+a:visited {
+   color: #005999;
+}
+pre {
+   overflow-x: auto;
+   padding: 5px;
+   background-color: #eee;
+   max-height: 50em;
+}
+
+#topbar {
+   border-bottom: 4px solid lightgrey;
+}
+
+#topbar > div {
+   margin: 0 auto;
+   max-width: 800px;
+   padding: 4px 10px;
+}
+
+#topbar > div > div {
+   display: flex;
+   justify-content: space-between;
+}
+
+#topbar > div > div > div:first-child {
+   font-size: 20px;
+   font-weight: bold;
+}
+
+#topbar > div > div > div:first-child > a {
+   color: black;
+}
+
+a.btn-link {
+   background-color: #08c;
+   color: white;
+   padding: 6px 8px;
+}
+
+#maincontent {
+   max-width: 800px;
+   margin: 0 auto;
+   padding: 0 10px;
+   margin-top: 20px;
+}

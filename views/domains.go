@@ -20,6 +20,7 @@ const (
 )
 
 const BasePathField = "BasePath"
+const DomainField = "Domain"
 
 func domainCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
