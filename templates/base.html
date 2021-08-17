@@ -5,9 +5,12 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>{{ block "title" . }}Orange Forum{{ end }}</title>
+
+        <link rel="stylesheet" href="{{ .BasePath }}/static/orangeforum.css">
     </head>
     <body>
         {{ block "body" . }}
         {{ end }}
+        <script src="{{ .BasePath }}/static/orangeforum.js"></script>
     </body>
 </html>

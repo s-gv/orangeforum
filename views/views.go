@@ -5,8 +5,6 @@
 package views
 
 import (
-	"fmt"
-	"net/http"
 	"time"
 
 	"github.com/alexedwards/scs/v2"
@@ -14,7 +12,6 @@ import (
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/jwtauth"
 	"github.com/gorilla/csrf"
-	"github.com/s-gv/orangeforum/models"
 )
 
 var tokenAuth *jwtauth.JWTAuth
@@ -73,29 +70,9 @@ func forumRouter() *chi.Mux {
 		})
 	})
 
-	r.Route("/can", func(r chi.Router) {
-		r.Use(jwtauth.Verifier(tokenAuth))
-		r.Use(canAuth)
-
-		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-			var user *models.User
-			if u, ok := r.Context().Value(CtxUserKey).(*models.User); ok {
-				user = u
-			}
-			domain, _ := r.Context().Value(ctxDomain).(*models.Domain)
-			w.Write([]byte(fmt.Sprintf("public area. hi %v. domain_id: %v, domain name: %v", user, domain.DomainID, domain.DomainName)))
-		})
-	})
-
-	r.Route("/must", func(r chi.Router) {
-		r.Use(jwtauth.Verifier(tokenAuth))
-		r.Use(mustAuth)
-
-		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-			user := r.Context().Value(CtxUserKey).(*models.User)
-			domain, _ := r.Context().Value(ctxDomain).(*models.Domain)
-			w.Write([]byte(fmt.Sprintf("protected area. \nuser: %v\ndomain: %v", user, domain)))
-		})
+	r.Route("/static", func(r chi.Router) {
+		r.Get("/orangeforum.css", getCSS)
+		r.Get("/orangeforum.js", getJS)
 	})
 
 	r.Route("/", func(r chi.Router) {
