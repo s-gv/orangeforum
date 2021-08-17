@@ -39,7 +39,7 @@ pre {
 
 #topbar > div {
    margin: 0 auto;
-   max-width: 800px;
+   max-width: 1100px;
    padding: 4px 10px;
 }
 
@@ -64,7 +64,7 @@ a.btn-link {
 }
 
 #maincontent {
-   max-width: 800px;
+   max-width: 1100px;
    margin: 0 auto;
    padding: 0 10px;
    margin-top: 20px;
