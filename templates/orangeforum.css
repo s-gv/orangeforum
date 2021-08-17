@@ -69,3 +69,55 @@ a.btn-link {
    padding: 0 10px;
    margin-top: 20px;
 }
+
+@media only screen and (min-width: 768px) {
+   .well {
+      max-width: 400px;
+   }
+}
+
+.form-row {
+   margin-top: 14px;
+}
+
+.form-row > label {
+   font-size: 14px;
+}
+
+.form-row > input {
+   display: block;
+   width: 100%;
+   font-size: 18px;
+}
+
+.form-control {
+   padding: .375rem .75rem;
+   border: 1px solid #ced4da;
+   border-radius: 0.25rem;
+   transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+}
+
+.form-control:focus {
+   border-color: #86b7fe;
+   box-shadow: 0 0 0 0.25rem rgb(13 110 253 / 25%);
+   outline: 0;
+}
+
+.btn-primary {
+   color: #fff;
+   background-color: #0d6efd;
+   border-color: #0d6efd;
+   cursor: pointer;
+}
+
+.btn-primary:focus {
+   background-color: #0b5ed7;
+   border-color: #0a58ca;
+   box-shadow: 0 0 0 0.25rem rgb(49 132 253 / 50%);
+}
+
+.btn-primary:hover {
+   background-color: #0b5ed7;
+   border-color: #0a58ca;
+}
+

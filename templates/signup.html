@@ -1,12 +1,30 @@
+{{ define "title" }}
+Signup
+{{ end }}
+
 {{ define "body" }}
-<form method="POST">
-    {{ .csrfField }}
-    <input type="email" name="email" placeholder="E=mail">
-    <input type="password" name="password" placeholder="Password">
-    <input type="password" name="password2" placeholder="Password (again)">
-    <input type="hidden" name="next" value="{{ .Next }}">
-    <input type="submit" name="submit" value="Signup">
-</form>
+<h2>Signup</h2>
+<div class="well">
+    <form method="POST">
+        {{ .csrfField }}
+        <input type="hidden" name="next" value="{{ .Next }}">
+        <div class="form-row">
+            <label for="email" class="form-label">Email address</label>
+            <input type="email" class="form-control" id="email" name="email" placeholder="name@example.com">
+        </div>
+        <div class="form-row">
+            <label for="password" class="form-label">Password</label>
+            <input type="password" class="form-control" id="password" name="password" placeholder="Password">
+        </div>
+        <div class="form-row">
+            <label for="password2" class="form-label">Password (again)</label>
+            <input type="password" class="form-control" id="password2" name="password2" placeholder="Password (again)">
+        </div>
+        <div class="form-row" style="margin-top: 20px;">
+            <input type="submit" class="form-control btn-primary" name="submit" value="Signup">
+        </div>
+    </form>
+</div>
 {{ if .ErrMsg }}
 <p style="color:red;">{{ .ErrMsg }}</p>
 {{ end }}

@@ -1,10 +1,22 @@
+{{ define "title" }}
+Signin
+{{ end }}
+
 {{ define "body" }}
-<form method="POST">
-    {{ .csrfField }}
-    <input type="email" name="email" placeholder="E-mail">
-    <input type="hidden" name="next" value="{{ .Next }}">
-    <input type="submit" name="submit" value="E-mail Signin Link">
-</form>
+<h2>Signin</h2>
+<div class="well">
+    <form method="POST">
+        {{ .csrfField }}
+        <input type="hidden" name="next" value="{{ .Next }}">
+        <div class="form-row">
+            <label for="email" class="form-label">Email address</label>
+            <input type="email" class="form-control" id="email" name="email" placeholder="name@example.com">
+        </div>
+        <div class="form-row" style="margin-top: 20px;">
+            <input type="submit" class="form-control btn-primary" name="submit" value="E-mail Signin Link">
+        </div>
+    </form>
+</div>
 {{ if .ErrMsg }}
 <p style="color:red;">{{ .ErrMsg }}</p>
 {{ end }}
