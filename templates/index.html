@@ -1,23 +1,26 @@
 {{ define "body" }}
 
+<h2>Categories</h2>
 
-Index Page!
-
-{{ if .User }}
-Hi {{ .User.DisplayName }}!
-{{ else }}
-Hi guest!
-{{ end }}
-
-<ul>
-    {{ range .Categories }}
-    {{ if not .ArchivedAt.Valid }}
-    <li>
-        <a href="{{ $.BasePath }}/categories/{{ .CategoryID }}">{{ .Name }}</a>
-    </li>
-    {{ end }}
-    {{ end }}
-</ul>
+{{ range $i, $c := .Categories }}
+{{ if not $c.ArchivedAt.Valid }}
+<div class="cat-row" style="border-left: 6px solid {{ .IndexPageColorStr }};{{ if eq $i 0}}border-top: 4px solid lightgray;{{ end }}">
+    <div>
+        <div class="cat-title">            
+            <a href="{{ $.BasePath }}/categories/{{ $c.CategoryID }}">{{ $c.Name }}</a>
+        </div>
+        <div class="cat-subtitle">
+            {{ $c.Description }}
+        </div>
+    </div>
+    <div class="cat-stats">
+        <div>
+            <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="16" height="16" viewBox="0 0 172 172" style=" fill:#000000;"><g fill="none" fill-rule="nonzero" stroke="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="10" stroke-dasharray="" stroke-dashoffset="0" font-family="none" font-weight="none" font-size="none" text-anchor="none" style="mix-blend-mode: normal"><path d="M0,172v-172h172v172z" fill="none"></path><g fill="#666666"><path d="M86,17.2c-41.16533,0 -74.53333,28.23667 -74.53333,63.06667c0,19.30987 10.28175,36.56997 26.43828,48.13984c0.41253,8.80631 -0.95202,20.96622 -13.10156,26.57266c-0.00748,0.0037 -0.01495,0.00743 -0.0224,0.0112c-1.11129,0.42263 -1.84635,1.48737 -1.84766,2.6763c0,1.58322 1.28345,2.86667 2.86667,2.86667c0.08224,-0.0002 0.16443,-0.00393 0.24635,-0.0112c13.95508,-0.08945 25.80175,-7.63114 33.97448,-15.5987c2.59147,-2.5284 6.20418,-3.77263 9.76458,-3.10183c5.21733,0.99187 10.64178,1.51172 16.21458,1.51172c41.16533,0 74.53333,-28.23667 74.53333,-63.06667c0,-34.83 -33.368,-63.06667 -74.53333,-63.06667z"></path></g></g></svg>
+            {{ $c.NumTopicsStr }}
+        </div>
+    </div>
 </div>
+{{ end }}
+{{ end }}
 
 {{ end }}

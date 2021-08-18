@@ -26,6 +26,15 @@ type Category struct {
 	UpdatedAt    time.Time    `db:"updated_at"`
 }
 
+func (c *Category) IndexPageColorStr() string {
+	colors := []string{"#666666", "#E74C3C", "#E67E22", "#F1C40F", "#2ECC71", "#3498DB", "#9B59B6", "#34495E"}
+	return colors[c.CategoryID%len(colors)]
+}
+
+func (c *Category) NumTopicsStr() string {
+	return ApproxNumStr(c.NumTopics)
+}
+
 func CreateCategory(domainID int, name string, description string) {
 	_, err := DB.Exec("INSERT INTO categories(domain_id, name, description) VALUES($1, $2, $3);",
 		domainID, name, description,

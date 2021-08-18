@@ -197,3 +197,38 @@ h2 > a {
    margin-right: 6px;
    margin-left: 12px;
 }
+
+.cat-row {
+   width: 100%;
+   border-bottom: 1px solid lightgray;
+   padding: 12px 10px;
+   display: flex;
+   justify-content: space-between;
+}
+
+.cat-title {
+   color: black;
+   font-size: 18px;
+}
+
+.cat-subtitle {
+   color: gray;
+   font-size: 14px;
+}
+
+.cat-stats {
+   display: flex;
+   align-content: center;
+   justify-content: center;
+   flex-direction: column;
+}
+
+.cat-stats > div {
+   display: flex;
+   align-items: center;
+}
+
+.cat-stats svg {
+   margin-right: 6px;
+   margin-left: 12px;
+}
