@@ -3,80 +3,118 @@ Admin
 {{ end }}
 
 {{ define "body" }}
+<h2>Admin</h2>
 
-{{ if .User }}
-Hi {{ .User.DisplayName }}!
-{{ else }}
-Hi guest!
-{{ end }}
-
-<form method="POST">
-    {{ .csrfField }}
-    <input type="text" name="forum_name" placeholder="Forum Name" minlength="3" maxlength="30" value="{{ .Domain.ForumName }}">
-
-    <input type="checkbox" id="is_regular_signup_enabled" name="is_regular_signup_enabled" value="1" {{ if .Domain.IsRegularSignupEnabled }}checked{{ end }}>
-    <label for="is_regular_signup_enabled">Enable public signup</label><br>
-
-    <input type="checkbox" id="is_readonly" name="is_readonly" value="1" {{ if .Domain.IsReadOnly }}checked{{ end }}>
-    <label for="is_readonly">Enable read-only mode</label><br>
-
-    {{ if not .Domain.IsRegularSignupEnabled }}
-    <input type="text" id="signup_token" name="signup_token" placeholder="Signup Token" minlength="3" maxlength="30" value="{{ .Domain.SignupToken }}">
-        {{ if .Domain.SignupToken }}
-        <label for="signup_token">Shareable private signup link: <a href="{{ .BasePath }}/auth/signup/{{ .Domain.SignupToken }}">https://{{ .Host }}{{ .BasePath }}/auth/signup/{{ .Domain.SignupToken }}</a></label><br>
+<div class="well">
+    <form method="POST">
+        {{ .csrfField }}
+        <div class="form-row">
+            <label for="forum_name" class="form-label">Forum Name</label>
+            <input type="text" class="form-control" name="forum_name" id="forum_name" minlength="3" maxlength="30" placeholder="Display Name" value="{{ .Domain.ForumName }}">
+        </div>
+        <br>
+        <input type="checkbox" id="is_regular_signup_enabled" name="is_regular_signup_enabled" value="1" {{ if .Domain.IsRegularSignupEnabled }}checked{{ end }}>
+        <label for="is_regular_signup_enabled">Enable public signup</label>
+        <br><br>
+        <input type="checkbox" id="is_readonly" name="is_readonly" value="1" {{ if .Domain.IsReadOnly }}checked{{ end }}>
+        <label for="is_readonly">Enable read-only mode</label>
+        <br>
+        {{ if not .Domain.IsRegularSignupEnabled }}
+        <div class="form-row">
+            <label for="signup_token" class="form-label">Signup Token</label>
+            <input type="text" class="form-control" name="signup_token" id="signup_token" minlength="3" maxlength="30" placeholder="my-unlisted-token" value="{{ .Domain.SignupToken }}">
+        </div>
+        <br>
+            {{ if .Domain.SignupToken }}
+            <label for="signup_token">Shareable unlisted signup link: <a href="{{ .BasePath }}/auth/signup/{{ .Domain.SignupToken }}">https://{{ .Host }}{{ .BasePath }}/auth/signup/{{ .Domain.SignupToken }}</a></label><br>
+            {{ end }}
         {{ end }}
-    {{ end }}
-    {{ if .ErrMsg }}
-    <p style="color:red;">{{ .ErrMsg }}</p>
-    {{ end }}
-    <input type="submit" name="submit" value="Update">
-</form>
-
+        {{ if .ErrMsg }}
+        <p style="color:red;">{{ .ErrMsg }}</p>
+        {{ end }}
+        <div class="form-row" style="margin-top: 20px;">
+            <input type="submit" class="form-control btn-primary btn-inline" name="action" value="Update">
+        </div>
+    </form>
+</div>
+<hr>
 <h2>Mods</h2>
 
 {{ range .Mods }}
-<form method="POST" action="{{ $.BasePath }}/admin/mods/delete">
-    {{ $.csrfField }}
-    {{ .Email }} ({{ .DisplayName }})
-    <input type="hidden" name="mod_user_id" value="{{ .UserID }}">
-    <input type="submit" name="submit" value="Remove">
-</form>
+<div class="well">
+    <form method="POST" action="{{ $.BasePath }}/admin/mods/delete">
+        {{ $.csrfField }}
+        {{ .Email }} ({{ .DisplayName }})
+        <input type="hidden" name="mod_user_id" value="{{ .UserID }}">
+        <div class="form-row" style="margin-top: 20px; display: inline;">
+            <input type="submit" class="form-control btn-danger btn-inline" name="action" value="Remove">
+        </div>
+    </form>
+</div>
 {{ end }}
 
-Add new mod
-<form method="POST" action="{{ .BasePath }}/admin/mods/create">
-    {{ .csrfField }}
-    <input type="email" name="mod_user_email" placeholder="Email">
-    <input type="submit" name="submit" value="Add">
-</form>
+<div class="well">
+    <form method="POST" action="{{ .BasePath }}/admin/mods/create">
+        {{ .csrfField }}
+        <div class="form-row">
+            <label for="mod_user_email" class="form-label">New Mod Email</label>
+            <input type="text" class="form-control" name="mod_user_email" id="mod_user_email" minlength="3" maxlength="30" placeholder="me@example.com">
+        </div>
+        <div class="form-row" style="margin-top: 20px;">
+            <input type="submit" class="form-control btn-primary btn-inline" name="action" value="Add">
+        </div>
+    </form>
+</div>
 
+
+<hr>
 <h2>Categories</h2>
 {{ range .Categories }}
-<form method="POST" action="{{ $.BasePath }}/admin/categories/{{ .CategoryID }}">
-    {{ $.csrfField }}
-    <input type="text" name="name" placeholder="Category Name" minlength="3" maxlength="30" value="{{ .Name }}">
-    <input type="text" name="description" placeholder="Description" maxlength="200" value="{{ .Description }}">
+<div class="well" style="margin-bottom: 20px;">
+    <form method="POST" action="{{ $.BasePath }}/admin/categories/{{ .CategoryID }}">
+        {{ $.csrfField }}
+        <div class="form-row">
+            <label for="cat-name-{{ .CategoryID }}" class="form-label">Category name</label>
+            <input type="text" class="form-control" name="name" id="cat-name-{{ .CategoryID }}" minlength="3" maxlength="30" placeholder="Off-topic" value="{{ .Name }}">
+        </div>
+        <div class="form-row">
+            <label for="cat-desc-{{ .CategoryID }}" class="form-label">Description</label>
+            <input type="text" class="form-control" name="description" id="cat-desc-{{ .CategoryID }}" minlength="3" maxlength="200" placeholder="This is where we discuss off-topic stuff" value="{{ .Description }}">
+        </div>
+        
+        <input type="checkbox" id="is_readonly" name="is_readonly" value="1" {{ if .IsReadOnly }}checked{{ end }}>
+        <label for="is_readonly">Enable read-only mode</label><br>
 
-    <input type="checkbox" id="is_readonly" name="is_readonly" value="1" {{ if .IsReadOnly }}checked{{ end }}>
-    <label for="is_readonly">Enable read-only mode</label><br>
+        <input type="checkbox" id="is_private" name="is_private" value="1" {{ if .IsPrivate }}checked{{ end }}>
+        <label for="is_private">Enable private mode</label><br>
 
-    <input type="checkbox" id="is_private" name="is_private" value="1" {{ if .IsPrivate }}checked{{ end }}>
-    <label for="is_private">Enable private mode</label><br>
+        <input type="checkbox" id="is_archived" name="is_archived" value="1" {{ if .ArchivedAt.Valid }}checked{{ end }}>
+        <label for="is_archived">Archived</label>
 
-    <input type="checkbox" id="is_archived" name="is_archived" value="1" {{ if .ArchivedAt.Valid }}checked{{ end }}>
-    <label for="is_archived">Archived</label><br>
-
-    <input type="submit" name="submit" value="Update">
-</form>
+        <div class="form-row">
+            <input type="submit" class="form-control btn-primary btn-inline" name="action" value="Update">
+        </div>
+    </form>
+    <hr>
+</div>
 {{ end }}
 
-Add new category
-<form method="POST" action="{{ .BasePath }}/admin/categories/create">
-    {{ .csrfField }}
-    <input type="text" name="name" placeholder="Category Name" minlength="3" maxlength="30">
-    <input type="text" name="description" placeholder="Description" maxlength="200">
-    <input type="submit" name="submit" value="Add">
-</form>
+<div class="well">
+    <form method="POST" action="{{ .BasePath }}/admin/categories/create">
+        {{ .csrfField }}
+        <div class="form-row">
+            <label for="cat-name-new" class="form-label">New category name</label>
+            <input type="text" class="form-control" name="name" id="cat-name-new" minlength="3" maxlength="30" placeholder="Off-topic">
+        </div>
+        <div class="form-row">
+            <label for="cat-desc-new" class="form-label">Description</label>
+            <input type="text" class="form-control" name="description" id="cat-desc-new" minlength="3" maxlength="200" placeholder="This is where we discuss off-topic stuff">
+        </div>
+        <div class="form-row">
+            <input type="submit" class="form-control btn-primary btn-inline" name="action" value="Add">
+        </div>
+    </form>
+</div>
 
 
 {{ end }}

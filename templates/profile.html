@@ -1,32 +1,42 @@
 {{ define "title" }}
-Profile
+User Profile - {{ .ProfileUser.DisplayName }}
 {{ end }}
 
 {{ define "body" }}
-
-{{ if .User }}
-Hi {{ .User.DisplayName }}!
-{{ else }}
-Hi guest!
-{{ end }}
+<h2>User profile</h2>
 
 {{ if .ShowForm }}
-<form method="POST">
-    {{ .csrfField }}
-    <input type="text" name="display_name" placeholder="Display Name" minlength="3" maxlength="30" value="{{ .ProfileUser.DisplayName }}">
-    <input type="email" name="email" placeholder="E-Mail" minlength="3" maxlength="100" value="{{ .ProfileUser.Email }}">
-    {{ if .ShowBan }}
-    <input type="checkbox" id="is_banned" name="is_banned" value="1" {{ if .ProfileUser.BannedAt.Valid }}checked{{ end }}>
-    <label for="is_banned">User banned</label><br>
-    {{ end }}
-    {{ if .ErrMsg }}
-    <p style="color:red;">{{ .ErrMsg }}</p>
-    {{ end }}
-    <input type="submit" name="submit" value="Update">
-</form>
+<div class="well">
+    <form method="POST">
+        {{ .csrfField }}
+        <div class="form-row">
+            <label for="display_name" class="form-label">Display Name</label>
+            <input type="text" class="form-control" name="display_name" id="display_name" minlength="3" maxlength="30" placeholder="Display Name" value="{{ .ProfileUser.DisplayName }}">
+        </div>
+        <div class="form-row">
+            <label for="email" class="form-label">Email</label>
+            <input type="email" class="form-control" name="email" id="email" minlength="3" maxlength="100" placeholder="E-mail" value="{{ .ProfileUser.Email }}">
+        </div>
+        <br>
+        {{ if .ShowBan }}
+        <input type="checkbox" id="is_banned" name="is_banned" value="1" {{ if .ProfileUser.BannedAt.Valid }}checked{{ end }}>
+        <label for="is_banned">User banned</label><br>
+        {{ end }}
+        {{ if .ErrMsg }}
+        <p style="color:red;">{{ .ErrMsg }}</p>
+        {{ end }}
+        <div class="form-row" style="margin-top: 20px;">
+            <input type="submit" class="form-control btn-primary btn-inline" name="action" value="Update">
+        </div>
+    </form>
+    {{ if .User }}{{ if .User.IsSuperAdmin }}
+    <br>
+    <a href="{{ .BasePath }}/admin">Admin section</a>
+    {{ end }}{{ end }}
+</div>
 {{ else }}
-Display Name: {{ .ProfileUser.DisplayName }}
-About: {{ .ProfileUser.About }}
+<p>Display Name: {{ .ProfileUser.DisplayName }}</p>
+<p>About: {{ .ProfileUser.About }}</p>
 {{ end }}
 
 {{ end }}

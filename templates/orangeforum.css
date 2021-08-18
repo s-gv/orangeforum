@@ -12,6 +12,7 @@ body {
    -webkit-font-smoothing: antialiased;
    text-rendering: optimizeLegibility;
    line-height: 1.6;
+   margin-bottom: 100px;
 }
 
 a {
