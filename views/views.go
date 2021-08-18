@@ -170,7 +170,7 @@ func GetRouter() *chi.Mux {
 
 	fr := forumRouter()
 
-	r.Route("/domains/{domainName}", func(r chi.Router) {
+	r.Route("/forums/{domainName}", func(r chi.Router) {
 		r.Use(domainCtx)
 		r.Mount("/", fr)
 	})

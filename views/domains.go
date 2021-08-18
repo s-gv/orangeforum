@@ -31,12 +31,12 @@ func domainCtx(next http.Handler) http.Handler {
 			return
 		}
 		if domainName == r.Host {
-			basePath := "/domains/" + domainName
+			basePath := "/forums/" + domainName
 			http.Redirect(w, r, r.URL.Path[len(basePath):], http.StatusSeeOther)
 			return
 		}
 		ctx := context.WithValue(r.Context(), ctxDomain, domain)
-		ctx2 := context.WithValue(ctx, ctxBasePath, "/domains/"+domainName)
+		ctx2 := context.WithValue(ctx, ctxBasePath, "/forums/"+domainName)
 		next.ServeHTTP(w, r.WithContext(ctx2))
 	})
 }
