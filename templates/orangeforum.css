@@ -74,6 +74,9 @@ a.btn-link {
    .well {
       max-width: 400px;
    }
+   .well-wide {
+      max-width: 600px;
+   }
 }
 
 .form-row {
@@ -85,6 +88,12 @@ a.btn-link {
 }
 
 .form-row > input {
+   display: block;
+   width: 100%;
+   font-size: 18px;
+}
+
+.form-row > textarea {
    display: block;
    width: 100%;
    font-size: 18px;
@@ -103,11 +112,18 @@ a.btn-link {
    outline: 0;
 }
 
+.form-control.btn-inline {
+   display: inline;
+   width: inherit;
+   margin-right: 10px;
+}
+
+
 .btn-primary {
    color: #fff;
+   cursor: pointer;
    background-color: #0d6efd;
    border-color: #0d6efd;
-   cursor: pointer;
 }
 
 .btn-primary:focus {
@@ -121,3 +137,20 @@ a.btn-link {
    border-color: #0a58ca;
 }
 
+.btn-danger {
+   color: #fff;
+   cursor: pointer;
+   background-color: #dc3545;
+   border-color: #dc3545;
+}
+
+.btn-danger:focus {
+   background-color: #bb2d3b;
+   border-color: #b02a37;
+   box-shadow: 0 0 0 0.25rem rgb(225 83 97 / 50%);
+}
+
+.btn-danger:hover {
+   background-color: #bb2d3b;
+   border-color: #b02a37;
+}

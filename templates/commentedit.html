@@ -4,25 +4,28 @@ Topic
 
 {{ define "body" }}
 
-{{ if .User }}
-Hi {{ .User.DisplayName }}!
-{{ else }}
-Hi guest!
-{{ end }}
-
-<form method="POST">
+<h2>Edit comment</h2>
+<div class="well-wide">
+    <form method="POST">
     {{ .csrfField }}
-    <textarea id="content" name="content" placeholder="Content" rows="6" cols="50">{{ if .Comment }}{{ .Comment.Content }}{{ end }}</textarea>
+    <div class="form-row">
+        <label for="content" class="form-label">Content</label>
+        <textarea id="content" class="form-control" name="content" placeholder="Content" rows="12" cols="50">{{ if .Comment }}{{ .Comment.Content }}{{ end }}</textarea>
+    </div>
     <br>
     {{ if or .User.IsSuperAdmin .User.IsSuperMod }}
     <input type="checkbox" id="is_sticky" name="is_sticky" value="1" {{ if .Comment }}{{ if .Comment.IsSticky }}checked{{ end }}{{ end }}>
     <label for="is_sticky">Sticky</label><br>
     {{ end }}
     {{ if .Comment }}
-    <input type="submit" name="action" value="Update">
-    <input type="submit" name="action" value="Delete">
+    <div class="form-row" style="margin-top: 20px;">
+        <input type="submit" class="form-control btn-primary btn-inline" name="action" value="Update">
+        <input type="submit" class="form-control btn-danger btn-inline" name="action" value="Delete" onclick="return confirm('Are you sure you want to delete this topic?');">
+    </div>
     {{ else }}
-    <input type="submit" name="action" value="Submit">
+    <div class="form-row" style="margin-top: 20px;">
+        <input type="submit" class="form-control btn-primary" name="action" value="Submit">
+    </div>
     {{ end }}
 </form>
 

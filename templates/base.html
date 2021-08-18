@@ -6,7 +6,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>{{ block "title" . }}Orange Forum{{ end }}</title>
 
-        <link rel="stylesheet" href="{{ .BasePath }}/static/orangeforum.css">
+        <link rel="stylesheet" href="{{ .BasePath }}/static/orangeforum.css?v=100">
     </head>
     <body>
         <div id="topbar">
@@ -33,6 +33,6 @@
         {{ block "body" . }}
         {{ end }}
         </div>
-        <script src="{{ .BasePath }}/static/orangeforum.js"></script>
+        <script src="{{ .BasePath }}/static/orangeforum.js?v=100"></script>
     </body>
 </html>
