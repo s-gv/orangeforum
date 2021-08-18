@@ -232,3 +232,68 @@ h2 > a {
    margin-right: 6px;
    margin-left: 12px;
 }
+
+.comment-row {
+   display: flex;
+   width: 100%;
+   border-top: 1px solid lightgray;
+   padding: 12px 10px;
+   margin-bottom: 20px;
+}
+
+.comment-icon {
+   width: 60px;
+   float: left;
+   margin-top: 10px;
+   margin-right: 10px;
+}
+
+.comment-body {
+   flex: 1;
+}
+
+.comment-body-top {
+   display: flex;
+   justify-content: space-between;
+}
+
+.comment-body-content {
+   margin: 15px 0;
+}
+
+.comment-body-actions {
+   text-align: right;
+}
+
+.comment-author {
+   font-weight: bold;
+}
+
+.comment-date {
+   font-size: 14px;
+   color: grey;
+}
+
+.i-circle {
+   width: 50px;
+   height: 50px;
+   border-radius: 50%;
+   background: #bcd6ff;
+   text-align: center;
+   display: flex;
+   justify-content: center;
+   align-content: center;
+   flex-direction: column;
+   font-size: 22px;
+   color: white;
+}
+
+.comment-author a {
+   color: black!important;
+}
+
+@media only screen and (max-width: 768px) {
+   .comment-icon {
+      display: none;
+   }
+}

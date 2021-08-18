@@ -82,6 +82,8 @@ func migrate001(db *sqlx.DB) {
 		domain_id                           INTEGER NOT NULL REFERENCES domains(domain_id) ON DELETE CASCADE,
 		name                                VARCHAR(250) NOT NULL,
 		description                         VARCHAR(250) NOT NULL,
+		header_msg                          TEXT NOT NULL DEFAULT '',
+		num_topics                          INTEGER NOT NULL DEFAULT 0,
 		is_private                          BOOL NOT NULL DEFAULT false,
 		is_readonly                         BOOL NOT NULL DEFAULT false,
 		is_restricted                       BOOL NOT NULL DEFAULT false,

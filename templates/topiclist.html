@@ -1,10 +1,14 @@
 {{ define "title" }}
-Category
+{{ .Category.Name }}
 {{ end }}
 
 {{ define "body" }}
 
 <h2><a href="{{ .BasePath }}/categories/{{ .Category.CategoryID }}">{{ .Category.Name }}</a></h2>
+
+<p>
+    <a href="{{ .BasePath }}">Home</a> / {{ .Category.Name }}
+</p>
 
 <p style="text-align: right;">
     <a class="btn-link" href="{{ .BasePath }}/categories/{{ .Category.CategoryID }}/topics/new">
@@ -24,7 +28,9 @@ Category
             <a href="{{ $.BasePath }}/categories/{{ $.Category.CategoryID }}/topics/{{ .TopicID }}">{{ .Title }}</a>
         </div>
         <div class="topic-subtitle">
-            Replied {{ .ActivityAtStr }}
+            Started by {{ .DisplayName }} {{ .CreatedAtStr }} &nbsp;
+            <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="16" height="16" viewBox="0 0 172 172" style=" fill:#000000;"><g fill="none" fill-rule="nonzero" stroke="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="10" stroke-dasharray="" stroke-dashoffset="0" font-family="none" font-weight="none" font-size="none" text-anchor="none" style="mix-blend-mode: normal"><path d="M0,172v-172h172v172z" fill="none"></path><g fill="#666666"><path d="M154.8,154.8c-1.80062,0 -3.31906,-1.3975 -3.42656,-3.21156c-0.14781,-1.88125 -4.07156,-43.61812 -75.69344,-44.92156v24.05312c0,1.33031 -0.76594,2.53969 -1.96187,3.10406c-1.19594,0.56437 -2.62031,0.40312 -3.64156,-0.43l-55.04,-44.72c-0.80625,-0.65844 -1.27656,-1.63938 -1.27656,-2.67406c0,-1.03469 0.47031,-2.01562 1.27656,-2.67406l55.04,-44.72c1.03469,-0.83312 2.44562,-1.00781 3.64156,-0.43c1.19594,0.56438 1.96187,1.77375 1.96187,3.10406v24.13375c76.37875,2.16344 82.13,76.67438 82.53313,85.12656c0.06719,0.26875 0.09406,0.5375 0.09406,0.81969c0,1.90813 -1.53187,3.44 -3.44,3.44c-0.01344,0 -0.04031,0 -0.06719,0z"></path></g></g></svg>
+            Most recent reply {{ .ActivityAtStr }}
         </div>
     </div>
     <div class="topic-stats">

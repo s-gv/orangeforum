@@ -41,6 +41,12 @@ type User struct {
 	UpdatedAt                   time.Time    `db:"updated_at"`
 }
 
+var UserIconColors = []string{"#666666", "#E74C3C", "#E67E22", "#F1C40F", "#2ECC71", "#3498DB", "#9B59B6", "#34495E"}
+
+func (c *User) UserIconColorStr() string {
+	return UserIconColors[c.UserID%len(UserIconColors)]
+}
+
 func createUser(domainID int, email string, displayName string, passwd string, isSuperUser bool) error {
 	passwdHash := hashPassword(passwd)
 	_, err := DB.Exec(`INSERT INTO users(domain_id, email, display_name, passwd_hash, is_superadmin) VALUES($1, $2, $3, $4, $5);`,

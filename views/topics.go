@@ -176,6 +176,9 @@ func getTopic(w http.ResponseWriter, r *http.Request) {
 	}
 
 	comments := models.GetCommentsByTopicID(topic.TopicID)
+	author := models.GetUserByID(topic.UserID)
+
+	models.IncrementTopicViewCount(topic.TopicID)
 
 	templates.Topic.Execute(w, map[string]interface{}{
 		csrf.TemplateTag: csrf.TemplateField(r),
@@ -184,6 +187,7 @@ func getTopic(w http.ResponseWriter, r *http.Request) {
 		DomainField:      domain,
 		"Category":       category,
 		"Topic":          topic,
+		"Author":         author,
 		"Comments":       comments,
 	})
 }

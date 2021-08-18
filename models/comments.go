@@ -22,6 +22,26 @@ type Comment struct {
 	UpdatedAt  time.Time    `db:"updated_at"`
 }
 
+type CommentWithUser struct {
+	CommentID   int          `db:"comment_id"`
+	TopicID     int          `db:"topic_id"`
+	UserID      int          `db:"user_id"`
+	Content     string       `db:"content"`
+	IsSticky    bool         `db:"is_sticky"`
+	ArchivedAt  sql.NullTime `db:"archived_at"`
+	CreatedAt   time.Time    `db:"created_at"`
+	UpdatedAt   time.Time    `db:"updated_at"`
+	DisplayName string       `db:"display_name"`
+}
+
+func (c *CommentWithUser) CreatedAtStr() string {
+	return RelTimeNowStr(c.CreatedAt)
+}
+
+func (c *CommentWithUser) UserIconColorStr() string {
+	return UserIconColors[c.UserID%len(UserIconColors)]
+}
+
 func CreateComment(topicID int, userID int, content string, isSticky bool) int {
 	var commentID int
 	err := DB.QueryRow("INSERT INTO comments(topic_id, user_id, content, is_sticky) VALUES($1, $2, $3, $4) RETURNING comment_id;",
@@ -53,9 +73,16 @@ func GetCommentByID(commentID int) *Comment {
 	return &comment
 }
 
-func GetCommentsByTopicID(topicID int) []Comment {
-	var comments []Comment
-	err := DB.Select(&comments, "SELECT * FROM comments WHERE topic_id = $1 ORDER BY is_sticky DESC, created_at;", topicID)
+func GetCommentsByTopicID(topicID int) []CommentWithUser {
+	var comments []CommentWithUser
+	err := DB.Select(&comments, `
+	SELECT 
+		comments.*, users.display_name
+	FROM 
+		comments INNER JOIN users ON comments.user_id = users.user_id
+	WHERE
+		comments.topic_id = $1 ORDER BY comments.is_sticky DESC, comments.created_at;`,
+		topicID)
 	if err != nil {
 		if err != sql.ErrNoRows {
 			glog.Errorf("Error reading comments: %s\n", err.Error())

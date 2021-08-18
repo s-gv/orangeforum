@@ -4,7 +4,7 @@ Comment
 
 {{ define "body" }}
 
-<h2>Edit comment</h2>
+<h2>{{ if .Comment }}Edit{{ else }}New{{ end }} comment</h2>
 <div class="well-wide">
     <form method="POST">
     {{ .csrfField }}

@@ -27,26 +27,54 @@ type Topic struct {
 	UpdatedAt   time.Time    `db:"updated_at"`
 }
 
-func (t *Topic) ActivityAtStr() string {
-	return RelTimeNowStr(time.Now().Add(-48000 * time.Hour))
-	//return RelTimeNowStr(t.ActivityAt)
+type TopicWithUser struct {
+	TopicID     int          `db:"topic_id"`
+	CategoryID  int          `db:"category_id"`
+	UserID      int          `db:"user_id"`
+	Title       string       `db:"title"`
+	Content     string       `db:"content"`
+	IsSticky    bool         `db:"is_sticky"`
+	IsReadOnly  bool         `db:"is_readonly"`
+	NumComments int          `db:"num_comments"`
+	NumViews    int          `db:"num_views"`
+	ActivityAt  time.Time    `db:"activity_at"`
+	ArchivedAt  sql.NullTime `db:"archived_at"`
+	CreatedAt   time.Time    `db:"created_at"`
+	UpdatedAt   time.Time    `db:"updated_at"`
+	DisplayName string       `db:"display_name"`
 }
 
-func (t *Topic) NumCommentsStr() string {
+func (t *Topic) CreatedAtStr() string {
+	return RelTimeNowStr(t.CreatedAt)
+}
+
+func (t *Topic) ActivityAtStr() string {
+	return RelTimeNowStr(t.ActivityAt)
+}
+
+func (t *TopicWithUser) CreatedAtStr() string {
+	return RelTimeNowStr(t.CreatedAt)
+}
+
+func (t *TopicWithUser) ActivityAtStr() string {
+	return RelTimeNowStr(t.ActivityAt)
+}
+
+func (t *TopicWithUser) NumCommentsStr() string {
 	return ApproxNumStr(t.NumComments)
 }
 
-func (t *Topic) NumViewsStr() string {
+func (t *TopicWithUser) NumViewsStr() string {
 	return ApproxNumStr(t.NumViews)
 }
 
-func GetTopicsByCategoryID(categoryID int, before time.Time) []Topic {
-	var topics []Topic
+func GetTopicsByCategoryID(categoryID int, before time.Time) []TopicWithUser {
+	var topics []TopicWithUser
 	err := DB.Select(&topics, `
-		SELECT * 
-		FROM topics 
-		WHERE category_id = $1 AND activity_at < $2
-		ORDER BY is_sticky DESC, activity_at DESC LIMIT 30;`,
+		SELECT topics.*, users.display_name
+		FROM topics INNER JOIN users ON topics.user_id = users.user_id
+		WHERE topics.category_id = $1 AND topics.activity_at < $2
+		ORDER BY topics.is_sticky DESC, topics.activity_at DESC LIMIT 30;`,
 		categoryID, before,
 	)
 	if err != nil {
@@ -65,6 +93,10 @@ func CreateTopic(categoryID int, userID int, title string, content string, isSti
 		glog.Errorf("Error inserting row: %s\n", err.Error())
 		return -1
 	}
+	_, err2 := DB.Exec("UPDATE categories SET num_topics = (num_topics + 1) WHERE category_id = $1;", categoryID)
+	if err2 != nil {
+		glog.Errorf("Error updating topic count: %s\n", err2.Error())
+	}
 	return id
 }
 
@@ -79,6 +111,13 @@ func GetTopicByID(topicID int) *Topic {
 
 func UpdateTopicByID(topicID int, title string, content string, isSticky bool) {
 	_, err := DB.Exec("UPDATE topics SET title = $2, content = $3, is_sticky = $4 WHERE topic_id = $1;", topicID, title, content, isSticky)
+	if err != nil {
+		glog.Errorf("Error updating topic: %s\n", err.Error())
+	}
+}
+
+func IncrementTopicViewCount(topicID int) {
+	_, err := DB.Exec("UPDATE topics SET num_views = num_views + 1 WHERE topic_id = $1;", topicID)
 	if err != nil {
 		glog.Errorf("Error updating topic: %s\n", err.Error())
 	}
