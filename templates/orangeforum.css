@@ -155,3 +155,45 @@ a.btn-link {
    background-color: #bb2d3b;
    border-color: #b02a37;
 }
+
+.topic-row {
+   display: flex;
+   justify-content: space-between;
+   border-bottom: 2px solid lightgrey;
+   padding: 10px 0;
+}
+
+.topic-title {
+   color: black;
+   font-size: 18px;
+}
+
+.topic-subtitle {
+   color: gray;
+   font-size: 14px;
+}
+
+.topic-stats {
+   display: flex;
+   align-content: center;
+   justify-content: center;
+   flex-direction: column;
+}
+
+h2 > a {
+   color: black!important;
+}
+
+.topic-title > a {
+   color: black!important;
+}
+
+.topic-stats > div {
+   display: flex;
+   align-items: center;
+}
+
+.topic-stats svg {
+   margin-right: 6px;
+   margin-left: 12px;
+}

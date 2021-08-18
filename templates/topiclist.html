@@ -4,25 +4,44 @@ Category
 
 {{ define "body" }}
 
-{{ if .User }}
-Hi {{ .User.DisplayName }}!
-{{ else }}
-Hi guest!
-{{ end }}
+<h2><a href="{{ .BasePath }}/categories/{{ .Category.CategoryID }}">{{ .Category.Name }}</a></h2>
 
-<a href="{{ $.BasePath }}">Back to index</a>
+<p style="text-align: right;">
+    <a class="btn-link" href="{{ .BasePath }}/categories/{{ .Category.CategoryID }}/topics/new">
+        <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="12" height="12" viewBox="0 0 172 172" style=" fill:#000000;"><g fill="none" fill-rule="nonzero" stroke="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="10" stroke-dasharray="" stroke-dashoffset="0" font-family="none" font-weight="none" font-size="none" text-anchor="none" style="mix-blend-mode: normal"><path d="M0,172v-172h172v172z" fill="none"></path><g fill="#ffffff"><path d="M85.83203,17.04323c-6.32845,0.09274 -11.38527,5.2949 -11.2987,11.62344v45.86667h-45.86667c-4.13529,-0.05848 -7.98173,2.11417 -10.06645,5.68601c-2.08471,3.57184 -2.08471,7.98948 0,11.56132c2.08471,3.57184 5.93115,5.74449 10.06645,5.68601h45.86667v45.86667c-0.05848,4.13529 2.11417,7.98173 5.68601,10.06645c3.57184,2.08471 7.98948,2.08471 11.56132,0c3.57184,-2.08471 5.74449,-5.93115 5.68601,-10.06645v-45.86667h45.86667c4.13529,0.05848 7.98173,-2.11417 10.06645,-5.68601c2.08471,-3.57184 2.08471,-7.98948 0,-11.56132c-2.08471,-3.57184 -5.93115,-5.74449 -10.06645,-5.68601h-45.86667v-45.86667c0.04237,-3.09747 -1.17017,-6.08033 -3.36168,-8.26973c-2.1915,-2.18939 -5.17553,-3.39907 -8.27296,-3.35371z"></path></g></g></svg>
+        New topic
+    </a>
+</p>
+
 {{ if .Topics }}
-<ul>
 {{ range .Topics }}
-    <li><a href="{{ $.BasePath }}/categories/{{ $.Category.CategoryID }}/topics/{{ .TopicID }}">{{ if .IsSticky }}[sticky]{{ end }}{{ .Title }}</a></li>
+<div class="topic-row">
+    <div>
+        <div class="topic-title">
+            {{ if .IsSticky }}
+            <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="16" height="16" viewBox="0 0 172 172" style=" fill:#000000;"><g fill="none" fill-rule="nonzero" stroke="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="10" stroke-dasharray="" stroke-dashoffset="0" font-family="none" font-weight="none" font-size="none" text-anchor="none" style="mix-blend-mode: normal"><path d="M0,172v-172h172v172z" fill="none"></path><g fill="#666666"><path d="M103.14401,17.14401c-2.33303,0.00061 -4.43306,1.41473 -5.31096,3.57628c-0.8779,2.16155 -0.3586,4.6395 1.31331,6.26668l0.30234,0.30234c-11.12334,13.98572 -24.91536,41.51068 -24.91536,41.51068l-16.44974,4.10964l-2.42995,-2.42995c-1.07942,-1.10959 -2.56162,-1.73559 -4.10963,-1.73568c-2.33303,0.00061 -4.43307,1.41473 -5.31097,3.57628c-0.8779,2.16155 -0.3586,4.6395 1.31331,6.26669l45.86667,45.86667c1.43802,1.49778 3.5734,2.10113 5.5826,1.57735c2.0092,-0.52378 3.57826,-2.09284 4.10204,-4.10204c0.52378,-2.0092 -0.07957,-4.14458 -1.57735,-5.5826l-2.42995,-2.42995l4.10964,-16.44974c0,0 27.52496,-13.79203 41.51067,-24.91536l0.30235,0.30234c1.43802,1.49778 3.5734,2.10113 5.5826,1.57735c2.0092,-0.52378 3.57826,-2.09284 4.10204,-4.10204c0.52378,-2.0092 -0.07957,-4.14458 -1.57735,-5.5826l-45.86667,-45.86667c-1.07942,-1.10959 -2.56163,-1.73559 -4.10964,-1.73568zM59.01302,104.87969l-34.34401,34.34401l-0.05599,0.05599c-1.07526,1.07503 -1.67946,2.53316 -1.67969,4.05364c0,3.16643 2.5669,5.73333 5.73333,5.73333c1.52049,-0.00023 2.97861,-0.60443 4.05365,-1.67969l34.4,-34.4z"></path></g></g></svg>
+            {{ end }}            
+            <a href="{{ $.BasePath }}/categories/{{ $.Category.CategoryID }}/topics/{{ .TopicID }}">{{ .Title }}</a>
+        </div>
+        <div class="topic-subtitle">
+            Replied {{ .ActivityAtStr }}
+        </div>
+    </div>
+    <div class="topic-stats">
+        <div>
+            <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="16" height="16" viewBox="0 0 172 172" style=" fill:#000000;"><g fill="none" fill-rule="nonzero" stroke="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="10" stroke-dasharray="" stroke-dashoffset="0" font-family="none" font-weight="none" font-size="none" text-anchor="none" style="mix-blend-mode: normal"><path d="M0,172v-172h172v172z" fill="none"></path><g fill="#666666"><path d="M86,28.66667c-51.13157,0 -84.15967,52.81077 -84.75703,53.77239c-0.80406,1.01283 -1.2421,2.26775 -1.24297,3.56094c0.00102,1.1094 0.32388,2.19467 0.92943,3.12422c0.00743,0.01122 0.01489,0.02242 0.0224,0.03359c0.09858,0.20342 27.82281,54.17552 85.04818,54.17552c56.98258,0 84.666,-53.44188 85.00339,-54.09714c0.02282,-0.03707 0.04522,-0.0744 0.06719,-0.11198c0.60555,-0.92955 0.92841,-2.01482 0.92942,-3.12422c-0.0002,-1.28802 -0.43411,-2.53845 -1.23177,-3.54974c-0.00373,-0.00374 -0.00746,-0.00747 -0.0112,-0.0112c-0.59736,-0.96163 -33.62546,-53.77239 -84.75703,-53.77239zM86,45.86667c22.16507,0 40.13333,17.96827 40.13333,40.13333c0,22.16507 -17.96827,40.13333 -40.13333,40.13333c-22.16507,0 -40.13333,-17.96827 -40.13333,-40.13333c0,-22.16507 17.96827,-40.13333 40.13333,-40.13333zM86,68.8c-9.4993,0 -17.2,7.7007 -17.2,17.2c0,9.4993 7.7007,17.2 17.2,17.2c9.4993,0 17.2,-7.7007 17.2,-17.2c0,-9.4993 -7.7007,-17.2 -17.2,-17.2z"></path></g></g></svg>
+            {{ .NumViewsStr }}
+            <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="16" height="16" viewBox="0 0 172 172" style=" fill:#000000;"><g fill="none" fill-rule="nonzero" stroke="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="10" stroke-dasharray="" stroke-dashoffset="0" font-family="none" font-weight="none" font-size="none" text-anchor="none" style="mix-blend-mode: normal"><path d="M0,172v-172h172v172z" fill="none"></path><g id="original-icon" fill="#666666"><path d="M14.33333,35.83333v86c0,7.88333 6.45,14.33333 14.33333,14.33333h100.33333l28.66667,28.66667l-0.07167,-129c0,-7.88333 -6.37833,-14.33333 -14.26167,-14.33333h-114.66667c-7.88333,0 -14.33333,6.45 -14.33333,14.33333zM50.16667,43h71.66667v14.33333h-71.66667zM50.16667,71.66667h71.66667v14.33333h-71.66667zM50.16667,100.33333h50.16667v14.33333h-50.16667z"></path></g></g></svg>
+            {{ .NumCommentsStr }}
+        </div>
+    </div>
+</div>
 {{ end }}
-</ul>
 <a href="{{ .BasePath }}/categories/{{ .Category.CategoryID }}?before={{ .MoreDt }}">More</a>
 {{ else }}
 <p>No topics found</p>
 {{ end }}
-<br>
-<a href="{{ .BasePath }}/categories/{{ .Category.CategoryID }}/topics/new">New topic</a>
+
 
 
 {{ end }}

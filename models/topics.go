@@ -27,6 +27,19 @@ type Topic struct {
 	UpdatedAt   time.Time    `db:"updated_at"`
 }
 
+func (t *Topic) ActivityAtStr() string {
+	return RelTimeNowStr(time.Now().Add(-48000 * time.Hour))
+	//return RelTimeNowStr(t.ActivityAt)
+}
+
+func (t *Topic) NumCommentsStr() string {
+	return ApproxNumStr(t.NumComments)
+}
+
+func (t *Topic) NumViewsStr() string {
+	return ApproxNumStr(t.NumViews)
+}
+
 func GetTopicsByCategoryID(categoryID int, before time.Time) []Topic {
 	var topics []Topic
 	err := DB.Select(&topics, `
