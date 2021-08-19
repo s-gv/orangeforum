@@ -319,10 +319,12 @@ func postAuthSignUp(w http.ResponseWriter, r *http.Request) {
 func getAuthChangePass(w http.ResponseWriter, r *http.Request) {
 	basePath := r.Context().Value(ctxBasePath).(string)
 	domain := r.Context().Value(ctxDomain).(*models.Domain)
+	user := r.Context().Value(CtxUserKey).(*models.User)
 	templates.ChangePass.Execute(w, map[string]interface{}{
 		csrf.TemplateTag: csrf.TemplateField(r),
-		DomainField:      domain,
 		BasePathField:    basePath,
+		DomainField:      domain,
+		UserField:        user,
 	})
 }
 
@@ -360,6 +362,7 @@ func postAuthChangePass(w http.ResponseWriter, r *http.Request) {
 		csrf.TemplateTag: csrf.TemplateField(r),
 		BasePathField:    basePath,
 		DomainField:      domain,
+		UserField:        user,
 		"ErrMsg":         errMsg,
 	})
 }
