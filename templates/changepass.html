@@ -1,12 +1,32 @@
+{{ define "title" }}
+Change password
+{{ end }}
+
 {{ define "body" }}
-<form method="POST">
-    {{ .csrfField }}
-    <input type="password" name="old_password" placeholder="Current Password">
-    <input type="password" name="password" placeholder="New Password">
-    <input type="password" name="password2" placeholder="New Password (again)">
-    <input type="submit" name="submit" value="Change password">
-</form>
+<h2>Change password</h2>
+
+<div class="well">
+    <form method="POST">
+        {{ .csrfField }}
+        <div class="form-row">
+            <label for="old_password" class="form-label">Current password</label>
+            <input type="password" class="form-control" id="old_password" name="old_password" placeholder="Current password">
+        </div>
+        <div class="form-row">
+            <label for="password" class="form-label">New password</label>
+            <input type="password" class="form-control" id="password" name="password" placeholder="New password">
+        </div>
+        <div class="form-row">
+            <label for="password2" class="form-label">New password (again)</label>
+            <input type="password" class="form-control" id="password2" name="password2" placeholder="New password (again)">
+        </div>
+        <div class="form-row" style="margin-top: 20px;">
+            <input type="submit" class="form-control btn-primary" name="submit" value="Change password">
+        </div>
+    </form>
+</div>
 {{ if .ErrMsg }}
 <p style="color:red;">{{ .ErrMsg }}</p>
 {{ end }}
+
 {{ end }}

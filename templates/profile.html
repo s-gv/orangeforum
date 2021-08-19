@@ -29,9 +29,12 @@ User Profile - {{ .ProfileUser.DisplayName }}
             <input type="submit" class="form-control btn-primary btn-inline" name="action" value="Update">
         </div>
     </form>
-    {{ if .User }}{{ if .User.IsSuperAdmin }}
+    {{ if .User }}
     <br>
-    <a href="{{ .BasePath }}/admin">Admin section</a>
+    <p><a href="{{ .BasePath }}/auth/changepass">Change password</a></p>
+    {{ end }}
+    {{ if .User }}{{ if .User.IsSuperAdmin }}
+    <p><a href="{{ .BasePath }}/admin">Admin section</a></p>
     {{ end }}{{ end }}
 </div>
 {{ else }}
