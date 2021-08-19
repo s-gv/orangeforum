@@ -77,8 +77,7 @@ func editComment(w http.ResponseWriter, r *http.Request) {
 		if action == "Submit" {
 			newCommentID := models.CreateComment(topic.TopicID, user.UserID, content, isSticky)
 			if newCommentID >= 0 {
-				http.Redirect(w, r, basePath+
-					"/categories/"+strconv.Itoa(category.CategoryID)+
+				http.Redirect(w, r, basePath+"categories/"+strconv.Itoa(category.CategoryID)+
 					"/topics/"+strconv.Itoa(topic.TopicID)+
 					"#comment-"+strconv.Itoa(newCommentID),
 					http.StatusSeeOther)
@@ -86,16 +85,14 @@ func editComment(w http.ResponseWriter, r *http.Request) {
 			}
 		} else if action == "Update" {
 			models.UpdateCommentByID(comment.CommentID, content, isSticky)
-			http.Redirect(w, r, basePath+
-				"/categories/"+strconv.Itoa(category.CategoryID)+
+			http.Redirect(w, r, basePath+"categories/"+strconv.Itoa(category.CategoryID)+
 				"/topics/"+strconv.Itoa(topic.TopicID)+
 				"#comment-"+strconv.Itoa(comment.CommentID),
 				http.StatusSeeOther)
 			return
 		} else if action == "Delete" {
 			models.DeleteCommentByID(comment.CommentID, comment.UserID, topic.TopicID)
-			http.Redirect(w, r, basePath+
-				"/categories/"+strconv.Itoa(category.CategoryID)+
+			http.Redirect(w, r, basePath+"categories/"+strconv.Itoa(category.CategoryID)+
 				"/topics/"+strconv.Itoa(topic.TopicID),
 				http.StatusSeeOther)
 			return

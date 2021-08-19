@@ -112,16 +112,14 @@ func editTopic(w http.ResponseWriter, r *http.Request) {
 		if action == "Submit" {
 			newTopicID := models.CreateTopic(category.CategoryID, user.UserID, title, content, isSticky)
 			if newTopicID >= 0 {
-				http.Redirect(w, r, basePath+
-					"/categories/"+strconv.Itoa(category.CategoryID)+
+				http.Redirect(w, r, basePath+"categories/"+strconv.Itoa(category.CategoryID)+
 					"/topics/"+strconv.Itoa(newTopicID),
 					http.StatusSeeOther)
 				return
 			}
 		} else if action == "Update" {
 			models.UpdateTopicByID(topic.TopicID, title, content, isSticky)
-			http.Redirect(w, r, basePath+
-				"/categories/"+strconv.Itoa(category.CategoryID)+
+			http.Redirect(w, r, basePath+"categories/"+strconv.Itoa(category.CategoryID)+
 				"/topics/"+strconv.Itoa(topic.TopicID),
 				http.StatusSeeOther)
 			return
