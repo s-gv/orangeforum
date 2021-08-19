@@ -20,9 +20,9 @@ func getJS(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(templates.JSStr))
 }
 
-func getICO(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "image/x-icon")
-	w.Write([]byte(templates.ICOStr))
+func getIcon(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "image/png")
+	w.Write([]byte(templates.IconStr))
 }
 
 func getLogo(w http.ResponseWriter, r *http.Request) {

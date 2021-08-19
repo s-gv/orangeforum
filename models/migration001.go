@@ -110,7 +110,7 @@ func migrate001(db *sqlx.DB) {
 		updated_at                          TIMESTAMPTZ NOT NULL DEFAULT current_timestamp
 	);`)
 	db.MustExec(`CREATE TRIGGER update_timestamp BEFORE UPDATE          ON topics FOR EACH ROW EXECUTE PROCEDURE update_modified_timestamp();`)
-	db.MustExec(`CREATE INDEX topics_category_sticky_activity_index     ON topics(category_id, is_sticky, activity_at);`)
+	db.MustExec(`CREATE INDEX topics_category_sticky_activity_index     ON topics(category_id, is_sticky DESC, activity_at DESC);`)
 
 	db.MustExec(`CREATE TABLE comments(
 		comment_id                          SERIAL PRIMARY KEY,

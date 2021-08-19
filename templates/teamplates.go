@@ -54,8 +54,8 @@ var CSSStr string
 //go:embed static/orangeforum.js
 var JSStr string
 
-//go:embed static/favicon.ico
-var ICOStr string
+//go:embed static/favicon.png
+var IconStr string
 
 //go:embed static/logo.png
 var LogoStr string
