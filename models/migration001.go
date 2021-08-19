@@ -31,6 +31,7 @@ func migrate001(db *sqlx.DB) {
 		auto_topic_close_days       INTEGER DEFAULT 60,
 		user_activity_window        INTEGER DEFAULT 3,
 		max_num_activity            INTEGER DEFAULT 20,
+		header_msg                  TEXT NOT NULL DEFAULT '',
 		logo                        TEXT NOT NULL DEFAULT '',
 		icon                        TEXT NOT NULL DEFAULT '',
 		smtp_host                   VARCHAR(250) NOT NULL DEFAULT '',

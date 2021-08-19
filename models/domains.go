@@ -26,6 +26,7 @@ type Domain struct {
 	AutoTopicCloseDays     int          `db:"auto_topic_close_days"`
 	UserActivityWindow     int          `db:"user_activity_window"`
 	MaxNumActivity         int          `db:"max_num_activity"`
+	HeaderMsg              string       `db:"header_msg"`
 	Logo                   template.URL `db:"logo"`
 	Icon                   string       `db:"icon"`
 	SMTPHost               string       `db:"smtp_host"`
