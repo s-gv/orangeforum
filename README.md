@@ -47,7 +47,7 @@ Finally, start the server (don't forget to change the secret key!):
 SECRET_KEY=s6JM1e8JTAphtKNR2y27XA8kkAaXOSYB ORANGEFORUM_DSN="postgres://dbuser:dbpass@localhost:5432/testdb" ./orangeforum -alsologtostderr
 ```
 
-Goto [http://127.0.0.1:9123/forums/community.goodoldweb.com](http://127.0.0.1:9123/forums/community.goodoldweb.com) in your browser.
+Goto [http://localhost:9123/forums/community.goodoldweb.com](http://localhost:9123/forums/community.goodoldweb.com) in your browser.
 
 Notes
 -----
