@@ -273,6 +273,11 @@ h2 > a {
    font-weight: bold;
 }
 
+.comment-author-extra {
+   color: grey;
+}
+
+
 .comment-date {
    font-size: 14px;
    color: grey;

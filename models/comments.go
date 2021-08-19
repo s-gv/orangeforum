@@ -23,15 +23,17 @@ type Comment struct {
 }
 
 type CommentWithUser struct {
-	CommentID   int          `db:"comment_id"`
-	TopicID     int          `db:"topic_id"`
-	UserID      int          `db:"user_id"`
-	Content     string       `db:"content"`
-	IsSticky    bool         `db:"is_sticky"`
-	ArchivedAt  sql.NullTime `db:"archived_at"`
-	CreatedAt   time.Time    `db:"created_at"`
-	UpdatedAt   time.Time    `db:"updated_at"`
-	DisplayName string       `db:"display_name"`
+	CommentID    int          `db:"comment_id"`
+	TopicID      int          `db:"topic_id"`
+	UserID       int          `db:"user_id"`
+	Content      string       `db:"content"`
+	IsSticky     bool         `db:"is_sticky"`
+	ArchivedAt   sql.NullTime `db:"archived_at"`
+	CreatedAt    time.Time    `db:"created_at"`
+	UpdatedAt    time.Time    `db:"updated_at"`
+	DisplayName  string       `db:"display_name"`
+	IsSuperAdmin bool         `db:"is_superadmin"`
+	IsSuperMod   bool         `db:"is_supermod"`
 }
 
 func (c *CommentWithUser) CreatedAtStr() string {
@@ -81,7 +83,7 @@ func GetCommentsByTopicID(topicID int) []CommentWithUser {
 	var comments []CommentWithUser
 	err := DB.Select(&comments, `
 	SELECT 
-		comments.*, users.display_name
+		comments.*, users.display_name, users.is_superadmin, users.is_supermod
 	FROM 
 		comments INNER JOIN users ON comments.user_id = users.user_id
 	WHERE
