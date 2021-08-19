@@ -48,11 +48,17 @@ var topicTmplStr string
 //go:embed commentedit.html
 var commentEditTmplStr string
 
-//go:embed orangeforum.css
+//go:embed static/orangeforum.css
 var CSSStr string
 
-//go:embed orangeforum.js
+//go:embed static/orangeforum.js
 var JSStr string
+
+//go:embed static/favicon.ico
+var ICOStr string
+
+//go:embed static/logo.png
+var LogoStr string
 
 func init() {
 	Signin = template.Must(template.Must(template.New("base").Parse(baseTmplStr)).Parse(signinTmplStr))

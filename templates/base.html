@@ -4,15 +4,22 @@
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
+
         <title>{{ block "title" . }}Orange Forum{{ end }}</title>
 
+        <link rel="shortcut icon" href="{{ .BasePath }}/static/favicon.ico">
         <link rel="stylesheet" href="{{ .BasePath }}/static/orangeforum.css?v=100">
     </head>
     <body>
         <div id="topbar">
             <div>
                 <div>
-                    <div><a href="{{ .BasePath }}">{{ .Domain.ForumName }}</a></div>
+                    <div>
+                        <a href="{{ .BasePath }}">
+                            <img src="{{ .BasePath }}/static/logo.png" style="max-width: 150px;">
+                            <!--{{ .Domain.ForumName }}-->
+                        </a>
+                    </div>
                     <div>
                         {{ if .User }}
                         <a href="{{ .BasePath }}/users/{{ .User.UserID }}">

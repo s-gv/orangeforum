@@ -73,6 +73,8 @@ func forumRouter() *chi.Mux {
 	r.Route("/static", func(r chi.Router) {
 		r.Get("/orangeforum.css", getCSS)
 		r.Get("/orangeforum.js", getJS)
+		r.Get("/favicon.ico", getICO)
+		r.Get("/logo.png", getLogo)
 	})
 
 	r.Route("/", func(r chi.Router) {
