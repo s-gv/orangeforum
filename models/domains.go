@@ -7,6 +7,7 @@ package models
 import (
 	"database/sql"
 	"errors"
+	"html/template"
 	"math/rand"
 	"strconv"
 	"strings"
@@ -25,6 +26,13 @@ type Domain struct {
 	AutoTopicCloseDays     int          `db:"auto_topic_close_days"`
 	UserActivityWindow     int          `db:"user_activity_window"`
 	MaxNumActivity         int          `db:"max_num_activity"`
+	Logo                   template.URL `db:"logo"`
+	Icon                   string       `db:"icon"`
+	SMTPHost               string       `db:"smtp_host"`
+	SMTPPort               int          `db:"smtp_port"`
+	SMTPUser               string       `db:"smtp_user"`
+	SMTPPass               string       `db:"smtp_pass"`
+	DefaultFromEmail       string       `db:"default_from_email"`
 	IsRegularSignupEnabled bool         `db:"is_regular_signup_enabled"`
 	IsReadOnly             bool         `db:"is_readonly"`
 	IsGroupSub             bool         `db:"enable_group_sub"`
@@ -76,6 +84,7 @@ func GetDomainIDByName(domainName string) *int {
 func UpdateDomainByID(
 	domainID int,
 	forumName string,
+	logo string,
 	isRegularSignupEnabled bool,
 	isReadOnly bool,
 	signupToken string,
@@ -86,10 +95,29 @@ func UpdateDomainByID(
 		forum_name = $2,
 		is_regular_signup_enabled = $3,
 		is_readonly = $4,
-		signup_token = $5
+		signup_token = $5,
+		logo = $6
 	WHERE 
 		domain_id = $1;`,
-		domainID, forumName, isRegularSignupEnabled, isReadOnly, signupToken,
+		domainID, forumName, isRegularSignupEnabled, isReadOnly, signupToken, logo,
+	)
+	if err != nil {
+		glog.Errorf("Error updating domain ID:%d -- %s", domainID, err.Error())
+	}
+}
+
+func UpdateDomainSMTPByID(domainID int, smtpHost string, smtpPort int, smtpUser string, smtpPass string, fromEmail string) {
+	_, err := DB.Exec(`
+	UPDATE domains
+	SET
+		smtp_host = $2,
+		smtp_port = $3,
+		smtp_user = $4,
+		smtp_pass = $5,
+		default_from_email = $6
+	WHERE 
+		domain_id = $1;`,
+		domainID, smtpHost, smtpPort, smtpUser, smtpPass, fromEmail,
 	)
 	if err != nil {
 		glog.Errorf("Error updating domain ID:%d -- %s", domainID, err.Error())

@@ -16,8 +16,11 @@
                 <div>
                     <div>
                         <a href="{{ .BasePath }}">
-                            <img src="{{ .BasePath }}/static/logo.png" style="max-width: 150px;">
-                            <!--{{ .Domain.ForumName }}-->
+                            {{ if .Domain.Logo }}
+                                <img style="height: 22.5px;" src="{{ .Domain.Logo }}">
+                            {{ else }}
+                                {{ .Domain.ForumName }}
+                            {{ end }}
                         </a>
                     </div>
                     <div>

@@ -182,7 +182,7 @@ func postAuthOneTimeSignIn(w http.ResponseWriter, r *http.Request) {
 		subject := forumName + " sign-in link"
 		body := "Someone (hopefully you) requested a sign-in link for " + forumName + ".\r\n" +
 			"If you want to sign-in, visit " + link + "\r\n\r\nIf not, just ignore this message."
-		sendMail(user.Email, subject, body, domain.ForumName)
+		sendMail(domain.DefaultFromEmail, user.Email, subject, body, domain.ForumName, domain.SMTPHost, domain.SMTPPort, domain.SMTPUser, domain.SMTPPass)
 	}
 
 	templates.OneTimeSignin.Execute(w, map[string]interface{}{

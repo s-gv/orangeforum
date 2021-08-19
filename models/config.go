@@ -12,12 +12,6 @@ import (
 const (
 	ForumName = "forum_name"
 	DBVersion = "db_version"
-
-	SMTPHost        = "smtp_host"
-	SMTPUser        = "smtp_user"
-	SMTPPort        = "smtp_port"
-	SMTPPass        = "smtp_pass"
-	DefaultFromMail = "default_from_mail"
 )
 
 func GetDBVersion() int {

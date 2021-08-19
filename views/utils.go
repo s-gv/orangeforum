@@ -6,18 +6,14 @@ package views
 
 import (
 	"net/smtp"
+	"strconv"
 
 	"github.com/golang/glog"
-	"github.com/s-gv/orangeforum/models"
 )
 
-func sendMail(to string, sub string, body string, forumName string) {
-	go func(to string, sub string, body string, forumName string) {
-		smtpHost := models.GetConfigValue(models.SMTPHost)
-		from := models.GetConfigValue(models.DefaultFromMail)
+func sendMail(from string, to string, sub string, body string, forumName string, smtpHost string, smtpPort int, smtpUser string, smtpPass string) {
+	go func(from string, to string, sub string, body string, forumName string, smtpHost string, smtpPort int, smtpUser string, smtpPass string) {
 		if from != "" && smtpHost != "" {
-			smtpUser := models.GetConfigValue(models.SMTPUser)
-			smtpPass := models.GetConfigValue(models.SMTPPass)
 			auth := smtp.PlainAuth("", smtpUser, smtpPass, smtpHost)
 			msg := []byte("From: " + forumName + "<" + from + ">\r\n" +
 				"To: " + to + "\r\n" +
@@ -26,9 +22,9 @@ func sendMail(to string, sub string, body string, forumName string) {
 				body + "\r\n")
 			var err error
 			if smtpUser != "" {
-				err = smtp.SendMail(models.GetConfigValue(models.SMTPHost)+":"+models.GetConfigValue(models.SMTPPort), auth, from, []string{to}, msg)
+				err = smtp.SendMail(smtpHost+":"+strconv.Itoa(smtpPort), auth, from, []string{to}, msg)
 			} else {
-				err = smtp.SendMail(models.GetConfigValue(models.SMTPHost)+":"+models.GetConfigValue(models.SMTPPort), nil, from, []string{to}, msg)
+				err = smtp.SendMail(smtpHost+":"+strconv.Itoa(smtpPort), nil, from, []string{to}, msg)
 			}
 
 			if err != nil {
@@ -38,5 +34,5 @@ func sendMail(to string, sub string, body string, forumName string) {
 			glog.Infof("[ERROR] SMTP not configured.\n")
 		}
 
-	}(to, sub, body, forumName)
+	}(from, to, sub, body, forumName, smtpHost, smtpPort, smtpUser, smtpPass)
 }

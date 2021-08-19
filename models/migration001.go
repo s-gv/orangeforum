@@ -31,6 +31,13 @@ func migrate001(db *sqlx.DB) {
 		auto_topic_close_days       INTEGER DEFAULT 60,
 		user_activity_window        INTEGER DEFAULT 3,
 		max_num_activity            INTEGER DEFAULT 20,
+		logo                        TEXT NOT NULL DEFAULT '',
+		icon                        TEXT NOT NULL DEFAULT '',
+		smtp_host                   VARCHAR(250) NOT NULL DEFAULT '',
+		smtp_port                   INTEGER NOT NULL DEFAULT 25,
+		smtp_user                   VARCHAR(250) NOT NULL DEFAULT '',
+		smtp_pass                   VARCHAR(1000) NOT NULL DEFAULT '',
+		default_from_email          VARCHAR(250) NOT NULL DEFAULT '',
 		is_regular_signup_enabled   BOOL NOT NULL DEFAULT false,
 		is_readonly                 BOOL NOT NULL DEFAULT false,
 		enable_group_sub            BOOL NOT NULL DEFAULT false,
@@ -123,7 +130,7 @@ func migrate001(db *sqlx.DB) {
 		updated_at                          TIMESTAMPTZ NOT NULL DEFAULT current_timestamp
 	);`)
 	db.MustExec(`CREATE TRIGGER update_timestamp BEFORE UPDATE          ON comments FOR EACH ROW EXECUTE PROCEDURE update_modified_timestamp();`)
-	db.MustExec(`CREATE INDEX comments_topic_sticky_created_index       ON comments(topic_id, is_sticky, created_at);`)
+	db.MustExec(`CREATE INDEX comments_topic_sticky_created_index       ON comments(topic_id, is_sticky DESC, created_at);`)
 
 	db.MustExec(`CREATE TABLE category_subs(
 		sub_id                              SERIAL PRIMARY KEY,

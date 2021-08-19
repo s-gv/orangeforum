@@ -12,6 +12,10 @@ Admin
             <label for="forum_name" class="form-label">Forum Name</label>
             <input type="text" class="form-control" name="forum_name" id="forum_name" minlength="3" maxlength="30" placeholder="Display Name" value="{{ .Domain.ForumName }}">
         </div>
+        <div class="form-row">
+            <label for="logo" class="form-label">Logo</label>
+            <textarea id="logo" class="form-control" name="logo" placeholder="image data-url" rows="12" cols="50">{{ .Domain.Logo }}</textarea>
+        </div>
         <br>
         <input type="checkbox" id="is_regular_signup_enabled" name="is_regular_signup_enabled" value="1" {{ if .Domain.IsRegularSignupEnabled }}checked{{ end }}>
         <label for="is_regular_signup_enabled">Enable public signup</label>

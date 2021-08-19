@@ -195,28 +195,35 @@ func commandDeleteUser() {
 }
 
 func commandSetupSMTP() {
+	var domainName string
+	fmt.Printf("Domain name: ")
+	fmt.Scanf("%s\n", &domainName)
+
+	domain := models.GetDomainByName(domainName)
+	if domain == nil {
+		fmt.Printf("[ERROR] Invalid domain\n")
+		return
+	}
+
 	var smtpHost string
 	fmt.Printf("SMTP Host: ")
 	fmt.Scanf("%s\n", &smtpHost)
-	models.SetConfigValue(models.SMTPHost, smtpHost)
 
-	var smtpPort string
+	var smtpPort int
 	fmt.Printf("SMTP Port: ")
-	fmt.Scanf("%s\n", &smtpPort)
-	models.SetConfigValue(models.SMTPPort, smtpPort)
+	fmt.Scanf("%d\n", &smtpPort)
 
 	var smtpUser string
 	fmt.Printf("SMTP User: ")
 	fmt.Scanf("%s\n", &smtpUser)
-	models.SetConfigValue(models.SMTPUser, smtpUser)
 
 	var smtpPass string
 	fmt.Printf("SMTP Password: ")
 	fmt.Scanf("%s\n", &smtpPass)
-	models.SetConfigValue(models.SMTPPass, smtpPass)
 
 	var defaultFromEmail string
 	fmt.Printf("Default from email: ")
 	fmt.Scanf("%s\n", &defaultFromEmail)
-	models.SetConfigValue(models.DefaultFromMail, defaultFromEmail)
+
+	models.UpdateDomainSMTPByID(domain.DomainID, smtpHost, smtpPort, smtpUser, smtpPass, defaultFromEmail)
 }
