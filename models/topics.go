@@ -97,6 +97,10 @@ func CreateTopic(categoryID int, userID int, title string, content string, isSti
 	if err2 != nil {
 		glog.Errorf("Error updating topic count: %s\n", err2.Error())
 	}
+	_, err3 := DB.Exec("UPDATE users SET num_topics = (num_topics + 1) WHERE user_id = $1;", userID)
+	if err3 != nil {
+		glog.Errorf("Error updating topic count: %s\n", err2.Error())
+	}
 	return id
 }
 
@@ -123,9 +127,13 @@ func IncrementTopicViewCount(topicID int) {
 	}
 }
 
-func DeleteTopicByID(topicID int) {
+func DeleteTopicByID(topicID int, userID int) {
 	_, err := DB.Exec("DELETE FROM topics WHERE topic_id = $1;", topicID)
 	if err != nil {
 		glog.Errorf("Error updating topic: %s\n", err.Error())
+	}
+	_, err2 := DB.Exec("UPDATE users SET num_topics = (num_topics - 1) WHERE user_id = $1;", userID)
+	if err2 != nil {
+		glog.Errorf("Error updating topic count: %s\n", err2.Error())
 	}
 }

@@ -93,7 +93,7 @@ func editComment(w http.ResponseWriter, r *http.Request) {
 				http.StatusSeeOther)
 			return
 		} else if action == "Delete" {
-			models.DeleteCommentByID(comment.CommentID, topic.TopicID)
+			models.DeleteCommentByID(comment.CommentID, comment.UserID, topic.TopicID)
 			http.Redirect(w, r, basePath+
 				"/categories/"+strconv.Itoa(category.CategoryID)+
 				"/topics/"+strconv.Itoa(topic.TopicID),

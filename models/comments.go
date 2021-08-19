@@ -58,6 +58,10 @@ func CreateComment(topicID int, userID int, content string, isSticky bool) int {
 	if err3 != nil {
 		glog.Errorf("Error updating activity time: %s\n", err3.Error())
 	}
+	_, err4 := DB.Exec("UPDATE users SET num_comments = (num_comments + 1) WHERE user_id = $1;", userID)
+	if err4 != nil {
+		glog.Errorf("Error updating comment count: %s\n", err2.Error())
+	}
 	return commentID
 }
 
@@ -98,13 +102,17 @@ func UpdateCommentByID(commentID int, content string, isSticky bool) {
 	}
 }
 
-func DeleteCommentByID(commentID int, topicID int) {
+func DeleteCommentByID(commentID int, userID int, topicID int) {
 	_, err := DB.Exec("DELETE FROM comments WHERE comment_id = $1;", commentID)
 	if err != nil {
 		glog.Errorf("Error deleting comment: %s\n", err.Error())
 	}
 	_, err2 := DB.Exec("UPDATE topics SET num_comments = (num_comments - 1) WHERE topic_id = $1;", topicID)
 	if err2 != nil {
+		glog.Errorf("Error updating comment count: %s\n", err2.Error())
+	}
+	_, err4 := DB.Exec("UPDATE users SET num_comments = (num_comments - 1) WHERE user_id = $1;", userID)
+	if err4 != nil {
 		glog.Errorf("Error updating comment count: %s\n", err2.Error())
 	}
 }

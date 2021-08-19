@@ -126,7 +126,7 @@ func editTopic(w http.ResponseWriter, r *http.Request) {
 				http.StatusSeeOther)
 			return
 		} else if action == "Delete" {
-			models.DeleteTopicByID(topic.TopicID)
+			models.DeleteTopicByID(topic.TopicID, topic.UserID)
 			http.Redirect(w, r, basePath+"/categories/"+strconv.Itoa(category.CategoryID), http.StatusSeeOther)
 			return
 		}
