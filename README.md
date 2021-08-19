@@ -1,7 +1,7 @@
 Orange Forum
 ============
 
-[Orange Forum](http://www.goodoldweb.com/orangeforum/) is an easy to deploy forum that has minimal dependencies (only Postgres) and uses almost no javascript. It is written is golang and a [compiled binary](https://github.com/s-gv/orangeforum/releases) is available for linux. Try the latest version hosted [here](https://community.goodoldweb.com/). Please contact [info@goodoldweb.com](mailto:info@goodoldweb.com) if you have any questions or want support.
+[Orange Forum](http://www.goodoldweb.com/orangeforum/) is an easy to deploy forum that has minimal dependencies (only Postgres) and uses almost no javascript. It is written in golang and a [compiled binary](https://github.com/s-gv/orangeforum/releases) is available for linux. Try the latest version hosted at [https://community.goodoldweb.com/](https://community.goodoldweb.com/). Please contact [info@goodoldweb.com](mailto:info@goodoldweb.com) if you have any questions or want support.
 
 How to use
 ----------
@@ -47,7 +47,7 @@ Finally, start the server (don't forget to change the secret key!):
 SECRET_KEY=s6JM1e8JTAphtKNR2y27XA8kkAaXOSYB ORANGEFORUM_DSN="postgres://dbuser:dbpass@localhost:5432/testdb" ./orangeforum -alsologtostderr
 ```
 
-Goto [http://localhost:9123/forums/community.goodoldweb.com](http://localhost:9123/forums/community.goodoldweb.com) in your browser.
+Goto [http://localhost:9123/forums/community.goodoldweb.com](http://localhost:9123/forums/community.goodoldweb.com) in your browser. If you have setup DNS, you can directly go to [http://community.goodoldweb.com](http://community.goodoldweb.com) and skip the `/forums/community.goodoldweb.com` part of the path. A single instance of Orange Forum can support multiple domains.
 
 Notes
 -----
