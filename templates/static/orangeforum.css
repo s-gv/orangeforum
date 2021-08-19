@@ -95,13 +95,13 @@ a.btn-link:hover {
 .form-row > input {
    display: block;
    width: 100%;
-   font-size: 18px;
+   font-size: 16px;
 }
 
 .form-row > textarea {
    display: block;
    width: 100%;
-   font-size: 18px;
+   font-size: 16px;
 }
 
 .form-control {
