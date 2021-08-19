@@ -86,9 +86,9 @@ func mustAuth(next http.Handler) http.Handler {
 			HttpOnly: true,
 		})
 		if r.Method == "GET" {
-			http.Redirect(w, r, basePath+"/auth/signin?next="+r.URL.Path, http.StatusSeeOther)
+			http.Redirect(w, r, basePath+"auth/signin?next="+r.URL.Path, http.StatusSeeOther)
 		} else {
-			http.Redirect(w, r, basePath+"/", http.StatusSeeOther)
+			http.Redirect(w, r, basePath, http.StatusSeeOther)
 		}
 	})
 }
@@ -176,7 +176,7 @@ func postAuthOneTimeSignIn(w http.ResponseWriter, r *http.Request) {
 	if user != nil {
 		errMsg = "A one time sign-in link has been sent to your email"
 		token := models.UpdateUserOneTimeLoginTokenByID(user.UserID)
-		link := "http://" + r.Host + basePath + "/auth/otsignin/" + token + "?next=" + next
+		link := "http://" + r.Host + basePath + "auth/otsignin/" + token + "?next=" + next
 
 		forumName := domain.ForumName
 		subject := forumName + " sign-in link"
@@ -370,12 +370,12 @@ func postAuthChangePass(w http.ResponseWriter, r *http.Request) {
 func getAuthLogout(w http.ResponseWriter, r *http.Request) {
 	basePath := r.Context().Value(ctxBasePath).(string)
 
-	http.SetCookie(w, &http.Cookie{Name: "jwt", Value: "", Path: basePath + "/", Expires: time.Now().Add(-300 * time.Hour), HttpOnly: true})
-	http.SetCookie(w, &http.Cookie{Name: "csrftoken", Value: "", Path: basePath + "/", Expires: time.Now().Add(-300 * time.Hour)})
+	http.SetCookie(w, &http.Cookie{Name: "jwt", Value: "", Path: basePath, Expires: time.Now().Add(-300 * time.Hour), HttpOnly: true})
+	http.SetCookie(w, &http.Cookie{Name: "csrftoken", Value: "", Path: basePath, Expires: time.Now().Add(-300 * time.Hour)})
 	if user, ok := r.Context().Value(CtxUserKey).(*models.User); ok {
 		models.LogOutUserByID(user.UserID)
 	}
-	http.Redirect(w, r, basePath+"/", http.StatusSeeOther)
+	http.Redirect(w, r, basePath, http.StatusSeeOther)
 }
 
 func init() {

@@ -21,9 +21,9 @@ Signin
 <p style="color:red;">{{ .ErrMsg }}</p>
 {{ end }}
 <p>
-    Want to sign in with your password? <a href="{{ .BasePath }}/auth/signin?next={{ .Next }}">Signin!</a>
+    Want to sign in with your password? <a href="{{ .BasePath }}auth/signin?next={{ .Next }}">Signin!</a>
 </p>
 <p>
-    Don't have an account? <a href="{{ .BasePath }}/auth/signup?next={{ .Next }}">Sign up!</a>
+    Don't have an account? <a href="{{ .BasePath }}auth/signup?next={{ .Next }}">Sign up!</a>
 </p>
 {{ end }}

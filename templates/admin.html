@@ -30,7 +30,7 @@ Admin
         </div>
         <br>
             {{ if .Domain.SignupToken }}
-            <label for="signup_token">Shareable unlisted signup link: <a href="{{ .BasePath }}/auth/signup/{{ .Domain.SignupToken }}">https://{{ .Host }}{{ .BasePath }}/auth/signup/{{ .Domain.SignupToken }}</a></label><br>
+            <label for="signup_token">Shareable unlisted signup link: <a href="{{ .BasePath }}auth/signup/{{ .Domain.SignupToken }}">https://{{ .Host }}{{ .BasePath }}auth/signup/{{ .Domain.SignupToken }}</a></label><br>
             {{ end }}
         {{ end }}
         {{ if .ErrMsg }}
@@ -46,7 +46,7 @@ Admin
 
 {{ range .Mods }}
 <div class="well">
-    <form method="POST" action="{{ $.BasePath }}/admin/mods/delete">
+    <form method="POST" action="{{ $.BasePath }}admin/mods/delete">
         {{ $.csrfField }}
         {{ .Email }} ({{ .DisplayName }})
         <input type="hidden" name="mod_user_id" value="{{ .UserID }}">
@@ -58,7 +58,7 @@ Admin
 {{ end }}
 
 <div class="well">
-    <form method="POST" action="{{ .BasePath }}/admin/mods/create">
+    <form method="POST" action="{{ .BasePath }}admin/mods/create">
         {{ .csrfField }}
         <div class="form-row">
             <label for="mod_user_email" class="form-label">New Mod Email</label>
@@ -75,7 +75,7 @@ Admin
 <h2>Categories</h2>
 {{ range .Categories }}
 <div class="well" style="margin-bottom: 20px;">
-    <form method="POST" action="{{ $.BasePath }}/admin/categories/{{ .CategoryID }}">
+    <form method="POST" action="{{ $.BasePath }}admin/categories/{{ .CategoryID }}">
         {{ $.csrfField }}
         <div class="form-row">
             <label for="cat-name-{{ .CategoryID }}" class="form-label">Category name</label>
@@ -104,7 +104,7 @@ Admin
 {{ end }}
 
 <div class="well">
-    <form method="POST" action="{{ .BasePath }}/admin/categories/create">
+    <form method="POST" action="{{ .BasePath }}admin/categories/create">
         {{ .csrfField }}
         <div class="form-row">
             <label for="cat-name-new" class="form-label">New category name</label>

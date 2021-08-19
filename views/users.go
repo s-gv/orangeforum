@@ -80,7 +80,7 @@ func profileHandler(w http.ResponseWriter, r *http.Request) {
 
 		if errMsg == "" {
 			models.UpdateUserByID(profileUser.UserID, newEmail, newDisplayName, newIsBanned)
-			http.Redirect(w, r, basePath+"/users/"+strconv.Itoa(profileUser.UserID), http.StatusSeeOther)
+			http.Redirect(w, r, basePath+"users/"+strconv.Itoa(profileUser.UserID), http.StatusSeeOther)
 			return
 		}
 	}

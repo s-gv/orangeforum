@@ -7,8 +7,8 @@
 
         <title>{{ block "title" . }}Orange Forum{{ end }}</title>
 
-        <link rel="shortcut icon" href="{{ .BasePath }}/static/favicon.png">
-        <link rel="stylesheet" href="{{ .BasePath }}/static/orangeforum.css?v=100">
+        <link rel="shortcut icon" href="{{ .BasePath }}static/favicon.png">
+        <link rel="stylesheet" href="{{ .BasePath }}static/orangeforum.css?v=100">
     </head>
     <body>
         <div id="topbar">
@@ -25,15 +25,15 @@
                     </div>
                     <div>
                         {{ if .User }}
-                        <a href="{{ .BasePath }}/users/{{ .User.UserID }}">
+                        <a href="{{ .BasePath }}users/{{ .User.UserID }}">
                             {{ .User.DisplayName }}
                         </a>
-                        <a class="btn-link" href="{{ .BasePath }}/auth/logout" style="margin-left: 8px;">Logout</a>
+                        <a class="btn-link" href="{{ .BasePath }}auth/logout" style="margin-left: 8px;">Logout</a>
                         {{ else }}
-                        <a class="btn-link" href="{{ .BasePath }}/auth/signin">
+                        <a class="btn-link" href="{{ .BasePath }}auth/signin">
                             Login <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="14" height="14" viewBox="0 0 172 172" style=" fill:#000000;"><g fill="none" fill-rule="nonzero" stroke="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="10" stroke-dasharray="" stroke-dashoffset="0" font-family="none" font-weight="none" font-size="none" text-anchor="none" style="mix-blend-mode: normal"><path d="M0,172v-172h172v172z" fill="none"></path><g fill="#ffffff"><path d="M106.41156,111.89406c-0.51063,-5.54969 -0.30906,-9.41969 -0.30906,-14.48563c2.51281,-1.31687 7.01438,-9.71531 7.76688,-16.81031c1.97531,-0.16125 5.09281,-2.08281 6.00656,-9.68844c0.48375,-4.085 -1.46469,-6.38281 -2.66062,-7.10844c3.21156,-9.66156 9.89,-39.56 -12.33563,-42.65062c-2.29781,-4.01781 -8.15656,-6.04688 -15.76219,-6.04688c-30.46281,0.56438 -34.13125,23.005 -27.45281,48.6975c-1.19594,0.72563 -3.14437,3.02344 -2.66062,7.10844c0.92719,7.60563 4.03125,9.52719 6.00656,9.68844c0.7525,7.095 5.42875,15.49344 7.955,16.81031c0,5.06594 0.18812,8.93594 -0.3225,14.48563c-6.02,16.20562 -46.68188,11.65031 -48.56313,42.90594h130.72c-1.88125,-31.25562 -42.36844,-26.70031 -48.38844,-42.90594z"></path></g></g></svg>
                         </a>
-                        <a class="btn-link" href="{{ .BasePath }}/auth/signup" style="margin-left: 8px;">Signup</a>
+                        <a class="btn-link" href="{{ .BasePath }}auth/signup" style="margin-left: 8px;">Signup</a>
                         {{ end }}
                     </div>
                 </div>
@@ -43,6 +43,6 @@
         {{ block "body" . }}
         {{ end }}
         </div>
-        <script src="{{ .BasePath }}/static/orangeforum.js?v=100"></script>
+        <script src="{{ .BasePath }}static/orangeforum.js?v=100"></script>
     </body>
 </html>

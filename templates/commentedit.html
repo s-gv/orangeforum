@@ -7,7 +7,7 @@
 <h2>{{ if .Comment }}Edit{{ else }}New{{ end }} comment</h2>
 
 <p>
-    <a href="{{ .BasePath }}">Home</a> / <a href="{{ .BasePath }}/categories/{{ .Category.CategoryID }}">{{ .Category.Name }}</a> / <a href="{{ .BasePath }}/categories/{{ .Category.CategoryID }}/topics/{{ .Topic.TopicID }}">{{ .Topic.Title }}</a> / {{ if .Comment }}Edit{{ else }}New{{ end }} comment
+    <a href="{{ .BasePath }}">Home</a> / <a href="{{ .BasePath }}categories/{{ .Category.CategoryID }}">{{ .Category.Name }}</a> / <a href="{{ .BasePath }}categories/{{ .Category.CategoryID }}/topics/{{ .Topic.TopicID }}">{{ .Topic.Title }}</a> / {{ if .Comment }}Edit{{ else }}New{{ end }} comment
 </p>
 
 <div class="well-wide">

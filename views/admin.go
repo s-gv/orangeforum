@@ -55,7 +55,7 @@ func adminHandler(w http.ResponseWriter, r *http.Request) {
 
 		if errMsg == "" {
 			models.UpdateDomainByID(domain.DomainID, forumName, logo, isRegularSignupEnabled, isReadOnly, signupToken)
-			http.Redirect(w, r, basePath+"/admin", http.StatusSeeOther)
+			http.Redirect(w, r, basePath+"admin", http.StatusSeeOther)
 			return
 		}
 	}
@@ -101,7 +101,7 @@ func postCreateMod(w http.ResponseWriter, r *http.Request) {
 
 	models.UpdateUserSuperMod(modUser.UserID, true)
 
-	http.Redirect(w, r, basePath+"/admin", http.StatusSeeOther)
+	http.Redirect(w, r, basePath+"admin", http.StatusSeeOther)
 }
 
 func postDeleteMod(w http.ResponseWriter, r *http.Request) {
@@ -134,7 +134,7 @@ func postDeleteMod(w http.ResponseWriter, r *http.Request) {
 
 	models.UpdateUserSuperMod(modUserID, false)
 
-	http.Redirect(w, r, basePath+"/admin", http.StatusSeeOther)
+	http.Redirect(w, r, basePath+"admin", http.StatusSeeOther)
 }
 
 func postCategory(w http.ResponseWriter, r *http.Request) {
@@ -172,5 +172,5 @@ func postCategory(w http.ResponseWriter, r *http.Request) {
 		models.UpdateCategoryByID(categoryID, name, description, isPrivate, isReadOnly, isArchived)
 	}
 
-	http.Redirect(w, r, basePath+"/admin", http.StatusSeeOther)
+	http.Redirect(w, r, basePath+"admin", http.StatusSeeOther)
 }

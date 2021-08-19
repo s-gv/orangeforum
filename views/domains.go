@@ -36,7 +36,7 @@ func domainCtx(next http.Handler) http.Handler {
 			return
 		}
 		ctx := context.WithValue(r.Context(), ctxDomain, domain)
-		ctx2 := context.WithValue(ctx, ctxBasePath, "/forums/"+domainName)
+		ctx2 := context.WithValue(ctx, ctxBasePath, "/forums/"+domainName+"/")
 		next.ServeHTTP(w, r.WithContext(ctx2))
 	})
 }
@@ -50,7 +50,7 @@ func hostCtx(next http.Handler) http.Handler {
 			return
 		}
 		ctx := context.WithValue(r.Context(), ctxDomain, domain)
-		ctx2 := context.WithValue(ctx, ctxBasePath, "")
+		ctx2 := context.WithValue(ctx, ctxBasePath, "/")
 		next.ServeHTTP(w, r.WithContext(ctx2))
 	})
 }

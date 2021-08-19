@@ -7,7 +7,7 @@
 <div class="cat-row" style="border-left: 6px solid {{ .IndexPageColorStr }};{{ if eq $i 0}}border-top: 4px solid lightgray;{{ end }}">
     <div>
         <div class="cat-title">            
-            <a href="{{ $.BasePath }}/categories/{{ $c.CategoryID }}">{{ $c.Name }}</a>
+            <a href="{{ $.BasePath }}categories/{{ $c.CategoryID }}">{{ $c.Name }}</a>
         </div>
         <div class="cat-subtitle">
             {{ $c.Description }}

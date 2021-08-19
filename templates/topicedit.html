@@ -7,7 +7,7 @@
 <h2>{{ if .Topic }}Edit{{ else }}New{{ end }} topic</h2>
 
 <p>
-    <a href="{{ .BasePath }}">Home</a> / <a href="{{ .BasePath }}/categories/{{ .Category.CategoryID }}">{{ .Category.Name }}</a> / {{ if .Topic }}{{ .Topic.Title }}{{ else }}New topic{{ end }}
+    <a href="{{ .BasePath }}">Home</a> / <a href="{{ .BasePath }}categories/{{ .Category.CategoryID }}">{{ .Category.Name }}</a> / {{ if .Topic }}{{ .Topic.Title }}{{ else }}New topic{{ end }}
 </p>
 
 <div class="well-wide">

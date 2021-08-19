@@ -31,10 +31,10 @@ User Profile - {{ .ProfileUser.DisplayName }}
     </form>
     {{ if .User }}
     <br>
-    <p><a href="{{ .BasePath }}/auth/changepass">Change password</a></p>
+    <p><a href="{{ .BasePath }}auth/changepass">Change password</a></p>
     {{ end }}
     {{ if .User }}{{ if .User.IsSuperAdmin }}
-    <p><a href="{{ .BasePath }}/admin">Admin section</a></p>
+    <p><a href="{{ .BasePath }}admin">Admin section</a></p>
     {{ end }}{{ end }}
 </div>
 {{ else }}
