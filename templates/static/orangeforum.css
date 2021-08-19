@@ -64,6 +64,10 @@ a.btn-link {
    padding: 6px 8px;
 }
 
+a.btn-link:hover {
+   background-color: #069;
+}
+
 #maincontent {
    max-width: 1100px;
    margin: 0 auto;
