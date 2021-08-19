@@ -35,7 +35,7 @@ Create an admin:
 ./orangeforum -createsuperuser
 ```
 
-Enter the SMTP server details:
+Enter the SMTP server details (optional):
 
 ```
 ./orangeforum -setsmtp
