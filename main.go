@@ -35,6 +35,7 @@ func main() {
 	removeSuperUserPrivilege := flag.Bool("removesuperuser", false, "Remove superuser privilege")
 	deleteDomain := flag.Bool("deletedomain", false, "Delete domain")
 	deleteUser := flag.Bool("deleteuser", false, "Delete user")
+	setSMTP := flag.Bool("setsmtp", false, "Set SMTP Settings")
 
 	flag.Parse()
 
@@ -97,6 +98,11 @@ func main() {
 
 	if *deleteUser {
 		commandDeleteUser()
+		return
+	}
+
+	if *setSMTP {
+		commandSetupSMTP()
 		return
 	}
 

@@ -11,15 +11,15 @@ import (
 	"github.com/s-gv/orangeforum/models"
 )
 
-func sendMail(to string, sub string, body string) {
-	go func(to string, sub string, body string) {
+func sendMail(to string, sub string, body string, forumName string) {
+	go func(to string, sub string, body string, forumName string) {
 		smtpHost := models.GetConfigValue(models.SMTPHost)
 		from := models.GetConfigValue(models.DefaultFromMail)
 		if from != "" && smtpHost != "" {
 			smtpUser := models.GetConfigValue(models.SMTPUser)
 			smtpPass := models.GetConfigValue(models.SMTPPass)
 			auth := smtp.PlainAuth("", smtpUser, smtpPass, smtpHost)
-			msg := []byte("From: " + models.GetConfigValue(models.ForumName) + "<" + from + ">\r\n" +
+			msg := []byte("From: " + forumName + "<" + from + ">\r\n" +
 				"To: " + to + "\r\n" +
 				"Subject: " + sub + "\r\n" +
 				"\r\n" +
@@ -38,5 +38,5 @@ func sendMail(to string, sub string, body string) {
 			glog.Infof("[ERROR] SMTP not configured.\n")
 		}
 
-	}(to, sub, body)
+	}(to, sub, body, forumName)
 }

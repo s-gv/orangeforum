@@ -193,3 +193,30 @@ func commandDeleteUser() {
 
 	models.DeleteUserByID(user.UserID)
 }
+
+func commandSetupSMTP() {
+	var smtpHost string
+	fmt.Printf("SMTP Host: ")
+	fmt.Scanf("%s\n", &smtpHost)
+	models.SetConfigValue(models.SMTPHost, smtpHost)
+
+	var smtpPort string
+	fmt.Printf("SMTP Port: ")
+	fmt.Scanf("%s\n", &smtpPort)
+	models.SetConfigValue(models.SMTPPort, smtpPort)
+
+	var smtpUser string
+	fmt.Printf("SMTP User: ")
+	fmt.Scanf("%s\n", &smtpUser)
+	models.SetConfigValue(models.SMTPUser, smtpUser)
+
+	var smtpPass string
+	fmt.Printf("SMTP Password: ")
+	fmt.Scanf("%s\n", &smtpPass)
+	models.SetConfigValue(models.SMTPPass, smtpPass)
+
+	var defaultFromEmail string
+	fmt.Printf("Default from email: ")
+	fmt.Scanf("%s\n", &defaultFromEmail)
+	models.SetConfigValue(models.DefaultFromMail, defaultFromEmail)
+}

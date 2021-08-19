@@ -178,12 +178,11 @@ func postAuthOneTimeSignIn(w http.ResponseWriter, r *http.Request) {
 		token := models.UpdateUserOneTimeLoginTokenByID(user.UserID)
 		link := "http://" + r.Host + basePath + "/auth/otsignin/" + token + "?next=" + next
 
-		// domain := models.GetDomainByID(domainID) // TODO
-		forumName := "Orange Forum" // TODO
+		forumName := domain.ForumName
 		subject := forumName + " sign-in link"
 		body := "Someone (hopefully you) requested a sign-in link for " + forumName + ".\r\n" +
 			"If you want to sign-in, visit " + link + "\r\n\r\nIf not, just ignore this message."
-		sendMail(user.Email, subject, body)
+		sendMail(user.Email, subject, body, domain.ForumName)
 	}
 
 	templates.OneTimeSignin.Execute(w, map[string]interface{}{

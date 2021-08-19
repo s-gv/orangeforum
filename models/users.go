@@ -112,11 +112,14 @@ func GetUserByPasswd(domainID int, email string, passwd string) *User {
 
 func GetUserByOneTimeToken(domainID int, oneTimeToken string) *User {
 	user := User{}
-	err := DB.Get(&user, "SELECT * FROM users WHERE domain_id=$1 AND onetime_login_token=$1;", domainID, oneTimeToken)
+	err := DB.Get(&user, "SELECT * FROM users WHERE onetime_login_token=$1;", oneTimeToken)
 	if err == sql.ErrNoRows {
 		return nil
 	}
-	if !user.OnetimeLoginTokenAt.Valid || user.OnetimeLoginTokenAt.Time.Add(time.Hour).Before(time.Now()) {
+	if user.DomainID != domainID {
+		return nil
+	}
+	if !user.OnetimeLoginTokenAt.Valid || user.OnetimeLoginTokenAt.Time.Add(4*time.Hour).Before(time.Now()) {
 		return nil
 	}
 	_, e := DB.Exec("UPDATE users SET onetime_login_token_at = to_timestamp(0) WHERE user_id=$1;", user.UserID)
