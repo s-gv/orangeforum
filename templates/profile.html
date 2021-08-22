@@ -18,6 +18,16 @@ User Profile - {{ .ProfileUser.DisplayName }}
             <input type="email" class="form-control" name="email" id="email" minlength="3" maxlength="100" placeholder="E-mail" value="{{ .ProfileUser.Email }}">
         </div>
         <br>
+        <div class="form-label">
+            <label for="topics" class="form-label" >Number of topics:</label>
+            <label id="topics" class="form-label" aria-placeholder="0">{{ .ProfileUser.NumTopics }}</label>
+        </div>
+        <br>
+        <div class="form-label">
+            <label for="comments" class="form-label" >Number of comments:</label>
+            <label id="comments" class="form-label" aria-placeholder="0">{{ .ProfileUser.NumComments }}</label>
+        </div>
+        <br>
         {{ if .ShowBan }}
         <input type="checkbox" id="is_banned" name="is_banned" value="1" {{ if .ProfileUser.BannedAt.Valid }}checked{{ end }}>
         <label for="is_banned">User banned</label><br>
@@ -40,6 +50,8 @@ User Profile - {{ .ProfileUser.DisplayName }}
 {{ else }}
 <p>Display Name: {{ .ProfileUser.DisplayName }}</p>
 <p>About: {{ .ProfileUser.About }}</p>
+<p>Number of topics: {{ .ProfileUser.NumTopics }}</p>
+<p>Number of comments: {{ .ProfileUser.NumComments }}</p>
 {{ end }}
 
 {{ end }}
