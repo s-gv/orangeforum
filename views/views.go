@@ -19,11 +19,13 @@ var tokenAuth *jwtauth.JWTAuth
 // SecretKey must be 32 byte long.
 var SecretKey string
 
-func forumRouter() *chi.Mux {
+func forumRouter(disableCSRF bool) *chi.Mux {
 	r := chi.NewRouter()
 
-	csrfMiddleware := csrf.Protect([]byte(SecretKey), csrf.Secure(false))
-	r.Use(csrfMiddleware)
+	if !disableCSRF {
+		csrfMiddleware := csrf.Protect([]byte(SecretKey), csrf.Secure(false))
+		r.Use(csrfMiddleware)
+	}
 
 	sessionManager := scs.New()
 	sessionManager.Lifetime = 24 * time.Hour
@@ -160,7 +162,7 @@ func forumRouter() *chi.Mux {
 	return r
 }
 
-func GetRouter() *chi.Mux {
+func GetRouter(disableCSRF bool) *chi.Mux {
 	r := chi.NewRouter()
 
 	// A good base middleware stack
@@ -170,7 +172,7 @@ func GetRouter() *chi.Mux {
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.Timeout(30 * time.Second))
 
-	fr := forumRouter()
+	fr := forumRouter(disableCSRF)
 
 	r.Route("/forums/{domainName}", func(r chi.Router) {
 		r.Use(domainCtx)

@@ -118,7 +118,7 @@ func main() {
 	}
 
 	views.SecretKey = secretKey
-	r := views.GetRouter()
+	r := views.GetRouter(false)
 
 	glog.Info("Starting server on port " + *port)
 	http.ListenAndServe(":"+*port, r)

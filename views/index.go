@@ -16,6 +16,11 @@ func getIndex(w http.ResponseWriter, r *http.Request) {
 	domain := r.Context().Value(ctxDomain).(*models.Domain)
 	user, _ := r.Context().Value(CtxUserKey).(*models.User)
 
+	if r.URL.Path[len(r.URL.Path)-1] != '/' {
+		http.Redirect(w, r, r.URL.Path+"/", http.StatusSeeOther)
+		return
+	}
+
 	categories := models.GetCategoriesByDomainID(domain.DomainID)
 
 	templates.Index.Execute(w, map[string]interface{}{

@@ -18,8 +18,9 @@ var TestServer *httptest.Server
 
 func TestMain(m *testing.M) {
 	models.DB = sqlx.MustConnect("pgx", "postgres://dbuser:dbpass@localhost:5432/oftestdb")
+	views.SecretKey = "s6JM1e8JTAphtKNR2y27XA8kkAaXOSYB"
 
-	router := views.GetRouter()
+	router := views.GetRouter(true)
 	TestServer = httptest.NewServer(router)
 	defer TestServer.Close()
 
