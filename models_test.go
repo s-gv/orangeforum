@@ -5,18 +5,10 @@
 package main
 
 import (
-	"os"
 	"testing"
 
-	"github.com/jmoiron/sqlx"
 	"github.com/s-gv/orangeforum/models"
 )
-
-func TestMain(m *testing.M) {
-	models.DB = sqlx.MustConnect("pgx", "postgres://dbuser:dbpass@localhost:5432/oftestdb")
-	exitVal := m.Run()
-	os.Exit(exitVal)
-}
 
 func TestDomainCreation(t *testing.T) {
 	models.CleanDB()
