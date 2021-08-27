@@ -25,6 +25,9 @@ const (
 	testUserEmail  = "user@example.com"
 	testUserName   = "John Doe"
 	testUserPass   = "testuserpass123"
+	testUser2Email = "user2@example.com"
+	testUser2Name  = "Jane Doe"
+	testUser2Pass  = "testuser2pass123"
 )
 
 func getHTTPOKStr(c *http.Client, url string) (err error, body string) {
@@ -71,6 +74,18 @@ func postHTTPOKStr(c *http.Client, url string, values url.Values) (err error, bo
 	return nil, string(bodyBytes)
 }
 
+func postHTTPForbidden(c *http.Client, url string, values url.Values) error {
+	resp, err := c.PostForm(TestServer.URL+url, values)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusForbidden {
+		return errors.New("Got status code " + strconv.Itoa(resp.StatusCode) + ". was expecting " + strconv.Itoa(http.StatusForbidden))
+	}
+	return nil
+}
+
 func loginAs(c *http.Client, domainName string, email string, password string) error {
 	err, body := postHTTPOKStr(c, "/forums/"+domainName+"/auth/signin", url.Values{
 		"email": {email}, "password": {password}})
@@ -96,6 +111,9 @@ func createTestDomainAndUsers() error {
 	}
 	if err := models.CreateUser(domain.DomainID, testUserEmail, testUserName, testUserPass); err != nil {
 		return errors.New("Error creating user: " + testUserEmail)
+	}
+	if err := models.CreateUser(domain.DomainID, testUser2Email, testUser2Name, testUser2Pass); err != nil {
+		return errors.New("Error creating user: " + testUser2Email)
 	}
 	return nil
 }
@@ -236,6 +254,112 @@ func TestAuthedAdminUpdatePage(t *testing.T) {
 		}
 		if domain.IsReadOnly != (newIsReadOnly == "1") {
 			t.Errorf("Expected IsReadOnly: %s, got: %v\n", newIsReadOnly, domain.IsReadOnly)
+		}
+	}
+}
+
+func TestProfileUpdatePage(t *testing.T) {
+	models.CleanDB()
+
+	if err := createTestDomainAndUsers(); err != nil {
+		t.Error(err)
+	}
+	domain := models.GetDomainByName(testDomainName)
+	user := models.GetUserByEmail(domain.DomainID, testUserEmail)
+
+	jar, _ := cookiejar.New(nil)
+	client := &http.Client{
+		Jar: jar,
+	}
+
+	err, body := getHTTPOKStr(client, "/forums/"+testDomainName+"/users/"+strconv.Itoa(user.UserID))
+	if err != nil {
+		t.Error(err)
+	}
+	if !strings.Contains(body, user.DisplayName) {
+		t.Errorf("Expected to find display name in profile page: %s\n", user.DisplayName)
+	}
+
+	if err := postHTTPForbidden(
+		client,
+		"/forums/"+testDomainName+"/users/"+strconv.Itoa(user.UserID),
+		url.Values{"display_name": {"Baby Doe"}, "email": {"doe@example.com"}},
+	); err != nil {
+		t.Error(err)
+	}
+}
+
+func TestBadAuthProfileUpdatePage(t *testing.T) {
+	models.CleanDB()
+
+	if err := createTestDomainAndUsers(); err != nil {
+		t.Error(err)
+	}
+	domain := models.GetDomainByName(testDomainName)
+	user := models.GetUserByEmail(domain.DomainID, testUserEmail)
+
+	jar, _ := cookiejar.New(nil)
+	client := &http.Client{
+		Jar: jar,
+	}
+
+	loginAs(client, testDomainName, testUser2Email, testUser2Pass)
+
+	err, body := getHTTPOKStr(client, "/forums/"+testDomainName+"/users/"+strconv.Itoa(user.UserID))
+	if err != nil {
+		t.Error(err)
+	}
+	if !strings.Contains(body, user.DisplayName) {
+		t.Errorf("Expected to find display name in profile page: %s\n", user.DisplayName)
+	}
+
+	if err := postHTTPForbidden(
+		client,
+		"/forums/"+testDomainName+"/users/"+strconv.Itoa(user.UserID),
+		url.Values{"display_name": {"Baby Doe"}, "email": {"doe@example.com"}},
+	); err != nil {
+		t.Error(err)
+	}
+}
+
+func TestAuthedProfileUpdatePage(t *testing.T) {
+	models.CleanDB()
+
+	if err := createTestDomainAndUsers(); err != nil {
+		t.Error(err)
+	}
+	domain := models.GetDomainByName(testDomainName)
+	user := models.GetUserByEmail(domain.DomainID, testUserEmail)
+
+	jar, _ := cookiejar.New(nil)
+	client := &http.Client{
+		Jar: jar,
+	}
+
+	loginAs(client, testDomainName, testUserEmail, testUserPass)
+
+	err, body := getHTTPOKStr(client, "/forums/"+testDomainName+"/users/"+strconv.Itoa(user.UserID))
+	if err != nil {
+		t.Error(err)
+	}
+	if !strings.Contains(body, user.DisplayName) {
+		t.Errorf("Expected to find display name in profile page: %s\n", user.DisplayName)
+	}
+
+	newDisplayName := "Baby Doe"
+	newEmail := "babydoe@example.com"
+	if err, body := postHTTPOKStr(
+		client,
+		"/forums/"+testDomainName+"/users/"+strconv.Itoa(user.UserID),
+		url.Values{"display_name": {newDisplayName}, "email": {newEmail}},
+	); err != nil {
+		t.Error(err)
+	} else {
+		if !strings.Contains(body, newDisplayName) {
+			t.Errorf("Expected to find new display name in profile page: %s\n", newDisplayName)
+		}
+		if !strings.Contains(body, newEmail) {
+			t.Errorf("Expected to find new email in profile page: %s\n", newEmail)
 		}
 	}
 }
