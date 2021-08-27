@@ -36,6 +36,7 @@ func main() {
 	deleteDomain := flag.Bool("deletedomain", false, "Delete domain")
 	deleteUser := flag.Bool("deleteuser", false, "Delete user")
 	setSMTP := flag.Bool("setsmtp", false, "Set SMTP Settings")
+	disableLogger := flag.Bool("disablelogger", false, "Disable HTTP request logger")
 
 	flag.Parse()
 
@@ -118,7 +119,7 @@ func main() {
 	}
 
 	views.SecretKey = secretKey
-	r := views.GetRouter(false)
+	r := views.GetRouter(false, *disableLogger)
 
 	glog.Info("Starting server on port " + *port)
 	http.ListenAndServe(":"+*port, r)
