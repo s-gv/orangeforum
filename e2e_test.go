@@ -30,20 +30,20 @@ const (
 	testUser2Pass  = "testuser2pass123"
 )
 
-func getHTTPOKStr(c *http.Client, url string) (err error, body string) {
+func getHTTPOKStr(c *http.Client, url string) (body string, err error) {
 	resp, err := c.Get(TestServer.URL + url)
 	if err != nil {
-		return err, ""
+		return "", err
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return errors.New("Got status code " + strconv.Itoa(resp.StatusCode) + ". was expecting " + strconv.Itoa(http.StatusOK)), ""
+		return "", errors.New("Got status code " + strconv.Itoa(resp.StatusCode) + ". was expecting " + strconv.Itoa(http.StatusOK))
 	}
 	bodyBytes, err2 := io.ReadAll(resp.Body)
 	if err2 != nil {
-		return err2, ""
+		return "", err2
 	}
-	return nil, string(bodyBytes)
+	return string(bodyBytes), nil
 }
 
 func getHTTPForbidden(c *http.Client, url string) error {
@@ -58,20 +58,20 @@ func getHTTPForbidden(c *http.Client, url string) error {
 	return nil
 }
 
-func postHTTPOKStr(c *http.Client, url string, values url.Values) (err error, body string) {
+func postHTTPOKStr(c *http.Client, url string, values url.Values) (body string, err error) {
 	resp, err := c.PostForm(TestServer.URL+url, values)
 	if err != nil {
-		return err, ""
+		return "", err
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return errors.New("Got status code " + strconv.Itoa(resp.StatusCode) + ". was expecting " + strconv.Itoa(http.StatusOK)), ""
+		return "", errors.New("Got status code " + strconv.Itoa(resp.StatusCode) + ". was expecting " + strconv.Itoa(http.StatusOK))
 	}
 	bodyBytes, err2 := io.ReadAll(resp.Body)
 	if err2 != nil {
-		return err2, ""
+		return "", err2
 	}
-	return nil, string(bodyBytes)
+	return string(bodyBytes), nil
 }
 
 func postHTTPForbidden(c *http.Client, url string, values url.Values) error {
@@ -87,7 +87,7 @@ func postHTTPForbidden(c *http.Client, url string, values url.Values) error {
 }
 
 func loginAs(c *http.Client, domainName string, email string, password string) error {
-	err, body := postHTTPOKStr(c, "/forums/"+domainName+"/auth/signin", url.Values{
+	body, err := postHTTPOKStr(c, "/forums/"+domainName+"/auth/signin", url.Values{
 		"email": {email}, "password": {password}})
 	if err != nil {
 		return errors.New("Error posting to /auth/signin")
@@ -125,7 +125,7 @@ func TestDomainIndexPage(t *testing.T) {
 		t.Errorf("Error creating domains: %s\n", err.Error())
 	}
 
-	err, body := getHTTPOKStr(&http.Client{}, "/forums/"+testDomainName)
+	body, err := getHTTPOKStr(&http.Client{}, "/forums/"+testDomainName)
 	if err != nil {
 		t.Errorf("Error getting index page: %s\n", err.Error())
 	}
@@ -153,7 +153,7 @@ func TestAuthedDomainIndexPage(t *testing.T) {
 		t.Errorf("Error signing in: %s\n", err.Error())
 	}
 
-	err, body := getHTTPOKStr(client, "/forums/"+testDomainName+"/")
+	body, err := getHTTPOKStr(client, "/forums/"+testDomainName+"/")
 	if err != nil {
 		t.Errorf("Error getting index page: %s\n", err.Error())
 	}
@@ -178,7 +178,7 @@ func TestAuthedAdminPage(t *testing.T) {
 		t.Errorf("Error signing in: %s\n", err.Error())
 	}
 
-	err, body := getHTTPOKStr(client, "/forums/"+testDomainName+"/admin")
+	body, err := getHTTPOKStr(client, "/forums/"+testDomainName+"/admin")
 	if err != nil {
 		t.Errorf("Error getting admin page: %s\n", err.Error())
 	}
@@ -229,7 +229,7 @@ func TestAuthedAdminUpdatePage(t *testing.T) {
 	newIsRegularSignupEnabled := "1"
 	newIsReadOnly := "1"
 
-	err, body := postHTTPOKStr(client, "/forums/"+testDomainName+"/admin", url.Values{
+	body, err := postHTTPOKStr(client, "/forums/"+testDomainName+"/admin", url.Values{
 		"forum_name":                {newForumName},
 		"is_regular_signup_enabled": {newIsRegularSignupEnabled},
 		"is_readonly":               {newIsReadOnly},
@@ -272,7 +272,7 @@ func TestProfileUpdatePage(t *testing.T) {
 		Jar: jar,
 	}
 
-	err, body := getHTTPOKStr(client, "/forums/"+testDomainName+"/users/"+strconv.Itoa(user.UserID))
+	body, err := getHTTPOKStr(client, "/forums/"+testDomainName+"/users/"+strconv.Itoa(user.UserID))
 	if err != nil {
 		t.Error(err)
 	}
@@ -305,7 +305,7 @@ func TestBadAuthProfileUpdatePage(t *testing.T) {
 
 	loginAs(client, testDomainName, testUser2Email, testUser2Pass)
 
-	err, body := getHTTPOKStr(client, "/forums/"+testDomainName+"/users/"+strconv.Itoa(user.UserID))
+	body, err := getHTTPOKStr(client, "/forums/"+testDomainName+"/users/"+strconv.Itoa(user.UserID))
 	if err != nil {
 		t.Error(err)
 	}
@@ -338,7 +338,7 @@ func TestAuthedProfileUpdatePage(t *testing.T) {
 
 	loginAs(client, testDomainName, testUserEmail, testUserPass)
 
-	err, body := getHTTPOKStr(client, "/forums/"+testDomainName+"/users/"+strconv.Itoa(user.UserID))
+	body, err := getHTTPOKStr(client, "/forums/"+testDomainName+"/users/"+strconv.Itoa(user.UserID))
 	if err != nil {
 		t.Error(err)
 	}
@@ -348,7 +348,7 @@ func TestAuthedProfileUpdatePage(t *testing.T) {
 
 	newDisplayName := "Baby Doe"
 	newEmail := "babydoe@example.com"
-	if err, body := postHTTPOKStr(
+	if body, err := postHTTPOKStr(
 		client,
 		"/forums/"+testDomainName+"/users/"+strconv.Itoa(user.UserID),
 		url.Values{"display_name": {newDisplayName}, "email": {newEmail}},
@@ -379,7 +379,7 @@ func TestAdminModCreatePage(t *testing.T) {
 
 	loginAs(client, testDomainName, testAdminEmail, testAdminPass)
 
-	if err, body := postHTTPOKStr(
+	if body, err := postHTTPOKStr(
 		client,
 		"/forums/"+testDomainName+"/admin/mods/create",
 		url.Values{"mod_user_email": {testUserEmail}, "action": {"Add"}},
@@ -417,7 +417,7 @@ func TestAdminModDeletePage(t *testing.T) {
 
 	loginAs(client, testDomainName, testAdminEmail, testAdminPass)
 
-	if err, body := postHTTPOKStr(
+	if body, err := postHTTPOKStr(
 		client,
 		"/forums/"+testDomainName+"/admin/mods/delete",
 		url.Values{"mod_user_id": {strconv.Itoa(user.UserID)}, "action": {"Remove"}},
@@ -433,6 +433,113 @@ func TestAdminModDeletePage(t *testing.T) {
 
 		if models.GetUserByEmail(domain.DomainID, testUserEmail).IsSuperMod {
 			t.Errorf("Expected %s to not be a mod.\n", user.Email)
+		}
+	}
+}
+
+func TestAdminCategoryCreatePage(t *testing.T) {
+	models.CleanDB()
+
+	if err := createTestDomainAndUsers(); err != nil {
+		t.Error(err)
+	}
+
+	jar, _ := cookiejar.New(nil)
+	client := &http.Client{
+		Jar: jar,
+	}
+
+	loginAs(client, testDomainName, testAdminEmail, testAdminPass)
+
+	newCategoryName := "Off-topic"
+	newCategoryDesc := "Topics that dont belong elsewhere"
+
+	if body, err := postHTTPOKStr(
+		client,
+		"/forums/"+testDomainName+"/admin/categories/create",
+		url.Values{"name": {newCategoryName}, "description": {newCategoryDesc}, "action": {"Add"}},
+	); err != nil {
+		t.Error(err)
+	} else {
+		if !strings.Contains(body, newCategoryName) {
+			t.Errorf("Expected to find name of new category in admin page: %s\n", newCategoryName)
+		}
+		if !strings.Contains(body, newCategoryDesc) {
+			t.Errorf("Expected to find the description of the new category in admin page : %s\n", newCategoryDesc)
+		}
+	}
+
+	if body, err := getHTTPOKStr(client, "/forums/"+testDomainName+"/"); err != nil {
+		t.Error(err)
+	} else {
+		if !strings.Contains(body, newCategoryName) {
+			t.Errorf("Expected to find name of new category in main page: %s\n", newCategoryName)
+		}
+		if !strings.Contains(body, newCategoryDesc) {
+			t.Errorf("Expected to find the description of the new category in main page : %s\n", newCategoryDesc)
+		}
+	}
+}
+
+func TestAdminCategoryUpdatePage(t *testing.T) {
+	models.CleanDB()
+
+	if err := createTestDomainAndUsers(); err != nil {
+		t.Error(err)
+	}
+
+	domain := models.GetDomainByName(testDomainName)
+
+	jar, _ := cookiejar.New(nil)
+	client := &http.Client{
+		Jar: jar,
+	}
+
+	loginAs(client, testDomainName, testAdminEmail, testAdminPass)
+
+	newCategoryName := "Off-topic"
+	newCategoryDesc := "Topics that dont belong elsewhere"
+
+	categoryID := models.CreateCategory(domain.DomainID, newCategoryName, newCategoryDesc)
+
+	updatedCategoryName := "Politics"
+	updatedCategoryDesc := "Topics that create flame wars"
+
+	if body, err := postHTTPOKStr(
+		client,
+		"/forums/"+testDomainName+"/admin/categories/"+strconv.Itoa(categoryID),
+		url.Values{
+			"name":        {updatedCategoryName},
+			"description": {updatedCategoryDesc},
+			"is_readonly": {"1"},
+			"is_private":  {"1"},
+			"is_archived": {"1"},
+			"action":      {"Update"},
+		},
+	); err != nil {
+		t.Error(err)
+	} else {
+		if !strings.Contains(body, updatedCategoryName) {
+			t.Errorf("Expected to find name of new category in admin page: %s\n", updatedCategoryName)
+		}
+		if !strings.Contains(body, updatedCategoryDesc) {
+			t.Errorf("Expected to find the description of the new category in admin page: %s\n", updatedCategoryDesc)
+		}
+	}
+
+	updatedCategory := models.GetCategoryByID(categoryID)
+	if !(updatedCategory.IsReadOnly && updatedCategory.IsPrivate && updatedCategory.ArchivedAt.Valid) {
+		t.Errorf("Category not updated properly: %v\n", updatedCategory)
+	}
+
+	if body, err := getHTTPOKStr(client, "/forums/"+testDomainName+"/"); err != nil {
+		t.Error(err)
+	} else {
+		if strings.Contains(body, updatedCategoryName) {
+			t.Errorf("Expected to not find name of archived category in main page: %s\n", updatedCategoryName)
+		}
+		if strings.Contains(body, updatedCategoryDesc) {
+			t.Errorf("Expected to not find the description of the archived category in main page: %s\n", updatedCategoryDesc)
 		}
 	}
 }

@@ -35,13 +35,15 @@ func (c *Category) NumTopicsStr() string {
 	return ApproxNumStr(c.NumTopics)
 }
 
-func CreateCategory(domainID int, name string, description string) {
-	_, err := DB.Exec("INSERT INTO categories(domain_id, name, description) VALUES($1, $2, $3);",
+func CreateCategory(domainID int, name string, description string) int {
+	var id int
+	err := DB.QueryRow("INSERT INTO categories(domain_id, name, description) VALUES($1, $2, $3) RETURNING category_id;",
 		domainID, name, description,
-	)
+	).Scan(&id)
 	if err != nil {
 		glog.Errorf("Error creating category: %s\n", err.Error())
 	}
+	return id
 }
 
 func GetCategoryByID(categoryID int) *Category {
