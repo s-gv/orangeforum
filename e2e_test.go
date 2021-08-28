@@ -363,3 +363,76 @@ func TestAuthedProfileUpdatePage(t *testing.T) {
 		}
 	}
 }
+
+func TestAdminModCreatePage(t *testing.T) {
+	models.CleanDB()
+
+	if err := createTestDomainAndUsers(); err != nil {
+		t.Error(err)
+	}
+	domain := models.GetDomainByName(testDomainName)
+
+	jar, _ := cookiejar.New(nil)
+	client := &http.Client{
+		Jar: jar,
+	}
+
+	loginAs(client, testDomainName, testAdminEmail, testAdminPass)
+
+	if err, body := postHTTPOKStr(
+		client,
+		"/forums/"+testDomainName+"/admin/mods/create",
+		url.Values{"mod_user_email": {testUserEmail}, "action": {"Add"}},
+	); err != nil {
+		t.Error(err)
+	} else {
+		if !strings.Contains(body, testUserEmail) {
+			t.Errorf("Expected to find email of new mod in admin page: %s\n", testUserEmail)
+		}
+		if !strings.Contains(body, testUserName) {
+			t.Errorf("Expected to find display name of new mod in admin page : %s\n", testUserName)
+		}
+		user := models.GetUserByEmail(domain.DomainID, testUserEmail)
+		if !user.IsSuperMod {
+			t.Errorf("Expected %s to be a mod.\n", user.Email)
+		}
+	}
+}
+
+func TestAdminModDeletePage(t *testing.T) {
+	models.CleanDB()
+
+	if err := createTestDomainAndUsers(); err != nil {
+		t.Error(err)
+	}
+	domain := models.GetDomainByName(testDomainName)
+	user := models.GetUserByEmail(domain.DomainID, testUserEmail)
+
+	models.UpdateUserSuperMod(user.UserID, true)
+
+	jar, _ := cookiejar.New(nil)
+	client := &http.Client{
+		Jar: jar,
+	}
+
+	loginAs(client, testDomainName, testAdminEmail, testAdminPass)
+
+	if err, body := postHTTPOKStr(
+		client,
+		"/forums/"+testDomainName+"/admin/mods/delete",
+		url.Values{"mod_user_id": {strconv.Itoa(user.UserID)}, "action": {"Remove"}},
+	); err != nil {
+		t.Error(err)
+	} else {
+		if strings.Contains(body, testUserEmail) {
+			t.Errorf("Expected to not find email of mod in admin page: %s\n", testUserEmail)
+		}
+		if strings.Contains(body, testUserName) {
+			t.Errorf("Expected to not find display name of new mod in admin page : %s\n", testUserName)
+		}
+
+		if models.GetUserByEmail(domain.DomainID, testUserEmail).IsSuperMod {
+			t.Errorf("Expected %s to not be a mod.\n", user.Email)
+		}
+	}
+}
