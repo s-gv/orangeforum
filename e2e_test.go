@@ -93,7 +93,7 @@ func loginAs(c *http.Client, domainName string, email string, password string) e
 		return errors.New("Error posting to /auth/signin")
 	}
 	if !strings.Contains(body, "Logout") {
-		return errors.New("Signing in failed.")
+		return errors.New("signing in failed")
 	}
 	return nil
 }
