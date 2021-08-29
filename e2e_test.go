@@ -543,3 +543,136 @@ func TestAdminCategoryUpdatePage(t *testing.T) {
 		}
 	}
 }
+
+func TestTopicCreationPage(t *testing.T) {
+	models.CleanDB()
+
+	if err := createTestDomainAndUsers(); err != nil {
+		t.Error(err)
+	}
+
+	domain := models.GetDomainByName(testDomainName)
+	newCategoryName := "Off-topic"
+	newCategoryDesc := "Topics that dont belong elsewhere"
+	newTopicName := "Osama killed in drone strike"
+	newTopicContent := "Osama was found hiding in Pakistan"
+
+	categoryID := models.CreateCategory(domain.DomainID, newCategoryName, newCategoryDesc)
+
+	jar, _ := cookiejar.New(nil)
+	client := &http.Client{
+		Jar: jar,
+	}
+
+	loginAs(client, testDomainName, testUserEmail, testUserPass)
+
+	if body, err := postHTTPOKStr(
+		client,
+		"/forums/"+testDomainName+"/categories/"+strconv.Itoa(categoryID)+"/topics/new",
+		url.Values{
+			"title":   {newTopicName},
+			"content": {newTopicContent},
+			"action":  {"Submit"},
+		},
+	); err != nil {
+		t.Error(err)
+	} else {
+		if !strings.Contains(body, newTopicName) {
+			t.Errorf("Expected to find name of new topic: %s\n", newTopicName)
+		}
+		if !strings.Contains(body, newTopicContent) {
+			t.Errorf("Expected to find the content of new topic: %s\n", newTopicContent)
+		}
+	}
+}
+
+func TestTopicUpdatePage(t *testing.T) {
+	models.CleanDB()
+
+	if err := createTestDomainAndUsers(); err != nil {
+		t.Error(err)
+	}
+
+	domain := models.GetDomainByName(testDomainName)
+	user := models.GetUserByEmail(domain.DomainID, testUserEmail)
+	newCategoryName := "Off-topic"
+	newCategoryDesc := "Topics that dont belong elsewhere"
+	newTopicTitle := "Osama killed in drone strike"
+	newTopicContent := "Osama was found hiding in Pakistan"
+
+	categoryID := models.CreateCategory(domain.DomainID, newCategoryName, newCategoryDesc)
+	topicID := models.CreateTopic(categoryID, user.UserID, newTopicTitle, newTopicContent, false)
+
+	jar, _ := cookiejar.New(nil)
+	client := &http.Client{
+		Jar: jar,
+	}
+
+	loginAs(client, testDomainName, testUserEmail, testUserPass)
+
+	updatedTopicTitle := "Puppy is doing zoomies"
+	updatedTopicContent := "The puppy is cute"
+
+	if body, err := postHTTPOKStr(
+		client,
+		"/forums/"+testDomainName+"/categories/"+strconv.Itoa(categoryID)+"/topics/"+strconv.Itoa(topicID)+"/edit",
+		url.Values{
+			"title":   {updatedTopicTitle},
+			"content": {updatedTopicContent},
+			"action":  {"Update"},
+		},
+	); err != nil {
+		t.Error(err)
+	} else {
+		if !strings.Contains(body, updatedTopicTitle) {
+			t.Errorf("Expected to find title of the topic: %s\n", updatedTopicTitle)
+		}
+		if !strings.Contains(body, updatedTopicContent) {
+			t.Errorf("Expected to find the content of the topic: %s\n", updatedTopicContent)
+		}
+	}
+}
+
+func TestTopicDeletePage(t *testing.T) {
+	models.CleanDB()
+
+	if err := createTestDomainAndUsers(); err != nil {
+		t.Error(err)
+	}
+
+	domain := models.GetDomainByName(testDomainName)
+	user := models.GetUserByEmail(domain.DomainID, testUserEmail)
+	newCategoryName := "Off-topic"
+	newCategoryDesc := "Topics that dont belong elsewhere"
+	newTopicTitle := "Osama killed in drone strike"
+	newTopicContent := "Osama was found hiding in Pakistan"
+
+	categoryID := models.CreateCategory(domain.DomainID, newCategoryName, newCategoryDesc)
+	topicID := models.CreateTopic(categoryID, user.UserID, newTopicTitle, newTopicContent, false)
+
+	jar, _ := cookiejar.New(nil)
+	client := &http.Client{
+		Jar: jar,
+	}
+
+	loginAs(client, testDomainName, testUserEmail, testUserPass)
+
+	if body, err := postHTTPOKStr(
+		client,
+		"/forums/"+testDomainName+"/categories/"+strconv.Itoa(categoryID)+"/topics/"+strconv.Itoa(topicID)+"/edit",
+		url.Values{
+			"title":   {newTopicTitle},
+			"content": {newTopicContent},
+			"action":  {"Delete"},
+		},
+	); err != nil {
+		t.Error(err)
+	} else {
+		if strings.Contains(body, newTopicTitle) {
+			t.Errorf("Expected to not find name of new topic: %s\n", newTopicTitle)
+		}
+		if strings.Contains(body, newTopicContent) {
+			t.Errorf("Expected to not find the content of new topic: %s\n", newTopicContent)
+		}
+	}
+}
