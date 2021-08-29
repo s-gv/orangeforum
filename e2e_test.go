@@ -676,3 +676,132 @@ func TestTopicDeletePage(t *testing.T) {
 		}
 	}
 }
+
+func TestCommentCreatePage(t *testing.T) {
+	models.CleanDB()
+
+	if err := createTestDomainAndUsers(); err != nil {
+		t.Error(err)
+	}
+
+	domain := models.GetDomainByName(testDomainName)
+	user := models.GetUserByEmail(domain.DomainID, testUserEmail)
+	newCategoryName := "Off-topic"
+	newCategoryDesc := "Topics that dont belong elsewhere"
+	newTopicTitle := "Osama killed in drone strike"
+	newTopicContent := "Osama was found hiding in Pakistan"
+	newCommentContent := "Serves him right"
+
+	categoryID := models.CreateCategory(domain.DomainID, newCategoryName, newCategoryDesc)
+	topicID := models.CreateTopic(categoryID, user.UserID, newTopicTitle, newTopicContent, false)
+
+	jar, _ := cookiejar.New(nil)
+	client := &http.Client{
+		Jar: jar,
+	}
+
+	loginAs(client, testDomainName, testUserEmail, testUserPass)
+
+	if body, err := postHTTPOKStr(
+		client,
+		"/forums/"+testDomainName+"/categories/"+strconv.Itoa(categoryID)+"/topics/"+strconv.Itoa(topicID)+"/comments/new",
+		url.Values{
+			"content": {newCommentContent},
+			"action":  {"Submit"},
+		},
+	); err != nil {
+		t.Error(err)
+	} else {
+		if !strings.Contains(body, newCommentContent) {
+			t.Errorf("Expected to find the content of new comment: %s\n", newCommentContent)
+		}
+	}
+}
+
+func TestCommentUpdatePage(t *testing.T) {
+	models.CleanDB()
+
+	if err := createTestDomainAndUsers(); err != nil {
+		t.Error(err)
+	}
+
+	domain := models.GetDomainByName(testDomainName)
+	user := models.GetUserByEmail(domain.DomainID, testUserEmail)
+	newCategoryName := "Off-topic"
+	newCategoryDesc := "Topics that dont belong elsewhere"
+	newTopicTitle := "Osama killed in drone strike"
+	newTopicContent := "Osama was found hiding in Pakistan"
+	newCommentContent := "Serves him right"
+
+	categoryID := models.CreateCategory(domain.DomainID, newCategoryName, newCategoryDesc)
+	topicID := models.CreateTopic(categoryID, user.UserID, newTopicTitle, newTopicContent, false)
+	commentID := models.CreateComment(topicID, user.UserID, newCommentContent, false)
+
+	jar, _ := cookiejar.New(nil)
+	client := &http.Client{
+		Jar: jar,
+	}
+
+	loginAs(client, testDomainName, testUserEmail, testUserPass)
+
+	updatedCommentContent := "How wonderful"
+
+	if body, err := postHTTPOKStr(
+		client,
+		"/forums/"+testDomainName+"/categories/"+strconv.Itoa(categoryID)+"/topics/"+strconv.Itoa(topicID)+"/comments/"+strconv.Itoa(commentID)+"/edit",
+		url.Values{
+			"content": {updatedCommentContent},
+			"action":  {"Update"},
+		},
+	); err != nil {
+		t.Error(err)
+	} else {
+		if !strings.Contains(body, updatedCommentContent) {
+			t.Errorf("Expected to find the content of updated comment: %s\n", updatedCommentContent)
+		}
+	}
+}
+
+func TestCommentDeletePage(t *testing.T) {
+	models.CleanDB()
+
+	if err := createTestDomainAndUsers(); err != nil {
+		t.Error(err)
+	}
+
+	domain := models.GetDomainByName(testDomainName)
+	user := models.GetUserByEmail(domain.DomainID, testUserEmail)
+	newCategoryName := "Off-topic"
+	newCategoryDesc := "Topics that dont belong elsewhere"
+	newTopicTitle := "Osama killed in drone strike"
+	newTopicContent := "Osama was found hiding in Pakistan"
+	newCommentContent := "Serves him right"
+
+	categoryID := models.CreateCategory(domain.DomainID, newCategoryName, newCategoryDesc)
+	topicID := models.CreateTopic(categoryID, user.UserID, newTopicTitle, newTopicContent, false)
+	commentID := models.CreateComment(topicID, user.UserID, newCommentContent, false)
+
+	jar, _ := cookiejar.New(nil)
+	client := &http.Client{
+		Jar: jar,
+	}
+
+	loginAs(client, testDomainName, testUserEmail, testUserPass)
+
+	updatedCommentContent := "How wonderful"
+
+	if body, err := postHTTPOKStr(
+		client,
+		"/forums/"+testDomainName+"/categories/"+strconv.Itoa(categoryID)+"/topics/"+strconv.Itoa(topicID)+"/comments/"+strconv.Itoa(commentID)+"/edit",
+		url.Values{
+			"content": {updatedCommentContent},
+			"action":  {"Delete"},
+		},
+	); err != nil {
+		t.Error(err)
+	} else {
+		if strings.Contains(body, updatedCommentContent) || strings.Contains(body, newCommentContent) {
+			t.Errorf("Expected to not find the content of comment\n")
+		}
+	}
+}
