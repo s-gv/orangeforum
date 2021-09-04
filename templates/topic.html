@@ -34,7 +34,7 @@
             <div class="comment-date">{{ .Topic.CreatedAtStr }}</div>
         </div>
         <div class="comment-body-content">
-            {{ .Topic.Content }}
+            {{ .Topic.ContentRenderMarkdown }}
         </div>
         <div class="comment-body-actions">
             {{ if $.User }}{{ if or $.User.IsSuperAdmin $.User.IsSuperMod (eq $.User.UserID .Topic.UserID )}}
@@ -72,7 +72,7 @@
             </div>
         </div>
         <div class="comment-body-content">
-            {{ .Content }}
+            {{ .ContentRenderMarkdown }}
         </div>
         <div class="comment-body-actions">
             {{ if $.User }}{{ if or $.User.IsSuperAdmin $.User.IsSuperMod (eq $.User.UserID .UserID )}}

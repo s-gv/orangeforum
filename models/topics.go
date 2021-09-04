@@ -6,9 +6,13 @@ package models
 
 import (
 	"database/sql"
+	"html/template"
+	"strings"
 	"time"
 
 	"github.com/golang/glog"
+	"github.com/microcosm-cc/bluemonday"
+	"github.com/russross/blackfriday/v2"
 )
 
 type Topic struct {
@@ -50,6 +54,13 @@ func (t *Topic) CreatedAtStr() string {
 
 func (t *Topic) ActivityAtStr() string {
 	return RelTimeNowStr(t.ActivityAt)
+}
+
+func (t *Topic) ContentRenderMarkdown() template.HTML {
+	content := strings.ReplaceAll(t.Content, "\r\n", "\n")
+	unsafe := blackfriday.Run([]byte(content))
+	html := bluemonday.UGCPolicy().SanitizeBytes(unsafe)
+	return template.HTML(string(html))
 }
 
 func (t *TopicWithUser) CreatedAtStr() string {
