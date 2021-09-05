@@ -86,7 +86,7 @@ func mustAuth(next http.Handler) http.Handler {
 			HttpOnly: true,
 		})
 		if r.Method == "GET" {
-			http.Redirect(w, r, basePath+"auth/signin?next="+r.URL.Path, http.StatusSeeOther)
+			http.Redirect(w, r, basePath+"auth/signin?next="+r.URL.Path+"?"+r.URL.RawQuery, http.StatusSeeOther)
 		} else {
 			http.Redirect(w, r, basePath, http.StatusSeeOther)
 		}
