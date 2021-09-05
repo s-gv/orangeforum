@@ -307,3 +307,13 @@ h2 > a {
       display: none;
    }
 }
+
+blockquote {
+   border-left: 2px;
+   border-left-style: solid;
+   border-left-color: #ccc; 
+   background-color: #eee7;
+   margin-left: 5px;
+   margin-right: 0;
+   padding-left: 10px;
+}

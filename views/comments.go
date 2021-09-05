@@ -7,6 +7,7 @@ package views
 import (
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/go-chi/chi"
 	"github.com/gorilla/csrf"
@@ -23,6 +24,7 @@ func editComment(w http.ResponseWriter, r *http.Request) {
 	topicIDStr := chi.URLParam(r, "topicID")
 	categoryIDStr := chi.URLParam(r, "categoryID")
 	commentIDStr := chi.URLParam(r, "commentID")
+	quoteIDStr := r.URL.Query().Get("quote")
 
 	categoryID, err := strconv.Atoi(categoryIDStr)
 	if err != nil {
@@ -48,6 +50,7 @@ func editComment(w http.ResponseWriter, r *http.Request) {
 
 	var comment *models.Comment
 	if commentIDStr != "" {
+		// Edit comment
 		commentID, err := strconv.Atoi(commentIDStr)
 		if err != nil {
 			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
@@ -57,6 +60,21 @@ func editComment(w http.ResponseWriter, r *http.Request) {
 		if comment == nil || comment.TopicID != topic.TopicID {
 			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 			return
+		}
+	}
+
+	var quote string
+	if comment == nil {
+		if quoteIDStr == "topic" {
+			quote = "> " + strings.ReplaceAll(topic.Content, "\n", "\n> ")
+		} else {
+			if quoteCommentID, err := strconv.Atoi(quoteIDStr); err == nil {
+				if quoteComment := models.GetCommentByID(quoteCommentID); quoteComment != nil {
+					if quoteComment.TopicID == topic.TopicID {
+						quote = "> " + strings.ReplaceAll(quoteComment.Content, "\n", "\n> ")
+					}
+				}
+			}
 		}
 	}
 
@@ -109,6 +127,7 @@ func editComment(w http.ResponseWriter, r *http.Request) {
 		"Category":       category,
 		"Topic":          topic,
 		"Comment":        comment,
+		"Quote":          quote,
 	})
 
 }

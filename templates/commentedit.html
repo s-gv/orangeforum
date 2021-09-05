@@ -15,7 +15,7 @@
     {{ .csrfField }}
     <div class="form-row">
         <label for="content" class="form-label">Content</label>
-        <textarea id="content" class="form-control" name="content" placeholder="Content" rows="12" cols="50">{{ if .Comment }}{{ .Comment.Content }}{{ end }}</textarea>
+        <textarea id="content" class="form-control" name="content" placeholder="Content" rows="12" cols="50">{{ if .Comment }}{{ .Comment.Content }}{{ else }}{{ .Quote }}{{ end }}</textarea>
     </div>
     <br>
     {{ if or .User.IsSuperAdmin .User.IsSuperMod }}
