@@ -40,6 +40,8 @@ type CommentWithUser struct {
 	IsSuperMod   bool         `db:"is_supermod"`
 }
 
+var UGCPolicy = bluemonday.UGCPolicy()
+
 func (c *CommentWithUser) CreatedAtStr() string {
 	return RelTimeNowStr(c.CreatedAt)
 }
@@ -51,7 +53,7 @@ func (c *CommentWithUser) UserIconColorStr() string {
 func (c CommentWithUser) ContentRenderMarkdown() template.HTML {
 	content := strings.ReplaceAll(c.Content, "\r\n", "\n")
 	unsafe := blackfriday.Run([]byte(content))
-	html := bluemonday.UGCPolicy().SanitizeBytes(unsafe)
+	html := UGCPolicy.SanitizeBytes(unsafe)
 	return template.HTML(string(html))
 }
 
