@@ -26,6 +26,10 @@
         <input type="checkbox" id="is_sticky" name="is_sticky" value="1" {{ if .Topic }}{{ if .Topic.IsSticky }}checked{{ end }}{{ end }}>
         <label for="is_sticky">Sticky</label><br>
         {{ end }}
+        {{ if or .User.IsSuperAdmin .User.IsSuperMod }}
+        <input type="checkbox" id="is_readonly" name="is_readonly" value="1" {{ if .Topic }}{{ if .Topic.IsReadOnly }}checked{{ end }}{{ end }}>
+        <label for="is_readonly">Close topic</label><br>
+        {{ end }}
         {{ if .Topic }}
         <div class="form-row" style="margin-top: 20px;">
             <input type="submit" class="form-control btn-primary btn-inline" name="action" value="Update">
