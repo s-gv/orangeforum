@@ -95,10 +95,10 @@ func GetTopicsByCategoryID(categoryID int, before time.Time) []TopicWithUser {
 	return topics
 }
 
-func CreateTopic(categoryID int, userID int, title string, content string, isSticky bool) int {
+func CreateTopic(categoryID int, userID int, title string, content string, isSticky bool, isReadOnly bool) int {
 	var id int
-	err := DB.QueryRow("INSERT INTO topics(category_id, user_id, title, content, is_sticky) VALUES($1, $2, $3, $4, $5) RETURNING topic_id;",
-		categoryID, userID, title, content, isSticky).Scan(&id)
+	err := DB.QueryRow("INSERT INTO topics(category_id, user_id, title, content, is_sticky, is_readonly) VALUES($1, $2, $3, $4, $5, $6) RETURNING topic_id;",
+		categoryID, userID, title, content, isSticky, isReadOnly).Scan(&id)
 	if err != nil {
 		glog.Errorf("Error inserting row: %s\n", err.Error())
 		return -1
@@ -123,8 +123,8 @@ func GetTopicByID(topicID int) *Topic {
 	return &topic
 }
 
-func UpdateTopicByID(topicID int, title string, content string, isSticky bool) {
-	_, err := DB.Exec("UPDATE topics SET title = $2, content = $3, is_sticky = $4 WHERE topic_id = $1;", topicID, title, content, isSticky)
+func UpdateTopicByID(topicID int, title string, content string, isSticky bool, isReadOnly bool) {
+	_, err := DB.Exec("UPDATE topics SET title = $2, content = $3, is_sticky = $4, is_readonly = $5 WHERE topic_id = $1;", topicID, title, content, isSticky, isReadOnly)
 	if err != nil {
 		glog.Errorf("Error updating topic: %s\n", err.Error())
 	}

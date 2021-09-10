@@ -93,6 +93,10 @@ func editComment(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		if action == "Submit" {
+			if topic.IsReadOnly {
+				http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
+				return
+			}
 			newCommentID := models.CreateComment(topic.TopicID, user.UserID, content, isSticky)
 			if newCommentID >= 0 {
 				http.Redirect(w, r, basePath+"categories/"+strconv.Itoa(category.CategoryID)+

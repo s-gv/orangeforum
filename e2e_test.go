@@ -601,7 +601,7 @@ func TestTopicUpdatePage(t *testing.T) {
 	newTopicContent := "Osama was found hiding in Pakistan"
 
 	categoryID := models.CreateCategory(domain.DomainID, newCategoryName, newCategoryDesc)
-	topicID := models.CreateTopic(categoryID, user.UserID, newTopicTitle, newTopicContent, false)
+	topicID := models.CreateTopic(categoryID, user.UserID, newTopicTitle, newTopicContent, false, false)
 
 	jar, _ := cookiejar.New(nil)
 	client := &http.Client{
@@ -648,7 +648,7 @@ func TestTopicDeletePage(t *testing.T) {
 	newTopicContent := "Osama was found hiding in Pakistan"
 
 	categoryID := models.CreateCategory(domain.DomainID, newCategoryName, newCategoryDesc)
-	topicID := models.CreateTopic(categoryID, user.UserID, newTopicTitle, newTopicContent, false)
+	topicID := models.CreateTopic(categoryID, user.UserID, newTopicTitle, newTopicContent, false, false)
 
 	jar, _ := cookiejar.New(nil)
 	client := &http.Client{
@@ -693,7 +693,7 @@ func TestCommentCreatePage(t *testing.T) {
 	newCommentContent := "Serves him right"
 
 	categoryID := models.CreateCategory(domain.DomainID, newCategoryName, newCategoryDesc)
-	topicID := models.CreateTopic(categoryID, user.UserID, newTopicTitle, newTopicContent, false)
+	topicID := models.CreateTopic(categoryID, user.UserID, newTopicTitle, newTopicContent, false, false)
 
 	jar, _ := cookiejar.New(nil)
 	client := &http.Client{
@@ -734,7 +734,7 @@ func TestCommentUpdatePage(t *testing.T) {
 	newCommentContent := "Serves him right"
 
 	categoryID := models.CreateCategory(domain.DomainID, newCategoryName, newCategoryDesc)
-	topicID := models.CreateTopic(categoryID, user.UserID, newTopicTitle, newTopicContent, false)
+	topicID := models.CreateTopic(categoryID, user.UserID, newTopicTitle, newTopicContent, false, false)
 	commentID := models.CreateComment(topicID, user.UserID, newCommentContent, false)
 
 	jar, _ := cookiejar.New(nil)
@@ -778,7 +778,7 @@ func TestCommentDeletePage(t *testing.T) {
 	newCommentContent := "Serves him right"
 
 	categoryID := models.CreateCategory(domain.DomainID, newCategoryName, newCategoryDesc)
-	topicID := models.CreateTopic(categoryID, user.UserID, newTopicTitle, newTopicContent, false)
+	topicID := models.CreateTopic(categoryID, user.UserID, newTopicTitle, newTopicContent, false, false)
 	commentID := models.CreateComment(topicID, user.UserID, newCommentContent, false)
 
 	jar, _ := cookiejar.New(nil)
@@ -803,5 +803,42 @@ func TestCommentDeletePage(t *testing.T) {
 		if strings.Contains(body, updatedCommentContent) || strings.Contains(body, newCommentContent) {
 			t.Errorf("Expected to not find the content of comment\n")
 		}
+	}
+}
+
+func TestCommentCreationForAClosedTopic(t *testing.T) {
+	models.CleanDB()
+
+	if err := createTestDomainAndUsers(); err != nil {
+		t.Error(err)
+	}
+
+	domain := models.GetDomainByName(testDomainName)
+	user := models.GetUserByEmail(domain.DomainID, testUserEmail)
+	newCategoryName := "Off-topic"
+	newCategoryDesc := "Topics that dont belong elsewhere"
+	newTopicTitle := "Osama killed in drone strike"
+	newTopicContent := "Osama was found hiding in Pakistan"
+	newCommentContent := "Serves him right"
+
+	categoryID := models.CreateCategory(domain.DomainID, newCategoryName, newCategoryDesc)
+	topicID := models.CreateTopic(categoryID, user.UserID, newTopicTitle, newTopicContent, false, true)
+
+	jar, _ := cookiejar.New(nil)
+	client := &http.Client{
+		Jar: jar,
+	}
+
+	loginAs(client, testDomainName, testUserEmail, testUserPass)
+
+	if err := postHTTPForbidden(
+		client,
+		"/forums/"+testDomainName+"/categories/"+strconv.Itoa(categoryID)+"/topics/"+strconv.Itoa(topicID)+"/comments/new",
+		url.Values{
+			"content": {newCommentContent},
+			"action":  {"Submit"},
+		},
+	); err != nil {
+		t.Error(err)
 	}
 }
