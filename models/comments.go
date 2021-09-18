@@ -7,9 +7,12 @@ package models
 import (
 	"database/sql"
 	"html/template"
+	"regexp"
 	"strings"
 	"time"
 
+	"github.com/Depado/bfchroma"
+	"github.com/alecthomas/chroma/styles"
 	"github.com/golang/glog"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/russross/blackfriday/v2"
@@ -41,6 +44,12 @@ type CommentWithUser struct {
 }
 
 var UGCPolicy = bluemonday.UGCPolicy()
+var ChromaRenderer = bfchroma.NewRenderer(bfchroma.ChromaStyle(styles.GitHub))
+
+func init() {
+	UGCPolicy.AllowAttrs("style").Matching(regexp.MustCompile("^color:#[a-zA-Z0-9]+;background-color:#[a-zA-Z0-9]+$")).OnElements("pre")
+	UGCPolicy.AllowAttrs("style").Matching(regexp.MustCompile("^color:#[a-zA-Z0-9]+(;font-weight:[A-Za-z0-9]+)?$")).OnElements("span")
+}
 
 func (c *CommentWithUser) CreatedAtStr() string {
 	return RelTimeNowStr(c.CreatedAt)
@@ -52,7 +61,7 @@ func (c *CommentWithUser) UserIconColorStr() string {
 
 func (c CommentWithUser) ContentRenderMarkdown() template.HTML {
 	content := strings.ReplaceAll(c.Content, "\r\n", "\n")
-	unsafe := blackfriday.Run([]byte(content))
+	unsafe := blackfriday.Run([]byte(content), blackfriday.WithRenderer(ChromaRenderer))
 	html := UGCPolicy.SanitizeBytes(unsafe)
 	return template.HTML(string(html))
 }

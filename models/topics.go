@@ -57,7 +57,7 @@ func (t *Topic) ActivityAtStr() string {
 
 func (t *Topic) ContentRenderMarkdown() template.HTML {
 	content := strings.ReplaceAll(t.Content, "\r\n", "\n")
-	unsafe := blackfriday.Run([]byte(content))
+	unsafe := blackfriday.Run([]byte(content), blackfriday.WithRenderer(ChromaRenderer))
 	html := UGCPolicy.SanitizeBytes(unsafe)
 	return template.HTML(string(html))
 }
