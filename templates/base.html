@@ -7,7 +7,11 @@
 
         <title>{{ block "title" . }}Orange Forum{{ end }}</title>
 
+        {{ if .Domain.Icon }}
+        <link rel="shortcut icon" href="{{ .Domain.Icon }}">
+        {{ else }}
         <link rel="shortcut icon" href="{{ .BasePath }}static/favicon.png?v=223">
+        {{ end }}
         <link rel="stylesheet" href="{{ .BasePath }}static/orangeforum.css?v=223">
     </head>
     <body>

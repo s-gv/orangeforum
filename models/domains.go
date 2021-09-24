@@ -28,7 +28,7 @@ type Domain struct {
 	MaxNumActivity         int          `db:"max_num_activity"`
 	HeaderMsg              string       `db:"header_msg"`
 	Logo                   template.URL `db:"logo"`
-	Icon                   string       `db:"icon"`
+	Icon                   template.URL `db:"icon"`
 	SMTPHost               string       `db:"smtp_host"`
 	SMTPPort               int          `db:"smtp_port"`
 	SMTPUser               string       `db:"smtp_user"`
@@ -86,6 +86,7 @@ func UpdateDomainByID(
 	domainID int,
 	forumName string,
 	logo string,
+	icon string,
 	isRegularSignupEnabled bool,
 	isReadOnly bool,
 	signupToken string,
@@ -97,10 +98,12 @@ func UpdateDomainByID(
 		is_regular_signup_enabled = $3,
 		is_readonly = $4,
 		signup_token = $5,
-		logo = $6
-	WHERE 
+		logo = $6,
+                icon = $7
+	WHERE
 		domain_id = $1;`,
 		domainID, forumName, isRegularSignupEnabled, isReadOnly, signupToken, logo,
+		icon,
 	)
 	if err != nil {
 		glog.Errorf("Error updating domain ID:%d -- %s", domainID, err.Error())
@@ -116,7 +119,7 @@ func UpdateDomainSMTPByID(domainID int, smtpHost string, smtpPort int, smtpUser 
 		smtp_user = $4,
 		smtp_pass = $5,
 		default_from_email = $6
-	WHERE 
+	WHERE
 		domain_id = $1;`,
 		domainID, smtpHost, smtpPort, smtpUser, smtpPass, fromEmail,
 	)
