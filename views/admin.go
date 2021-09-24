@@ -35,6 +35,7 @@ func adminHandler(w http.ResponseWriter, r *http.Request) {
 
 		forumName := r.PostFormValue("forum_name")
 		logo := r.PostFormValue("logo")
+		icon := r.PostFormValue("icon")
 		isRegularSignupEnabled := r.PostFormValue("is_regular_signup_enabled") == "1"
 		isReadOnly := r.PostFormValue("is_readonly") == "1"
 		signupToken := r.PostFormValue("signup_token")
@@ -54,7 +55,7 @@ func adminHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if errMsg == "" {
-			models.UpdateDomainByID(domain.DomainID, forumName, logo, isRegularSignupEnabled, isReadOnly, signupToken)
+			models.UpdateDomainByID(domain.DomainID, forumName, logo, icon, isRegularSignupEnabled, isReadOnly, signupToken)
 			http.Redirect(w, r, basePath+"admin", http.StatusSeeOther)
 			return
 		}

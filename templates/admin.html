@@ -16,6 +16,10 @@ Admin
             <label for="logo" class="form-label">Logo</label>
             <textarea id="logo" class="form-control" name="logo" placeholder="image data-url" rows="12" cols="50">{{ .Domain.Logo }}</textarea>
         </div>
+        <div class="form-row">
+            <label for="icon" class="form-label">Favicon</label>
+            <textarea id="icon" class="form-control" name="icon" placeholder="image data-url" rows="12" cols="50">{{ .Domain.Icon }}</textarea>
+        </div>
         <br>
         <input type="checkbox" id="is_regular_signup_enabled" name="is_regular_signup_enabled" value="1" {{ if .Domain.IsRegularSignupEnabled }}checked{{ end }}>
         <label for="is_regular_signup_enabled">Enable public signup</label>
