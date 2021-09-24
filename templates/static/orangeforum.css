@@ -279,15 +279,22 @@ h2 > a {
 }
 
 .comment-author-numcomments {
-    color: grey;
-    font-weight: normal;
-    font-size: 8px;
+   color: white;
+   font-weight: normal;
+   font-size: 10px;
+   background-color: lightgray;
+   border-radius: 10px;
+   padding: 4px;
 }
 
 
 .comment-date {
    font-size: 14px;
    color: grey;
+}
+
+.topic-closed {
+   color: dimgrey;
 }
 
 .i-circle {
