@@ -19,20 +19,22 @@ import (
 )
 
 type Comment struct {
-	CommentID  int          `db:"comment_id"`
-	TopicID    int          `db:"topic_id"`
-	UserID     int          `db:"user_id"`
-	Content    string       `db:"content"`
-	IsSticky   bool         `db:"is_sticky"`
-	ArchivedAt sql.NullTime `db:"archived_at"`
-	CreatedAt  time.Time    `db:"created_at"`
-	UpdatedAt  time.Time    `db:"updated_at"`
+	CommentID   int          `db:"comment_id"`
+	TopicID     int          `db:"topic_id"`
+	UserID      int          `db:"user_id"`
+	NumComments int          `db:"num_comments"`
+	Content     string       `db:"content"`
+	IsSticky    bool         `db:"is_sticky"`
+	ArchivedAt  sql.NullTime `db:"archived_at"`
+	CreatedAt   time.Time    `db:"created_at"`
+	UpdatedAt   time.Time    `db:"updated_at"`
 }
 
 type CommentWithUser struct {
 	CommentID    int          `db:"comment_id"`
 	TopicID      int          `db:"topic_id"`
 	UserID       int          `db:"user_id"`
+	NumComments  int          `db:"num_comments"`
 	Content      string       `db:"content"`
 	IsSticky     bool         `db:"is_sticky"`
 	ArchivedAt   sql.NullTime `db:"archived_at"`
@@ -104,9 +106,9 @@ func GetCommentByID(commentID int) *Comment {
 func GetCommentsByTopicID(topicID int) []CommentWithUser {
 	var comments []CommentWithUser
 	err := DB.Select(&comments, `
-	SELECT 
-		comments.*, users.display_name, users.is_superadmin, users.is_supermod
-	FROM 
+	SELECT
+		comments.*, users.display_name, users.num_comments, users.is_superadmin, users.is_supermod
+	FROM
 		comments INNER JOIN users ON comments.user_id = users.user_id
 	WHERE
 		comments.topic_id = $1 ORDER BY comments.is_sticky DESC, comments.created_at;`,

@@ -5,7 +5,7 @@
 {{ define "body" }}
 
 <h2>
-{{ if .Topic.IsReadOnly}} <span style="color: dimgray; font-size: x-large;" >[Closed]</span> {{end}} 
+{{ if .Topic.IsReadOnly}} <span style="color: dimgray; font-size: x-large;" >[Closed]</span> {{end}}
 {{ .Topic.Title }}
 </h2>
 
@@ -73,11 +73,12 @@
                 <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="16" height="16" viewBox="0 0 172 172" style=" fill:#000000;"><g fill="none" fill-rule="nonzero" stroke="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="10" stroke-dasharray="" stroke-dashoffset="0" font-family="none" font-weight="none" font-size="none" text-anchor="none" style="mix-blend-mode: normal"><path d="M0,172v-172h172v172z" fill="none"></path><g fill="#95a5a6"><path d="M86.06719,171.32813l-1.505,-0.69875c-0.7525,-0.33594 -74.24219,-35.48844 -74.24219,-140.27406v-2.76813l2.70094,-0.59125c25.46406,-5.59 40.50063,-13.50469 51.47906,-19.28281c8.53281,-4.47469 14.68719,-7.71313 21.5,-7.71313c6.81281,0 12.96719,3.23844 21.5,7.71313c10.97844,5.77812 26.015,13.69281 51.47906,19.28281l2.70094,0.59125v2.76813c0,101.30531 -73.38219,139.83062 -74.12125,140.22031z"></path></g></g></svg>
                 <span class="comment-author-extra">Mod</span>
                 {{ end }}
+                <span class="comment-author-numcomments">{{ .NumComments }}</span>
             </div>
             <div class="comment-date">
                 {{ if .IsSticky }}
                     <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="16" height="16" viewBox="0 0 172 172" style=" fill:#000000;"><g fill="none" fill-rule="nonzero" stroke="none" stroke-width="1" stroke-linecap="butt" stroke-linejoin="miter" stroke-miterlimit="10" stroke-dasharray="" stroke-dashoffset="0" font-family="none" font-weight="none" font-size="none" text-anchor="none" style="mix-blend-mode: normal"><path d="M0,172v-172h172v172z" fill="none"></path><g fill="#666666"><path d="M103.14401,17.14401c-2.33303,0.00061 -4.43306,1.41473 -5.31096,3.57628c-0.8779,2.16155 -0.3586,4.6395 1.31331,6.26668l0.30234,0.30234c-11.12334,13.98572 -24.91536,41.51068 -24.91536,41.51068l-16.44974,4.10964l-2.42995,-2.42995c-1.07942,-1.10959 -2.56162,-1.73559 -4.10963,-1.73568c-2.33303,0.00061 -4.43307,1.41473 -5.31097,3.57628c-0.8779,2.16155 -0.3586,4.6395 1.31331,6.26669l45.86667,45.86667c1.43802,1.49778 3.5734,2.10113 5.5826,1.57735c2.0092,-0.52378 3.57826,-2.09284 4.10204,-4.10204c0.52378,-2.0092 -0.07957,-4.14458 -1.57735,-5.5826l-2.42995,-2.42995l4.10964,-16.44974c0,0 27.52496,-13.79203 41.51067,-24.91536l0.30235,0.30234c1.43802,1.49778 3.5734,2.10113 5.5826,1.57735c2.0092,-0.52378 3.57826,-2.09284 4.10204,-4.10204c0.52378,-2.0092 -0.07957,-4.14458 -1.57735,-5.5826l-45.86667,-45.86667c-1.07942,-1.10959 -2.56163,-1.73559 -4.10964,-1.73568zM59.01302,104.87969l-34.34401,34.34401l-0.05599,0.05599c-1.07526,1.07503 -1.67946,2.53316 -1.67969,4.05364c0,3.16643 2.5669,5.73333 5.73333,5.73333c1.52049,-0.00023 2.97861,-0.60443 4.05365,-1.67969l34.4,-34.4z"></path></g></g></svg>
-                {{ end }}  
+                {{ end }}
                 {{ .CreatedAtStr }}
             </div>
         </div>
