@@ -47,12 +47,7 @@ func cleanNextURL(next string, basePath string) string {
 	return next
 }
 
-func authenticate(id int, basePath string, w http.ResponseWriter) error {
-	_, tokenString, err := tokenAuth.Encode(map[string]interface{}{
-		"user_id": strconv.Itoa(id),
-		"iat":     time.Now(),
-		"exp":     time.Now().Add(365 * 24 * time.Hour),
-	})
+func getCookiePath(basePath string) string {
 	path := "/"
 	if basePath != "" {
 		path = basePath
@@ -60,11 +55,21 @@ func authenticate(id int, basePath string, w http.ResponseWriter) error {
 	if path != "/" && path[len(path)-1] == '/' {
 		path = path[:len(path)-1]
 	}
+	return path
+}
+
+func authenticate(id int, basePath string, w http.ResponseWriter) error {
+	_, tokenString, err := tokenAuth.Encode(map[string]interface{}{
+		"user_id": strconv.Itoa(id),
+		"iat":     time.Now(),
+		"exp":     time.Now().Add(365 * 24 * time.Hour),
+	})
+
 	if err == nil {
 		cookie := http.Cookie{
 			Name:     "jwt",
 			Value:    tokenString,
-			Path:     path,
+			Path:     getCookiePath(basePath),
 			Expires:  time.Now().Add(365 * 24 * time.Hour),
 			HttpOnly: true,
 		}
@@ -169,6 +174,11 @@ func postAuthSignIn(w http.ResponseWriter, r *http.Request) {
 	email := r.PostFormValue("email")
 	passwd := r.PostFormValue("password")
 	user := models.GetUserByPasswd(domain.DomainID, email, passwd)
+
+	if !domain.IsRegularSigninEnabled {
+		http.Error(w, "Signing in with password is disabled. Please use your email to get a one-time signin link.", http.StatusForbidden)
+		return
+	}
 
 	if user != nil && !user.BannedAt.Valid {
 		err := authenticate(user.UserID, basePath, w)
@@ -417,9 +427,10 @@ func postAuthChangePass(w http.ResponseWriter, r *http.Request) {
 
 func getAuthLogout(w http.ResponseWriter, r *http.Request) {
 	basePath := r.Context().Value(ctxBasePath).(string)
+	cookiePath := getCookiePath(basePath)
 
-	http.SetCookie(w, &http.Cookie{Name: "jwt", Value: "", Path: basePath, Expires: time.Now().Add(-300 * time.Hour), HttpOnly: true})
-	http.SetCookie(w, &http.Cookie{Name: "csrftoken", Value: "", Path: basePath, Expires: time.Now().Add(-300 * time.Hour)})
+	http.SetCookie(w, &http.Cookie{Name: "jwt", Value: "", Path: cookiePath, Expires: time.Now().Add(-300 * time.Hour), HttpOnly: true})
+	http.SetCookie(w, &http.Cookie{Name: "csrftoken", Value: "", Path: cookiePath, Expires: time.Now().Add(-300 * time.Hour)})
 	if user, ok := r.Context().Value(CtxUserKey).(*models.User); ok {
 		models.LogOutUserByID(user.UserID)
 	}

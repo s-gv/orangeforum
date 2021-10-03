@@ -65,9 +65,6 @@ func forumRouter(disableCSRF bool) *chi.Mux {
 		})
 
 		r.Route("/logout", func(r chi.Router) {
-			r.Use(jwtauth.Verifier(tokenAuth))
-			r.Use(canAuth)
-
 			r.Get("/", getAuthLogout)
 		})
 	})
