@@ -8,7 +8,7 @@ import (
 	"errors"
 )
 
-const CurrentDBVersion = 1
+const CurrentDBVersion = 2
 
 func Migrate() error {
 	iver := GetDBVersion()
@@ -20,6 +20,9 @@ func Migrate() error {
 	}
 	if iver < 1 {
 		migrate001(DB)
+	}
+	if iver < 2 {
+		migrate002(DB)
 	}
 	return nil
 }

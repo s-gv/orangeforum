@@ -13,6 +13,10 @@ Admin
             <input type="text" class="form-control" name="forum_name" id="forum_name" minlength="3" maxlength="30" placeholder="Display Name" value="{{ .Domain.ForumName }}">
         </div>
         <div class="form-row">
+            <label for="whitelisted_email_domains" class="form-label">Whitelisted Email Domains</label>
+            <input type="text" class="form-control" name="whitelisted_email_domains" id="whitelisted_email_domains" minlength="3" maxlength="30" placeholder="Whitelisted Email Domains" value="{{ .Domain.WhitelistedEmailDomains }}">
+        </div>
+        <div class="form-row">
             <label for="logo" class="form-label">Logo</label>
             <textarea id="logo" class="form-control" name="logo" placeholder="image data-url" rows="12" cols="50">{{ .Domain.Logo }}</textarea>
         </div>
@@ -21,11 +25,20 @@ Admin
             <textarea id="icon" class="form-control" name="icon" placeholder="image data-url" rows="12" cols="50">{{ .Domain.Icon }}</textarea>
         </div>
         <br>
+        <input type="checkbox" id="is_auto_user_creation_on_email_signin_enabled" name="is_auto_user_creation_on_email_signin_enabled" value="1" {{ if .Domain.IsAutoUserCreationOnEmailSigninEnabled }}checked{{ end }}>
+        <label for="is_auto_user_creation_on_email_signin_enabled">Auto create user on email signin</label>
+        <br>
         <input type="checkbox" id="is_regular_signup_enabled" name="is_regular_signup_enabled" value="1" {{ if .Domain.IsRegularSignupEnabled }}checked{{ end }}>
         <label for="is_regular_signup_enabled">Enable public signup</label>
+        <br>
+        <input type="checkbox" id="is_regular_signin_enabled" name="is_regular_signin_enabled" value="1" {{ if .Domain.IsRegularSigninEnabled }}checked{{ end }}>
+        <label for="is_regular_signin_enabled">Enable regular / password signin</label>
         <br><br>
         <input type="checkbox" id="is_readonly" name="is_readonly" value="1" {{ if .Domain.IsReadOnly }}checked{{ end }}>
         <label for="is_readonly">Enable read-only mode</label>
+        <br>
+        <input type="checkbox" id="is_private" name="is_private" value="1" {{ if .Domain.IsPrivate }}checked{{ end }}>
+        <label for="is_private">Enable private mode</label>
         <br>
         {{ if not .Domain.IsRegularSignupEnabled }}
         <div class="form-row">

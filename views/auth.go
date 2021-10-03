@@ -7,6 +7,7 @@ package views
 import (
 	"context"
 	"net/http"
+	"net/url"
 	"regexp"
 	"strconv"
 	"strings"
@@ -15,6 +16,7 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/go-chi/jwtauth"
 	"github.com/golang/glog"
+	"github.com/google/uuid"
 	"github.com/gorilla/csrf"
 	"github.com/lestrrat-go/jwx/jwt"
 	"github.com/s-gv/orangeforum/models"
@@ -26,6 +28,17 @@ const CtxUserKey = contextKey("user")
 var userNameReg *regexp.Regexp
 var nextURLReg *regexp.Regexp
 var emailReg *regexp.Regexp
+
+func getNextPathFromURL(url *url.URL) string {
+	nextPath := url.Path
+	if nextPath != "" && nextPath[len(nextPath)-1] != '/' {
+		nextPath = nextPath + "/"
+	}
+	if url.RawQuery != "" {
+		nextPath = nextPath + "?" + url.RawQuery
+	}
+	return nextPath
+}
 
 func cleanNextURL(next string, basePath string) string {
 	if next == "" || next[0] != '/' {
@@ -44,6 +57,9 @@ func authenticate(id int, basePath string, w http.ResponseWriter) error {
 	if basePath != "" {
 		path = basePath
 	}
+	if path != "/" && path[len(path)-1] == '/' {
+		path = path[:len(path)-1]
+	}
 	if err == nil {
 		cookie := http.Cookie{
 			Name:     "jwt",
@@ -59,7 +75,7 @@ func authenticate(id int, basePath string, w http.ResponseWriter) error {
 
 func mustAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		domainID := r.Context().Value(ctxDomain).(*models.Domain).DomainID
+		domain := r.Context().Value(ctxDomain).(*models.Domain)
 		token, claims, err := jwtauth.FromContext(r.Context())
 		basePath, _ := r.Context().Value(ctxBasePath).(string)
 
@@ -68,7 +84,7 @@ func mustAuth(next http.Handler) http.Handler {
 				if iat, ok := claims["iat"].(time.Time); ok {
 					userID, _ := strconv.Atoi(uid)
 					user := models.GetUserByID(userID)
-					if user != nil && user.LogoutAt.Before(iat) && user.DomainID == domainID && !user.BannedAt.Valid {
+					if user != nil && user.LogoutAt.Before(iat) && user.DomainID == domain.DomainID && !user.BannedAt.Valid {
 						ctx := context.WithValue(r.Context(), CtxUserKey, user)
 						// Token is authenticated, pass it through
 						next.ServeHTTP(w, r.WithContext(ctx))
@@ -86,7 +102,7 @@ func mustAuth(next http.Handler) http.Handler {
 			HttpOnly: true,
 		})
 		if r.Method == "GET" {
-			http.Redirect(w, r, basePath+"auth/signin?next="+r.URL.Path+"?"+r.URL.RawQuery, http.StatusSeeOther)
+			http.Redirect(w, r, basePath+"auth/signin?next="+getNextPathFromURL(r.URL), http.StatusSeeOther)
 		} else {
 			http.Redirect(w, r, basePath, http.StatusSeeOther)
 		}
@@ -95,15 +111,16 @@ func mustAuth(next http.Handler) http.Handler {
 
 func canAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		domainID := r.Context().Value(ctxDomain).(*models.Domain).DomainID
+		domain := r.Context().Value(ctxDomain).(*models.Domain)
 		token, claims, err := jwtauth.FromContext(r.Context())
+		basePath, _ := r.Context().Value(ctxBasePath).(string)
 
 		if err == nil && token != nil && jwt.Validate(token) == nil {
 			if uid, ok := claims["user_id"].(string); ok {
 				if iat, ok := claims["iat"].(time.Time); ok {
 					userID, _ := strconv.Atoi(uid)
 					user := models.GetUserByID(userID)
-					if user != nil && user.LogoutAt.Before(iat) && user.DomainID == domainID {
+					if user != nil && user.LogoutAt.Before(iat) && user.DomainID == domain.DomainID {
 						ctx := context.WithValue(r.Context(), CtxUserKey, user)
 						// Token is authenticated, pass it through
 						next.ServeHTTP(w, r.WithContext(ctx))
@@ -111,6 +128,22 @@ func canAuth(next http.Handler) http.Handler {
 					}
 				}
 			}
+		}
+
+		if domain.IsPrivate {
+			http.SetCookie(w, &http.Cookie{
+				Name:     "jwt",
+				Value:    "",
+				Path:     "/",
+				Expires:  time.Now().Add(-300 * time.Hour),
+				HttpOnly: true,
+			})
+			if r.Method == "GET" {
+				http.Redirect(w, r, basePath+"auth/signin?next="+getNextPathFromURL(r.URL), http.StatusSeeOther)
+			} else {
+				http.Redirect(w, r, basePath, http.StatusSeeOther)
+			}
+			return
 		}
 
 		next.ServeHTTP(w, r)
@@ -173,6 +206,16 @@ func postAuthOneTimeSignIn(w http.ResponseWriter, r *http.Request) {
 	errMsg := "E-mail not found"
 
 	user := models.GetUserByEmail(domain.DomainID, email)
+
+	if user == nil && domain.IsAutoUserCreationOnEmailSigninEnabled {
+		if emailErrMsg := validateEmail(email, domain); emailErrMsg != "" {
+			errMsg = emailErrMsg
+		} else {
+			displayName := strings.Split(email, "@")[0]
+			models.CreateUser(domain.DomainID, email, displayName, uuid.NewString())
+			user = models.GetUserByEmail(domain.DomainID, email)
+		}
+	}
 	if user != nil {
 		errMsg = "A one time sign-in link has been sent to your email"
 		token := models.UpdateUserOneTimeLoginTokenByID(user.UserID)
@@ -234,7 +277,7 @@ func getAuthSignUp(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func validateEmail(email string) string {
+func validateEmail(email string, domain *models.Domain) string {
 	errMsg := ""
 	if !strings.Contains(email, "@") {
 		errMsg = "Invalid email"
@@ -243,6 +286,11 @@ func validateEmail(email string) string {
 		errMsg = "Email should have at least 3 characters"
 	} else if emailReg.ReplaceAllString(email, "") != email {
 		errMsg = "Email should not have non-alphanumeric characters"
+	}
+	if domain.WhitelistedEmailDomains != "" {
+		if !strings.Contains(domain.WhitelistedEmailDomains, email[strings.Index(email, "@")+1:]) {
+			errMsg = "Email does not belong to a whitelisted domain"
+		}
 	}
 	return errMsg
 }
@@ -266,7 +314,7 @@ func postAuthSignUp(w http.ResponseWriter, r *http.Request) {
 
 	errMsg := ""
 
-	errMsg = validateEmail(email)
+	errMsg = validateEmail(email, domain)
 
 	if len(passwd) < 6 {
 		errMsg = "Password should have at least 6 characters"

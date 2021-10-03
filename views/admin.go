@@ -34,10 +34,14 @@ func adminHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		forumName := r.PostFormValue("forum_name")
+		whitelistedEmailDomains := r.PostFormValue("whitelisted_email_domains")
 		logo := r.PostFormValue("logo")
 		icon := r.PostFormValue("icon")
 		isRegularSignupEnabled := r.PostFormValue("is_regular_signup_enabled") == "1"
+		isRegularSigninEnabled := r.PostFormValue("is_regular_signin_enabled") == "1"
+		isAutoUserCreationOnEmailSigninEnabled := r.PostFormValue("is_auto_user_creation_on_email_signin_enabled") == "1"
 		isReadOnly := r.PostFormValue("is_readonly") == "1"
+		isPrivate := r.PostFormValue("is_private") == "1"
 		signupToken := r.PostFormValue("signup_token")
 
 		if len(forumName) < 3 || len(forumName) > 30 {
@@ -55,7 +59,18 @@ func adminHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if errMsg == "" {
-			models.UpdateDomainByID(domain.DomainID, forumName, logo, icon, isRegularSignupEnabled, isReadOnly, signupToken)
+			models.UpdateDomainByID(domain.DomainID,
+				forumName,
+				whitelistedEmailDomains,
+				logo,
+				icon,
+				isRegularSignupEnabled,
+				isRegularSigninEnabled,
+				isAutoUserCreationOnEmailSigninEnabled,
+				isReadOnly,
+				isPrivate,
+				signupToken,
+			)
 			http.Redirect(w, r, basePath+"admin", http.StatusSeeOther)
 			return
 		}

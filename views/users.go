@@ -72,7 +72,7 @@ func profileHandler(w http.ResponseWriter, r *http.Request) {
 			newIsBanned = false
 		}
 
-		errMsg = validateEmail(newEmail)
+		errMsg = validateEmail(newEmail, domain)
 
 		if len(newDisplayName) < 3 || len(newDisplayName) > 30 {
 			errMsg = "Display name should have between 3 and 30 characters"

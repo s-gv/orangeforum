@@ -17,31 +17,35 @@ import (
 )
 
 type Domain struct {
-	DomainID               int          `db:"domain_id"`
-	DomainName             string       `db:"domain_name"`
-	ForumName              string       `db:"forum_name"`
-	NoRegularSignupMsg     string       `db:"no_regular_signup_msg"`
-	SignupToken            string       `db:"signup_token"`
-	EditWindow             int          `db:"edit_window"`
-	AutoTopicCloseDays     int          `db:"auto_topic_close_days"`
-	UserActivityWindow     int          `db:"user_activity_window"`
-	MaxNumActivity         int          `db:"max_num_activity"`
-	HeaderMsg              string       `db:"header_msg"`
-	Logo                   template.URL `db:"logo"`
-	Icon                   template.URL `db:"icon"`
-	SMTPHost               string       `db:"smtp_host"`
-	SMTPPort               int          `db:"smtp_port"`
-	SMTPUser               string       `db:"smtp_user"`
-	SMTPPass               string       `db:"smtp_pass"`
-	DefaultFromEmail       string       `db:"default_from_email"`
-	IsRegularSignupEnabled bool         `db:"is_regular_signup_enabled"`
-	IsReadOnly             bool         `db:"is_readonly"`
-	IsGroupSub             bool         `db:"enable_group_sub"`
-	IsTopicAutoSub         bool         `db:"enable_topic_autosub"`
-	IsCommentAutoSub       bool         `db:"enable_comment_autosub"`
-	ArchivedAt             sql.NullTime `db:"archived_at"`
-	CreatedAt              time.Time    `db:"created_at"`
-	UpdatedAt              time.Time    `db:"updated_at"`
+	DomainID                               int          `db:"domain_id"`
+	DomainName                             string       `db:"domain_name"`
+	ForumName                              string       `db:"forum_name"`
+	NoRegularSignupMsg                     string       `db:"no_regular_signup_msg"`
+	WhitelistedEmailDomains                string       `db:"whitelisted_email_domains"`
+	SignupToken                            string       `db:"signup_token"`
+	EditWindow                             int          `db:"edit_window"`
+	AutoTopicCloseDays                     int          `db:"auto_topic_close_days"`
+	UserActivityWindow                     int          `db:"user_activity_window"`
+	MaxNumActivity                         int          `db:"max_num_activity"`
+	HeaderMsg                              string       `db:"header_msg"`
+	Logo                                   template.URL `db:"logo"`
+	Icon                                   template.URL `db:"icon"`
+	SMTPHost                               string       `db:"smtp_host"`
+	SMTPPort                               int          `db:"smtp_port"`
+	SMTPUser                               string       `db:"smtp_user"`
+	SMTPPass                               string       `db:"smtp_pass"`
+	DefaultFromEmail                       string       `db:"default_from_email"`
+	IsPrivate                              bool         `db:"is_private"`
+	IsRegularSigninEnabled                 bool         `db:"is_regular_signin_enabled"`
+	IsAutoUserCreationOnEmailSigninEnabled bool         `db:"is_auto_user_creation_on_email_signin_enabled"`
+	IsRegularSignupEnabled                 bool         `db:"is_regular_signup_enabled"`
+	IsReadOnly                             bool         `db:"is_readonly"`
+	IsGroupSub                             bool         `db:"enable_group_sub"`
+	IsTopicAutoSub                         bool         `db:"enable_topic_autosub"`
+	IsCommentAutoSub                       bool         `db:"enable_comment_autosub"`
+	ArchivedAt                             sql.NullTime `db:"archived_at"`
+	CreatedAt                              time.Time    `db:"created_at"`
+	UpdatedAt                              time.Time    `db:"updated_at"`
 }
 
 func CreateDomain(domainName string) error {
@@ -85,24 +89,41 @@ func GetDomainIDByName(domainName string) *int {
 func UpdateDomainByID(
 	domainID int,
 	forumName string,
+	whitelistedEmailDomains string,
 	logo string,
 	icon string,
 	isRegularSignupEnabled bool,
+	isRegularSigninEnabled bool,
+	isAutoUserCreationOnEmailSigninEnabled bool,
 	isReadOnly bool,
+	isPrivate bool,
 	signupToken string,
 ) {
 	_, err := DB.Exec(`
 	UPDATE domains
 	SET
 		forum_name = $2,
-		is_regular_signup_enabled = $3,
-		is_readonly = $4,
-		signup_token = $5,
-		logo = $6,
-                icon = $7
+		whitelisted_email_domains = $3,
+		is_regular_signup_enabled = $4,
+		is_regular_signin_enabled = $5,
+		is_auto_user_creation_on_email_signin_enabled = $6,
+		is_readonly = $7,
+		is_private = $8,
+		signup_token = $9,
+		logo = $10,
+        icon = $11
 	WHERE
 		domain_id = $1;`,
-		domainID, forumName, isRegularSignupEnabled, isReadOnly, signupToken, logo,
+		domainID,
+		forumName,
+		whitelistedEmailDomains,
+		isRegularSignupEnabled,
+		isRegularSigninEnabled,
+		isAutoUserCreationOnEmailSigninEnabled,
+		isReadOnly,
+		isPrivate,
+		signupToken,
+		logo,
 		icon,
 	)
 	if err != nil {
