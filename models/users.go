@@ -119,12 +119,8 @@ func GetUserByOneTimeToken(domainID int, oneTimeToken string) *User {
 	if user.DomainID != domainID {
 		return nil
 	}
-	if !user.OnetimeLoginTokenAt.Valid || user.OnetimeLoginTokenAt.Time.Add(4*time.Hour).Before(time.Now()) {
+	if !user.OnetimeLoginTokenAt.Valid || user.OnetimeLoginTokenAt.Time.Add(2*time.Hour).Before(time.Now()) {
 		return nil
-	}
-	_, e := DB.Exec("UPDATE users SET onetime_login_token_at = to_timestamp(0) WHERE user_id=$1;", user.UserID)
-	if e != nil {
-		glog.Errorf("Error resetting onetime sign-in token creation time: %s", e)
 	}
 	return &user
 }
