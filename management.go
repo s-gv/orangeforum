@@ -9,7 +9,7 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/s-gv/orangeforum/models"
+	"orangeforum/models"
 	"golang.org/x/crypto/ssh/terminal"
 )
 

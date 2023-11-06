@@ -19,8 +19,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/csrf"
 	"github.com/lestrrat-go/jwx/jwt"
-	"github.com/s-gv/orangeforum/models"
-	"github.com/s-gv/orangeforum/templates"
+	"orangeforum/models"
+	"orangeforum/templates"
 )
 
 const CtxUserKey = contextKey("user")

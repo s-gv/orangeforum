@@ -7,7 +7,7 @@ package views
 import (
 	"net/http"
 
-	"github.com/s-gv/orangeforum/templates"
+	"orangeforum/templates"
 )
 
 func getCSS(w http.ResponseWriter, r *http.Request) {

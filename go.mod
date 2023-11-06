@@ -1,4 +1,4 @@
-module github.com/s-gv/orangeforum
+module orangeforum
 
 go 1.16
 

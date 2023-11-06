@@ -10,8 +10,8 @@ import (
 	"testing"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/s-gv/orangeforum/models"
-	"github.com/s-gv/orangeforum/views"
+	"orangeforum/models"
+	"orangeforum/views"
 )
 
 var TestServer *httptest.Server

@@ -12,8 +12,8 @@ import (
 	"time"
 
 	"github.com/golang/glog"
-	"github.com/s-gv/orangeforum/models"
-	"github.com/s-gv/orangeforum/views"
+	"orangeforum/models"
+	"orangeforum/views"
 
 	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/jmoiron/sqlx"

@@ -9,7 +9,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi"
-	"github.com/s-gv/orangeforum/models"
+	"orangeforum/models"
 )
 
 type contextKey string
