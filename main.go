@@ -11,12 +11,14 @@ import (
 	"os"
 	"time"
 
-	"github.com/golang/glog"
 	"orangeforum/models"
 	"orangeforum/views"
 
+	"github.com/golang/glog"
+
 	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/jmoiron/sqlx"
+	_ "github.com/joho/godotenv/autoload" // load .env file automatically
 )
 
 func main() {
@@ -36,6 +38,7 @@ func main() {
 	deleteDomain := flag.Bool("deletedomain", false, "Delete domain")
 	deleteUser := flag.Bool("deleteuser", false, "Delete user")
 	setSMTP := flag.Bool("setsmtp", false, "Set SMTP Settings")
+	envSMTP := flag.Bool("envsmtp", false, "Set SMTP Settings from .env")
 	disableLogger := flag.Bool("disablelogger", false, "Disable HTTP request logger")
 
 	flag.Parse()
@@ -104,6 +107,11 @@ func main() {
 
 	if *setSMTP {
 		commandSetupSMTP()
+		return
+	}
+
+	if *envSMTP {
+		commandSetupSMTPFromEnv()
 		return
 	}
 
