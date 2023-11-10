@@ -8,10 +8,14 @@ import (
 	"context"
 	"net/http"
 	"net/url"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
+
+	"orangeforum/models"
+	"orangeforum/templates"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/jwtauth"
@@ -19,8 +23,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/csrf"
 	"github.com/lestrrat-go/jwx/jwt"
-	"orangeforum/models"
-	"orangeforum/templates"
 )
 
 const CtxUserKey = contextKey("user")
@@ -235,7 +237,13 @@ func postAuthOneTimeSignIn(w http.ResponseWriter, r *http.Request) {
 		subject := forumName + " sign-in link"
 		body := "Someone (hopefully you) requested a sign-in link for " + forumName + ".\r\n" +
 			"If you want to sign-in, visit " + link + "\r\n\r\nIf not, just ignore this message."
-		sendMail(domain.DefaultFromEmail, user.Email, subject, body, domain.ForumName, domain.SMTPHost, domain.SMTPPort, domain.SMTPUser, domain.SMTPPass)
+		if os.Getenv("SMTP_LOGIN") != "" {
+			// do SMTPAuthLogin, when SMTP_LOGIN is none-empty
+			sendMailWithLogin(domain.DefaultFromEmail, user.Email, subject, body, domain.ForumName, domain.SMTPHost, domain.SMTPPort, domain.SMTPUser, domain.SMTPPass)
+		} else {
+			// do SMTPAuthPlain
+			sendMail(domain.DefaultFromEmail, user.Email, subject, body, domain.ForumName, domain.SMTPHost, domain.SMTPPort, domain.SMTPUser, domain.SMTPPass)
+		}
 	}
 
 	templates.OneTimeSignin.Execute(w, map[string]interface{}{
