@@ -14,7 +14,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/s-gv/orangeforum/models"
+	"orangeforum/models"
 )
 
 const (

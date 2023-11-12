@@ -7,7 +7,7 @@ package main
 import (
 	"testing"
 
-	"github.com/s-gv/orangeforum/models"
+	"orangeforum/models"
 )
 
 func TestDomainCreation(t *testing.T) {

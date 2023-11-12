@@ -5,10 +5,13 @@
 package views
 
 import (
+	"fmt"
 	"net/smtp"
 	"strconv"
+	"strings"
 
 	"github.com/golang/glog"
+	"github.com/wneessen/go-mail"
 )
 
 func sendMail(from string, to string, sub string, body string, forumName string, smtpHost string, smtpPort int, smtpUser string, smtpPass string) {
@@ -35,4 +38,30 @@ func sendMail(from string, to string, sub string, body string, forumName string,
 		}
 
 	}(from, to, sub, body, forumName, smtpHost, smtpPort, smtpUser, smtpPass)
+}
+
+// For Outlook
+func sendMailWithLogin(from string, to string, sub string, body string, forumName string, smtpHost string, smtpPort int, smtpUser string, smtpPass string) error {
+	// Create a new message
+	m := mail.NewMsg()
+	if err := m.From(from); err != nil {
+		return fmt.Errorf(w, "failed to set From address: %w", err)
+	}
+	if err := m.To(strings.Split(to, ",")...); err != nil {
+		return fmt.Errorf(w, "failed to set To address: %w", err)
+	}
+	m.Subject(sub)
+	m.SetBodyString(mail.TypeTextHTML, body)
+
+	// Sending the email
+	c, err := mail.NewClient(smtpHost, mail.WithPort(smtpPort),
+		// mail.WithSMTPAuth(mail.SMTPAuthPlain),
+		mail.WithSMTPAuth(mail.SMTPAuthLogin), // for Outlook
+		mail.WithUsername(smtpUser), mail.WithPassword(smtpPass))
+	if err != nil {
+		return fmt.Errorf(w, "failed to create mail client: %w", err)
+	}
+	if err := c.DialAndSend(m); err != nil {
+		return fmt.Errorf(w, "failed to send mail: %w", err)
+	}
 }

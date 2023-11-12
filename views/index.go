@@ -8,8 +8,8 @@ import (
 	"net/http"
 
 	"github.com/gorilla/csrf"
-	"github.com/s-gv/orangeforum/models"
-	"github.com/s-gv/orangeforum/templates"
+	"orangeforum/models"
+	"orangeforum/templates"
 )
 
 func getIndex(w http.ResponseWriter, r *http.Request) {

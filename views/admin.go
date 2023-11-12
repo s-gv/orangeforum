@@ -10,8 +10,8 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/gorilla/csrf"
-	"github.com/s-gv/orangeforum/models"
-	"github.com/s-gv/orangeforum/templates"
+	"orangeforum/models"
+	"orangeforum/templates"
 )
 
 func adminHandler(w http.ResponseWriter, r *http.Request) {

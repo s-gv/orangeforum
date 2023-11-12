@@ -6,10 +6,13 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"strconv"
 	"strings"
 	"syscall"
 
-	"github.com/s-gv/orangeforum/models"
+	"orangeforum/models"
+
 	"golang.org/x/crypto/ssh/terminal"
 )
 
@@ -224,6 +227,32 @@ func commandSetupSMTP() {
 	var defaultFromEmail string
 	fmt.Printf("Default from email: ")
 	fmt.Scanf("%s\n", &defaultFromEmail)
+
+	models.UpdateDomainSMTPByID(domain.DomainID, smtpHost, smtpPort, smtpUser, smtpPass, defaultFromEmail)
+}
+
+func commandSetupSMTPFromEnv() {
+	var domainName string
+	fmt.Printf("Domain name: ")
+	fmt.Scanf("%s\n", &domainName)
+
+	domain := models.GetDomainByName(domainName)
+	if domain == nil {
+		fmt.Printf("[ERROR] Invalid domain\n")
+		return
+	}
+
+	smtpHost := os.Getenv("SMTP_HOST")
+	p := os.Getenv("SMTP_PORT")
+	smtpPort, err := strconv.Atoi(p)
+	if err != nil {
+		fmt.Printf("[ERROR] Invalid env SMTP_PORT setting\n")
+		return
+	}
+
+	smtpUser := os.Getenv("SMTP_USER")
+	smtpPass := os.Getenv("SMTP_PASS")
+	defaultFromEmail := smtpUser // os.Getenv("FROM_EMAIL")
 
 	models.UpdateDomainSMTPByID(domain.DomainID, smtpHost, smtpPort, smtpUser, smtpPass, defaultFromEmail)
 }
