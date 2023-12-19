@@ -16,5 +16,5 @@ require (
 	github.com/lestrrat-go/jwx v1.2.26
 	github.com/microcosm-cc/bluemonday v1.0.23
 	github.com/russross/blackfriday/v2 v2.1.0
-	golang.org/x/crypto v0.9.0
+	golang.org/x/crypto v0.17.0
 )
